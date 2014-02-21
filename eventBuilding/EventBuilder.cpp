@@ -13,6 +13,7 @@
 
 #include "../socket/ZMQHandler.h"
 #include "../utils/Utils.h"
+#include "../l0/MEPEvent.h"
 
 namespace na62 {
 EventBuilder::EventBuilder() :
@@ -31,21 +32,47 @@ void EventBuilder::thread() {
 	ZMQHandler::BindInproc(LKrSocket_, ZMQHandler::GetEBLKrAddress(threadNum_));
 
 	int timeout = 0;
+
+	// LKrSocket should never block
+	LKrSocket_->setsockopt(ZMQ_RCVTIMEO, &timeout, sizeof(timeout));
+
 	while (true) {
+		/*
+		 * L0Socket will block if the last poll did not find a packet
+		 * The timeout will be increased very time no packet was found
+		 */
 		L0Socket_->setsockopt(ZMQ_RCVTIMEO, &timeout, sizeof(timeout));
 
 		zmq::message_t msg;
-		if (L0Socket_->recv(&msg)) {
-			Utils::PrintHex((char*) msg.data(), 4);
-			std::cout << msg.data() << "????" << std::endl;
-			timeout = 0;
-		} else if (LKrSocket_->recv(&msg)) {
-			timeout = 0;
-		} else {
-			std::cout << "timeout " << std::endl;
-		}
-	}
 
+		try {
+
+			if (L0Socket_->recv(&msg)) {
+				l0::MEPEvent* event = (l0::MEPEvent*) msg.data();
+				std::cerr << event->getEventNumber() << " received" << std::endl;
+
+				timeout = 0;
+			} else if (LKrSocket_->recv(&msg)) {
+				timeout = 0;
+			} else {
+				if (timeout == 0) {
+					timeout = 1;
+				} else {
+					timeout *= 2;
+					if (timeout > 1000) {
+						timeout = -1;
+					}
+				}
+			}
+
+		} catch (const zmq::error_t& ex) {
+			if (ex.num() != EINTR) {
+				std::cerr << ex.what() << std::endl;
+				throw;
+			}
+		}
+
+	}
 }
 
 } /* namespace na62 */

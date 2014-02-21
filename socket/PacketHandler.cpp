@@ -197,10 +197,21 @@ void PacketHandler::processPacket(DataContainer container) {
 			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
 				l0::MEPEvent* event = mep->getEvent(i);
 
-				zmq::message_t request((void*)event, event->getEventLength(),
+				zmq::message_t request((void*) event, event->getEventLength(),
 						(zmq::free_fn*) nullptr);
-				EBL0sockets_[event->getEventNumber()
-						% Options::GetInt(OPTION_NUMBER_OF_EBS)]->send(request);
+
+				try {
+
+					EBL0sockets_[event->getEventNumber()
+							% Options::GetInt(OPTION_NUMBER_OF_EBS)]->send(
+							request);
+				} catch (const zmq::error_t& ex) {
+					if (ex.num() != EINTR) {
+						std::cerr << ex.what() << std::endl;
+						throw;
+					}
+				}
+
 			}
 
 		} else if (destPort == Options::GetInt(OPTION_CREAM_RECEIVER_PORT)) {

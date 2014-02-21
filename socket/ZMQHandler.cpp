@@ -41,7 +41,6 @@ std::string ZMQHandler::GetEBLKrAddress(int threadNum) {
 }
 
 void ZMQHandler::BindInproc(zmq::socket_t* socket, std::string address) {
-	std::cout << "Binding " << address << std::endl;
 	socket->bind(address.c_str());
 
 	boost::lock_guard<boost::mutex> lock(connectMutex_);
@@ -49,14 +48,12 @@ void ZMQHandler::BindInproc(zmq::socket_t* socket, std::string address) {
 }
 
 void ZMQHandler::ConnectInproc(zmq::socket_t* socket, std::string address) {
-	std::cout << "Trying to connect " << address << std::endl;
 	connectMutex_.lock();
 	while (boundAddresses_.find(address) == boundAddresses_.end()) {
 		connectMutex_.unlock();
 		usleep(100000);
 		connectMutex_.lock();
 	}
-	std::cout << "Successfully connected " << address << std::endl;
 	socket->connect(address.c_str());
 	connectMutex_.unlock();
 }
