@@ -20,10 +20,10 @@
 #include <sys/types.h>
 #include <cstdlib>
 #include <iostream>
-#include <iterator>
 #include <map>
 #include <typeinfo>
 #include <utility>
+#include <boost/thread.hpp>
 
 po::variables_map Options::vm;
 po::options_description Options::desc("Allowed options");
@@ -74,6 +74,11 @@ void Options::Initialize(int argc, char* argv[]) {
 
 	(OPTION_EOB_BROADCAST_PORT, po::value<int>()->default_value(14162),
 			"Port for Broadcast packets used to distribute the last event numbers ob a burst.")
+
+	(OPTION_NUMBER_OF_EBS,
+			po::value<int>()->default_value(
+					boost::thread::hardware_concurrency() - 4),
+			"Number of threads to be used for eventbuilding and L1/L2 processing")
 
 			;
 

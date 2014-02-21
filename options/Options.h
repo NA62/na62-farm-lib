@@ -36,6 +36,12 @@ namespace po = boost::program_options;
 #define OPTION_CREAM_RECEIVER_PORT (char*)"CREAMPort"
 #define OPTION_EOB_BROADCAST_PORT (char*)"EOBBroadcastPort"
 
+/*
+ * Event Building
+ */
+#define OPTION_NUMBER_OF_EBS (char*)"numberOfEB"
+
+
 class INotifiable;
 class Options {
 public:

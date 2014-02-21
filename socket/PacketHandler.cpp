@@ -7,28 +7,35 @@
 
 #include "PacketHandler.h"
 
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/date_time/time_duration.hpp>
+#include <boost/thread/pthread/thread_data.hpp>
 #include <linux/pf_ring.h>
 #include <net/ethernet.h>
 #include <net/if_arp.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
+#include <zmq.h>
+#include <zmq.hpp>
+#include <algorithm>
 #include <cstdbool>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
-#include <new>
 #include <queue>
 
 #include "../exceptions/UnknownCREAMSourceIDFound.h"
 #include "../exceptions/UnknownSourceIDFound.h"
 #include "../l0/MEP.h"
+#include "../l0/MEPEvent.h"
 #include "../LKr/LKRMEP.h"
 #include "../messages/MessageHandler.h"
 #include "../options/Options.h"
 #include "../structs/Network.h"
 #include "EthernetUtils.h"
 #include "PFringHandler.h"
+#include "ZMQHandler.h"
 
 namespace na62 {
 
@@ -36,12 +43,29 @@ bool changeBurstID = false;
 uint32_t nextBurstID = 0;
 
 PacketHandler::PacketHandler() {
+
 }
 
 PacketHandler::~PacketHandler() {
 }
 
+void PacketHandler::connectZMQ() {
+	for (int i = 0; i < Options::GetInt(OPTION_NUMBER_OF_EBS); i++) {
+		EBL0sockets_.push_back(ZMQHandler::GenerateSocket(ZMQ_PUSH));
+		ZMQHandler::ConnectInproc(EBL0sockets_[i],
+				ZMQHandler::GetEBL0Address(i));
+	}
+
+	for (int i = 0; i < Options::GetInt(OPTION_NUMBER_OF_EBS); i++) {
+		EBLKrSockets_.push_back(ZMQHandler::GenerateSocket(ZMQ_PUSH));
+		ZMQHandler::ConnectInproc(EBLKrSockets_[i],
+				ZMQHandler::GetEBLKrAddress(i));
+	}
+}
+
 void PacketHandler::thread() {
+	connectZMQ();
+
 	DataContainer container;
 
 	std::queue<DataContainer> dataContainers;
@@ -63,7 +87,7 @@ void PacketHandler::thread() {
 			char* buff = new char[hdr.len];
 			memcpy(buff, data, hdr.len);
 			container = {buff, (uint16_t) hdr.len};
-			dataContainers.push(container);
+			dataContainers.push(std::move(container));
 			sleepMicros = 1;
 		} else if (dataContainers.empty()) {
 			/*
@@ -71,6 +95,10 @@ void PacketHandler::thread() {
 			 */
 //			if (!PFringHandler::doSendPacket(threadNum_)) {
 //			}
+			boost::this_thread::sleep(boost::posix_time::microsec(sleepMicros));
+			if (sleepMicros < 10000) {
+				sleepMicros *= 2;
+			}
 		} else {
 			processPacket(dataContainers.front());
 			dataContainers.pop();
@@ -79,6 +107,8 @@ void PacketHandler::thread() {
 }
 
 void PacketHandler::processPacket(DataContainer container) {
+	std::cout << "Received packet " << container.length << " \t " << threadNum_
+			<< std::endl;
 	try {
 		struct UDP_HDR* hdr = (struct UDP_HDR*) container.data;
 		uint16_t etherType = ntohs(hdr->eth.ether_type);
@@ -162,18 +192,24 @@ void PacketHandler::processPacket(DataContainer container) {
 			 * L0 Data
 			 * * Length is hdr->ip.tot_len-sizeof(struct udphdr) and not container.length because of ethernet padding bytes!
 			 */
-			l0::MEP* mep = new (std::nothrow) l0::MEP(UDPPayload, dataLength,
-					container.data);
+			l0::MEP* mep = new l0::MEP(UDPPayload, dataLength, container.data);
 
-			// TODO: send mep to EB
+			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
+				l0::MEPEvent* event = mep->getEvent(i);
+
+				zmq::message_t request((void*)event, event->getEventLength(),
+						(zmq::free_fn*) nullptr);
+				EBL0sockets_[event->getEventNumber()
+						% Options::GetInt(OPTION_NUMBER_OF_EBS)]->send(request);
+			}
+
 		} else if (destPort == Options::GetInt(OPTION_CREAM_RECEIVER_PORT)) {
 			/*
 			 * CREAM Data
 			 * Length is hdr->ip.tot_len-sizeof(struct iphdr) and not container.length because of ethernet padding bytes!
 			 */
-
-			cream::LKRMEP* mep = new (std::nothrow) cream::LKRMEP(UDPPayload,
-					dataLength, container.data);
+			cream::LKRMEP* mep = new cream::LKRMEP(UDPPayload, dataLength,
+					container.data);
 			// TODO: send mep to EB
 		} else if (destPort == Options::GetInt(OPTION_EOB_BROADCAST_PORT)) {
 			if (dataLength != sizeof(struct EOB_FULL_FRAME) - sizeof(UDP_HDR)) {

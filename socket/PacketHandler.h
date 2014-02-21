@@ -9,8 +9,12 @@
 #ifndef PACKETHANDLER_H_
 #define PACKETHANDLER_H_
 
+#include <vector>
 #include "../utils/AExecutable.h"
 
+namespace zmq {
+	class socket_t;
+}
 namespace na62 {
 struct DataContainer;
 
@@ -21,12 +25,10 @@ public:
 
 private:
 	void processPacket(DataContainer container);
-	/**
-	 * May be run by only one single thread!
-	 * It pops the queue <dataPool> and sequentially reads	 * the packets: MEP packets will be
-	 *ructed and sent to the EventCollector object.
-	 */
 	void thread();
+	void connectZMQ();
+	std::vector<zmq::socket_t*> EBL0sockets_;
+	std::vector<zmq::socket_t*> EBLKrSockets_;
 };
 
 } /* namespace na62 */

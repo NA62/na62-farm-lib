@@ -17,7 +17,7 @@ boost::thread_group AExecutable::threads_;
 std::vector<AExecutable*> AExecutable::instances_;
 
 AExecutable::AExecutable() :
-		threadNum_(-1) {
+		threadNum_(-1) , thread_(nullptr){
 	instances_.push_back(this);
 }
 
