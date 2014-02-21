@@ -49,7 +49,8 @@ void EventBuilder::thread() {
 
 			if (L0Socket_->recv(&msg)) {
 				l0::MEPEvent* event = (l0::MEPEvent*) msg.data();
-				std::cerr << event->getEventNumber() << " received" << std::endl;
+				std::cerr << event->getEventNumber() << " received"
+						<< std::endl;
 
 				timeout = 0;
 			} else if (LKrSocket_->recv(&msg)) {
@@ -68,7 +69,7 @@ void EventBuilder::thread() {
 		} catch (const zmq::error_t& ex) {
 			if (ex.num() != EINTR) {
 				std::cerr << ex.what() << std::endl;
-				throw;
+				return;
 			}
 		}
 

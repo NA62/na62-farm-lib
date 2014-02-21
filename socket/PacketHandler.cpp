@@ -100,13 +100,16 @@ void PacketHandler::thread() {
 				sleepMicros *= 2;
 			}
 		} else {
-			processPacket(dataContainers.front());
+			if (!processPacket(dataContainers.front())) {
+				dataContainers.pop();
+				return; // stop running
+			}
 			dataContainers.pop();
 		}
 	}
 }
 
-void PacketHandler::processPacket(DataContainer container) {
+bool PacketHandler::processPacket(DataContainer container) {
 	std::cout << "Received packet " << container.length << " \t " << threadNum_
 			<< std::endl;
 	try {
@@ -138,7 +141,7 @@ void PacketHandler::processPacket(DataContainer container) {
 			}
 
 			delete[] container.data;
-			return;
+			return true;
 		}
 
 		/*
@@ -158,7 +161,7 @@ void PacketHandler::processPacket(DataContainer container) {
 				mycerr(
 						"Received IP-Packet with less bytes than ip.tot_len field!");
 				delete[] container.data;
-				return;
+				return true;
 			}
 		}
 
@@ -169,7 +172,7 @@ void PacketHandler::processPacket(DataContainer container) {
 				> container.length) {
 			mycerr("Received UDP-Packet with less bytes than udp.len field!");
 			delete[] container.data;
-			return;
+			return true;
 		}
 
 		//				/*
@@ -200,18 +203,19 @@ void PacketHandler::processPacket(DataContainer container) {
 				zmq::message_t request((void*) event, event->getEventLength(),
 						(zmq::free_fn*) nullptr);
 
-				try {
-
-					EBL0sockets_[event->getEventNumber()
-							% Options::GetInt(OPTION_NUMBER_OF_EBS)]->send(
-							request);
-				} catch (const zmq::error_t& ex) {
-					if (ex.num() != EINTR) {
-						std::cerr << ex.what() << std::endl;
-						throw;
+				while (true) {
+					try {
+						EBL0sockets_[event->getEventNumber()
+								% Options::GetInt(OPTION_NUMBER_OF_EBS)]->send(
+								request);
+						break;
+					} catch (const zmq::error_t& ex) {
+						if (ex.num() != EINTR) { // try again if EINTR (signal caught)
+							std::cerr << ex.what() << std::endl;
+							return false;
+						}
 					}
 				}
-
 			}
 
 		} else if (destPort == Options::GetInt(OPTION_CREAM_RECEIVER_PORT)) {
@@ -227,7 +231,7 @@ void PacketHandler::processPacket(DataContainer container) {
 				mycerr(
 						"Unrecognizable packet received at EOB farm broadcast Port!");
 				delete[] container.data;
-				return;
+				return true;
 			}
 			EOB_FULL_FRAME* pack = (struct EOB_FULL_FRAME*) container.data;
 			mycout(
@@ -240,7 +244,7 @@ void PacketHandler::processPacket(DataContainer container) {
 			 */
 			mycerr("Packet with unknown UDP port received: " << destPort);
 			delete[] container.data;
-			return;
+			return true;
 		}
 	} catch (UnknownSourceIDFound const& e) {
 		delete[] container.data;
@@ -249,6 +253,7 @@ void PacketHandler::processPacket(DataContainer container) {
 	} catch (NA62Error const& e) {
 		delete[] container.data;
 	}
+	return true;
 }
 
 //void PacketHandler::StartDemultiplexerThread() throw () {
