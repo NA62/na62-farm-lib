@@ -24,7 +24,10 @@ public:
 	virtual ~PacketHandler();
 
 private:
-	void processPacket(DataContainer container);
+	/**
+	 * @return <true> In case of success, false in case of a serious error (we should stop the thread in this case)
+	 */
+	bool processPacket(DataContainer container);
 	void thread();
 	void connectZMQ();
 	std::vector<zmq::socket_t*> EBL0sockets_;
