@@ -107,8 +107,6 @@ void PacketHandler::thread() {
 }
 
 void PacketHandler::processPacket(DataContainer container) {
-	std::cout << "Received packet " << container.length << " \t " << threadNum_
-			<< std::endl;
 	try {
 		struct UDP_HDR* hdr = (struct UDP_HDR*) container.data;
 		uint16_t etherType = ntohs(hdr->eth.ether_type);
