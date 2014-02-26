@@ -13,7 +13,6 @@
 #include <boost/thread.hpp>
 #include <atomic>
 
-#include "../messages/MessageHandler.h"
 #include "EthernetUtils.h"
 #include "../utils/Utils.h"
 #include "../utils/ThreadsafeQueue.h"

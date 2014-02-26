@@ -6,12 +6,14 @@
  */
 
 #include "NA62Error.h"
-#include "../messages/MessageHandler.h"
+
+#include <glog/logging.h>
 namespace na62 {
 
 NA62Error::NA62Error(const std::string& message) :
 		std::runtime_error(message) {
-	mycerr( message );
+	LOG(ERROR)<<message;
 }
 
-} /* namespace na62 */
+}
+/* namespace na62 */

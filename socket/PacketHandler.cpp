@@ -24,13 +24,13 @@
 #include <cstring>
 #include <iostream>
 #include <queue>
+#include <glog/logging.h>
 
 #include "../exceptions/UnknownCREAMSourceIDFound.h"
 #include "../exceptions/UnknownSourceIDFound.h"
 #include "../l0/MEP.h"
 #include "../l0/MEPEvent.h"
 #include "../LKr/LKRMEP.h"
-#include "../messages/MessageHandler.h"
 #include "../options/Options.h"
 #include "../structs/Network.h"
 #include "EthernetUtils.h"
@@ -146,7 +146,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 		 * Check IP-Header
 		 */
 		//				if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
-		//					mycerr( "Packet with broken IP-checksum received");
+		//					LOG(ERROR) << "Packet with broken IP-checksum received");
 		//					delete[] container.data;
 		//					continue;
 		//				}
@@ -156,8 +156,8 @@ bool PacketHandler::processPacket(DataContainer container) {
 			 */
 			if (ntohs(hdr->ip.tot_len) + sizeof(ether_header)
 					> container.length) {
-				mycerr(
-						"Received IP-Packet with less bytes than ip.tot_len field!");
+				LOG(ERROR)<<
+				"Received IP-Packet with less bytes than ip.tot_len field!";
 				delete[] container.data;
 				return true;
 			}
@@ -168,7 +168,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 		 */
 		if (ntohs(hdr->udp.len) + sizeof(ether_header) + sizeof(iphdr)
 				> container.length) {
-			mycerr("Received UDP-Packet with less bytes than udp.len field!");
+			LOG(ERROR)<<"Received UDP-Packet with less bytes than udp.len field!";
 			delete[] container.data;
 			return true;
 		}
@@ -177,7 +177,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 		//				 * Check UDP checksum
 		//				 */
 		//				if (!EthernetUtils::CheckUDP(hdr, (const char *) (&hdr->udp) + sizeof(struct udphdr), ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
-		//					mycerr( "Packet with broken UDP-checksum received" );
+		//					LOG(ERROR) << "Packet with broken UDP-checksum received" );
 		//					delete[] container.data;
 		//					continue;
 		//				}
@@ -226,21 +226,21 @@ bool PacketHandler::processPacket(DataContainer container) {
 			// TODO: send mep to EB
 		} else if (destPort == Options::GetInt(OPTION_EOB_BROADCAST_PORT)) {
 			if (dataLength != sizeof(struct EOB_FULL_FRAME) - sizeof(UDP_HDR)) {
-				mycerr(
-						"Unrecognizable packet received at EOB farm broadcast Port!");
+				LOG(ERROR)<<
+				"Unrecognizable packet received at EOB farm broadcast Port!";
 				delete[] container.data;
 				return true;
 			}
 			EOB_FULL_FRAME* pack = (struct EOB_FULL_FRAME*) container.data;
-			mycout(
-					"Received EOB Farm-Broadcast. Will increment BurstID now to" << pack->finishedBurstID + 1);
+			LOG(INFO) <<
+			"Received EOB Farm-Broadcast. Will increment BurstID now to" << pack->finishedBurstID + 1;
 			changeBurstID = true;
 			nextBurstID = pack->finishedBurstID + 1;
 		} else {
 			/*
 			 * Packet with unknown UDP port received
 			 */
-			mycerr("Packet with unknown UDP port received: " << destPort);
+			LOG(ERROR) <<"Packet with unknown UDP port received: " << destPort;
 			delete[] container.data;
 			return true;
 		}
@@ -334,4 +334,5 @@ bool PacketHandler::processPacket(DataContainer container) {
 //	}
 //}
 
-} /* namespace na62 */
+}
+/* namespace na62 */

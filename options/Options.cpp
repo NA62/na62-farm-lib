@@ -30,11 +30,6 @@ po::options_description Options::desc("Allowed options");
 
 std::map<std::string, std::string> SettingStore;
 
-/*
- * Configurable Variables
- */
-bool Options::VERBOSE;
-
 void Options::PrintVM(po::variables_map vm) {
 	using namespace po;
 	for (variables_map::iterator it = vm.begin(); it != vm.end(); ++it) {
@@ -60,7 +55,7 @@ void Options::Initialize(int argc, char* argv[]) {
 
 	(OPTION_HELP, "Produce help message")
 
-	(OPTION_VERBOSE, "Verbose mode")
+	(OPTION_VERBOSITY, "Verbosity mode:\n\t0:\tError\n\t1:\tWarning\n\t2\tInfo")
 
 	(OPTION_CONFIG_FILE,
 			po::value<std::string>()->default_value("/etc/na62-farm2_0.cfg"),

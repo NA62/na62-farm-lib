@@ -9,7 +9,6 @@
 
 #include <iomanip>
 
-#include "../messages/MessageHandler.h"
 
 namespace na62 {
 

@@ -26,7 +26,7 @@ namespace po = boost::program_options;
  * Dynamic Options
  */
 #define OPTION_HELP (char*)"help"
-#define OPTION_VERBOSE (char*)"verbose"
+#define OPTION_VERBOSITY (char*)"verbosity"
 #define OPTION_CONFIG_FILE (char*)"configFile"
 
 /*
@@ -71,11 +71,6 @@ public:
 	static std::vector<boost::shared_ptr<po::option_description> > GetOptions() {
 		return desc.options();
 	}
-
-	/*
-	 * Configurable Variables
-	 */
-	static bool VERBOSE;
 
 	static po::options_description desc;
 

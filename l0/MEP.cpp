@@ -14,10 +14,10 @@
 #include <iostream>
 #include <new>
 #include <string>
+#include <glog/logging.h>
 
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
-#include "../messages/MessageHandler.h"
 #include "../socket/EthernetUtils.h"
 #include "../structs/Network.h"
 #include "MEPEvent.h"
@@ -107,12 +107,12 @@ bool MEP::verifyChecksums() {
 
 	struct UDP_HDR* hdr = (struct UDP_HDR*) getUDPPack();
 	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
-		mycout("Packet with broken IP-checksum received");
+		LOG(ERROR) << "Packet with broken IP-checksum received";
 		return false;
 	}
 
 	if (!EthernetUtils::CheckUDP(hdr, (const char *) (&hdr->udp) + sizeof(struct udphdr), ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
-		mycout("Packet with broken UDP-checksum received");
+		LOG(ERROR) << "Packet with broken UDP-checksum received";
 		return false;
 	}
 	checkSumsVarified_ = true;
