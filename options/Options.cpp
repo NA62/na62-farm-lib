@@ -55,11 +55,16 @@ void Options::Initialize(int argc, char* argv[]) {
 
 	(OPTION_HELP, "Produce help message")
 
-	(OPTION_VERBOSITY, po::value<int>()->default_value(0),  "Verbosity mode:\n\t0:\tError\n\t1:\tWarning\n\t2\tInfo")
+	(OPTION_VERBOSITY, po::value<int>()->default_value(0),
+			"Verbosity mode:\n\t0:\tError\n\t1:\tWarning\n\t2\tInfo")
 
 	(OPTION_CONFIG_FILE,
 			po::value<std::string>()->default_value("/etc/na62-farm2_0.cfg"),
 			"Config file for these options")
+
+	(OPTION_LOGTOSTDERR,
+			po::value<int>()->default_value(0),
+			"Show logs in stderr")
 
 	(OPTION_L0_RECEIVER_PORT, po::value<int>()->default_value(58913),
 			"UDP-Port for L1 data reception")
