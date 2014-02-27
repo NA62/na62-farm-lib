@@ -30,6 +30,12 @@ private:
 	bool processPacket(DataContainer container);
 	void thread();
 	void connectZMQ();
+
+	/**
+	 * @return <true> If no checksum errors have been found
+	 */
+	bool checkFrame(struct UDP_HDR* hdr, uint16_t length);
+
 	std::vector<zmq::socket_t*> EBL0sockets_;
 	std::vector<zmq::socket_t*> EBLKrSockets_;
 };

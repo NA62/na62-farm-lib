@@ -119,13 +119,59 @@ void PacketHandler::thread() {
 	}
 }
 
+bool PacketHandler::checkFrame(struct UDP_HDR* hdr, uint16_t length) {
+	/*
+	 * Check IP-Header
+	 */
+	//				if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
+	//					LOG(ERROR) << "Packet with broken IP-checksum received");
+	//					delete[] container.data;
+	//					continue;
+	//				}
+	if (ntohs(hdr->ip.tot_len) + sizeof(ether_header) != length) {
+		/*
+		 * Does not need to be equal because of ethernet padding
+		 */
+		if (ntohs(hdr->ip.tot_len) + sizeof(ether_header) > length) {
+			LOG(ERROR)<<
+			"Received IP-Packet with less bytes than ip.tot_len field!";
+			return false;
+		}
+	}
+
+	/*
+	 * Does not need to be equal because of ethernet padding
+	 */
+	if (ntohs(hdr->udp.len) + sizeof(ether_header) + sizeof(iphdr)
+			> length) {
+		LOG(ERROR)<<"Received UDP-Packet with less bytes than udp.len field!";
+		return false;
+	}
+
+	//				/*
+	//				 * Check UDP checksum
+	//				 */
+	//				if (!EthernetUtils::CheckUDP(hdr, (const char *) (&hdr->udp) + sizeof(struct udphdr), ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
+	//					LOG(ERROR) << "Packet with broken UDP-checksum received" );
+	//					delete[] container.data;
+	//					continue;
+	//				}
+	return true;
+}
+
 bool PacketHandler::processPacket(DataContainer container) {
+	uint16_t L0_Port = Options::GetInt(OPTION_L0_RECEIVER_PORT);
+	uint16_t CREAM_Port = Options::GetInt(OPTION_CREAM_RECEIVER_PORT);
+
 	try {
 		struct UDP_HDR* hdr = (struct UDP_HDR*) container.data;
 		uint16_t etherType = ntohs(hdr->eth.ether_type);
 		uint8_t ipProto = hdr->ip.protocol;
 		uint16_t destPort = ntohs(hdr->udp.dest);
 
+		/*
+		 * Check if we received an ARP request
+		 */
 		if (etherType != ETHERTYPE_IP || ipProto != IPPROTO_UDP) {
 			/*
 			 * No IP or at least no UDP packet received
@@ -153,44 +199,13 @@ bool PacketHandler::processPacket(DataContainer container) {
 		}
 
 		/*
-		 * Check IP-Header
+		 * Check checksum errors
 		 */
-		//				if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
-		//					LOG(ERROR) << "Packet with broken IP-checksum received");
-		//					delete[] container.data;
-		//					continue;
-		//				}
-		if (ntohs(hdr->ip.tot_len) + sizeof(ether_header) != container.length) {
-			/*
-			 * Does not need to be equal because of ethernet padding
-			 */
-			if (ntohs(hdr->ip.tot_len) + sizeof(ether_header)
-					> container.length) {
-				LOG(ERROR)<<
-				"Received IP-Packet with less bytes than ip.tot_len field!";
-				delete[] container.data;
-				return true;
-			}
-		}
-
-		/*
-		 * Does not need to be equal because of ethernet padding
-		 */
-		if (ntohs(hdr->udp.len) + sizeof(ether_header) + sizeof(iphdr)
-				> container.length) {
-			LOG(ERROR)<<"Received UDP-Packet with less bytes than udp.len field!";
+		if (!checkFrame(hdr, container.length)) {
 			delete[] container.data;
 			return true;
 		}
 
-		//				/*
-		//				 * Check UDP checksum
-		//				 */
-		//				if (!EthernetUtils::CheckUDP(hdr, (const char *) (&hdr->udp) + sizeof(struct udphdr), ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
-		//					LOG(ERROR) << "Packet with broken UDP-checksum received" );
-		//					delete[] container.data;
-		//					continue;
-		//				}
 		const char * UDPPayload = container.data + sizeof(struct UDP_HDR);
 		const uint16_t & dataLength = ntohs(hdr->udp.len)
 				- sizeof(struct udphdr);
@@ -198,7 +213,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 		/*
 		 * UDP and IP has been checked. Now let's see what's insight the packet
 		 */
-		if (destPort == Options::GetInt(OPTION_L0_RECEIVER_PORT)) {
+		if (destPort == L0_Port) {
 			/*
 			 * L0 Data
 			 * * Length is hdr->ip.tot_len-sizeof(struct udphdr) and not container.length because of ethernet padding bytes!
@@ -226,7 +241,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 				}
 			}
 
-		} else if (destPort == Options::GetInt(OPTION_CREAM_RECEIVER_PORT)) {
+		} else if (destPort == CREAM_Port) {
 			/*
 			 * CREAM Data
 			 * Length is hdr->ip.tot_len-sizeof(struct iphdr) and not container.length because of ethernet padding bytes!
