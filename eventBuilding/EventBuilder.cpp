@@ -23,6 +23,8 @@ EventBuilder::EventBuilder() :
 }
 
 EventBuilder::~EventBuilder() {
+	L0Socket_->close();
+	LKrSocket_->close();
 	delete L0Socket_;
 	delete LKrSocket_;
 }
@@ -31,48 +33,33 @@ void EventBuilder::thread() {
 	ZMQHandler::BindInproc(L0Socket_, ZMQHandler::GetEBL0Address(threadNum_));
 	ZMQHandler::BindInproc(LKrSocket_, ZMQHandler::GetEBLKrAddress(threadNum_));
 
-	int timeout = 0;
+	zmq::pollitem_t items[] = { { *L0Socket_, 0, ZMQ_POLLIN, 0 }, { *LKrSocket_,
+			0, ZMQ_POLLIN, 0 } };
 
-	// LKrSocket should never block
-	LKrSocket_->setsockopt(ZMQ_RCVTIMEO, &timeout, sizeof(timeout));
-
-	while (true) {
-		/*
-		 * L0Socket will block if the last poll did not find a packet
-		 * The timeout will be increased very time no packet was found
-		 */
-		L0Socket_->setsockopt(ZMQ_RCVTIMEO, &timeout, sizeof(timeout));
-
-		zmq::message_t msg;
-
+	while (1) {
 		try {
+			boost::this_thread::interruption_point();
 
-			if (L0Socket_->recv(&msg)) {
-				l0::MEPEvent* event = (l0::MEPEvent*) msg.data();
+			zmq::message_t message;
+			zmq::poll(&items[0], 2, 1000); // Poll 1s to pass interruption_point
+
+			if (items[0].revents & ZMQ_POLLIN) {
+				L0Socket_->recv(&message);
+				l0::MEPEvent* event = (l0::MEPEvent*) message.data();
 				std::cerr << event->getEventNumber() << " received"
 						<< std::endl;
-
-				timeout = 0;
-			} else if (LKrSocket_->recv(&msg)) {
-				timeout = 0;
-			} else {
-				if (timeout == 0) {
-					timeout = 1;
-				} else {
-					timeout *= 2;
-					if (timeout > 1000) {
-						timeout = -1;
-					}
-				}
 			}
-
+			if (items[1].revents & ZMQ_POLLIN) {
+				LKrSocket_->recv(&message);
+			}
 		} catch (const zmq::error_t& ex) {
 			if (ex.num() != EINTR) {
+				L0Socket_->close();
+				LKrSocket_->close();
 				std::cerr << ex.what() << std::endl;
 				return;
 			}
 		}
-
 	}
 }
 

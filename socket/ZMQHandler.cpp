@@ -7,7 +7,8 @@
 
 #include "ZMQHandler.h"
 
-#include <boost/thread/locks.hpp>
+#include <boost/thread.hpp>
+#include <glog/logging.h>
 #include <unistd.h>
 #include <zmq.hpp>
 #include <iostream>
@@ -24,8 +25,16 @@ void ZMQHandler::Initialize() {
 	zmq::context_t context_(1);
 }
 
+void ZMQHandler::Destroy() {
+	context_.~context_t();
+}
+
 zmq::socket_t* ZMQHandler::GenerateSocket(int socketType) {
-	return new zmq::socket_t(context_, socketType);
+	int linger = 0;
+	zmq::socket_t* socket = new zmq::socket_t(context_, socketType);
+	socket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+
+	return socket;
 }
 
 std::string ZMQHandler::GetEBL0Address(int threadNum) {
@@ -51,7 +60,8 @@ void ZMQHandler::ConnectInproc(zmq::socket_t* socket, std::string address) {
 	connectMutex_.lock();
 	while (boundAddresses_.find(address) == boundAddresses_.end()) {
 		connectMutex_.unlock();
-		usleep(100000);
+		LOG(INFO) << "ZMQ not yet bound: " << address;
+		boost::this_thread::sleep(boost::posix_time::microsec(10000));
 		connectMutex_.lock();
 	}
 	socket->connect(address.c_str());

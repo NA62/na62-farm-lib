@@ -47,6 +47,16 @@ PacketHandler::PacketHandler() {
 }
 
 PacketHandler::~PacketHandler() {
+	std::cout << "Deleting PacketHandler " << threadNum_ << std::endl;
+	for (auto socket : EBL0sockets_) {
+		socket->close();
+		delete socket;
+	}
+
+	for (auto socket : EBLKrSockets_) {
+		socket->close();
+		delete socket;
+	}
 }
 
 void PacketHandler::connectZMQ() {

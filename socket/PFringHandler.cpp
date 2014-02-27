@@ -7,6 +7,8 @@
 
 #include "PFringHandler.h"
 
+#include <glog/logging.h>
+
 namespace na62 {
 ntop::PFring ** PFringHandler::queueRings_;
 uint16_t PFringHandler::numberOfQueues_;
@@ -53,18 +55,12 @@ void PFringHandler::Initialize(std::string deviceName) {
 		queueRings_[i] = tmpRing;
 
 		if (tmpRing->enable_ring() >= 0) {
-			mycout(
-					"Successfully opened device "
-							+ boost::lexical_cast<std::string>(
-									tmpRing->get_device_name()) + " with "
-							+ boost::lexical_cast<std::string>(
-									(int ) tmpRing->get_num_rx_channels())
-							+ " rx queues");
+			LOG(INFO) << "Successfully opened device "
+					<< tmpRing->get_device_name() << " with "
+					<< (int) tmpRing->get_num_rx_channels() << " rx queues";
 		} else {
-			mycerr(
-					"Unable to open device "
-							+ boost::lexical_cast<std::string>(queDeviceName)
-							+ "! Is pf_ring not loaded or do you use quick mode and have already a socket bound to this device?!");
+			LOG(ERROR) << "Unable to open device " << queDeviceName
+					<< "! Is pf_ring not loaded or do you use quick mode and have already a socket bound to this device?!";
 			exit(1);
 		}
 	}
@@ -96,15 +92,15 @@ void PFringHandler::Shutdown() {
 
 void PFringHandler::PrintStats() {
 	pfring_stat stats = { 0 };
-	mycout("Ring\trecv\tdrop");
+	LOG(INFO) << "Ring\trecv\tdrop";
 	for (int i = 0; i < numberOfQueues_; i++) {
 		queueRings_[i]->get_stats(&stats);
-		mycout(i << " \t" << stats.recv << "\t" << stats.drop);
+		LOG(INFO) << i << " \t" << stats.recv << "\t" << stats.drop;
 	}
 
 //
-//	mycout("Absolute Stats: [" << pfringStat.recv<< " pkts rcvd][" << pfringStat.drop << " pkts dropped]");
-//	mycout(
-//			"Total Pkts=" << (unsigned int) (pfringStat.recv+pfringStat.drop) << "/Dropped=" << (pfringStat.recv== 0 ? 0 : (float) (pfringStat.drop * 100) / (float) (pfringStat.recv + pfringStat.drop)));
+//	LOG(INFO) <<"Absolute Stats: [" << pfringStat.recv<< " pkts rcvd][" << pfringStat.drop << " pkts dropped]";
+//	LOG(INFO) <<
+//			"Total Pkts=" << (unsigned int) (pfringStat.recv+pfringStat.drop) << "/Dropped=" << (pfringStat.recv== 0 ? 0 : (float) (pfringStat.drop * 100) / (float) (pfringStat.recv + pfringStat.drop));
 }
 } /* namespace na62 */

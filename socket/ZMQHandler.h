@@ -22,6 +22,8 @@ namespace na62 {
 class ZMQHandler {
 public:
 	static void Initialize();
+
+	static void Destroy();
 	static zmq::socket_t* GenerateSocket(int socketType);
 
 	static std::string GetEBL0Address(int threadNum);

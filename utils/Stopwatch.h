@@ -94,7 +94,6 @@ public:
 		tick_start = GetTicks();
 		usleep(1001);
 		cpuFrequency = (GetTicks() - tick_start - ticksForOneUSleep) * 1000 /*kHz -> Hz*/;
-//		mycout( "Estimated CPU freq: " << cpuFrequency << " Hz\n" );
 
 		return cpuFrequency;
 	}

@@ -55,7 +55,7 @@ void Options::Initialize(int argc, char* argv[]) {
 
 	(OPTION_HELP, "Produce help message")
 
-	(OPTION_VERBOSITY, "Verbosity mode:\n\t0:\tError\n\t1:\tWarning\n\t2\tInfo")
+	(OPTION_VERBOSITY, po::value<int>()->default_value(0),  "Verbosity mode:\n\t0:\tError\n\t1:\tWarning\n\t2\tInfo")
 
 	(OPTION_CONFIG_FILE,
 			po::value<std::string>()->default_value("/etc/na62-farm2_0.cfg"),
@@ -108,8 +108,6 @@ void Options::Initialize(int argc, char* argv[]) {
 
 	std::cout << "======= Running with following configuration:" << std::endl;
 	PrintVM(vm);
-
-	VERBOSE = vm.count(OPTION_VERBOSE) > 0;
 }
 
 bool Options::Isset(char* parameter) {
