@@ -9,7 +9,19 @@
 #ifndef EVENTBUILDER_H_
 #define EVENTBUILDER_H_
 
+#include <vector>
+
 #include "../utils/AExecutable.h"
+
+namespace na62 {
+class Event;
+namespace cream {
+class LKREvent;
+} /* namespace cream */
+namespace l0 {
+class MEPEvent;
+} /* namespace l0 */
+} /* namespace na62 */
 
 namespace zmq {
 class socket_t;
@@ -23,9 +35,22 @@ public:
 	virtual ~EventBuilder();
 
 private:
+	void thread();
+
+	void handleL0Data(l0::MEPEvent * mepEvent);
+	void handleLKRData(cream::LKREvent * lkrEvent);
+
+	void processL1(Event *event);
+	void processL2(Event * event);
+
+
 	zmq::socket_t* L0Socket_;
 	zmq::socket_t* LKrSocket_;
-	void thread();
+
+	std::vector<Event*> eventPool;
+
+	const int NUMBER_OF_EBS;
+
 };
 
 } /* namespace na62 */

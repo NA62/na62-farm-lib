@@ -41,7 +41,11 @@ namespace po = boost::program_options;
  * Event Building
  */
 #define OPTION_NUMBER_OF_EBS (char*)"numberOfEB"
+#define OPTION_DATA_SOURCE_IDS (char*)"L0DataSourceIDs"
 
+#define OPTION_TS_SOURCEID (char*)"timestampSourceID"
+
+#define OPTION_CREAM_CRATES (char*)"CREAMCrates"
 
 class INotifiable;
 class Options {
@@ -54,6 +58,16 @@ public:
 	static int GetInt(char* parameter);
 	static std::vector<int> GetIntList(char* parameter);
 	static std::vector<double> GetDoubleList(char* parameter);
+
+	/*
+	 * If a parameter is formated like A:a,B:b this will return the following vector v:
+	 * v[0]: std::make_pair(A, a)
+	 * v[1]: std::make_pair(B, b)
+	 */
+	static std::vector<std::pair<std::string, std::string> > GetPairList(
+			char* parameter);
+
+	static std::vector<std::pair<int, int> > GetIntPairList(char* parameter);
 
 	static float GetFloat(char* parameter);
 
@@ -74,37 +88,6 @@ public:
 	}
 
 	static po::options_description desc;
-
-	/*
-	 * sourceID must be a valid SourceID! So use checkSourceID if you are not sure!
-	 * 0 <= sourceID < L1_LARGEST_DATA_SOURCE_ID
-	 */
-	static inline uint8_t SourceIDToNum(const uint8_t sourceID) throw () {
-//		return Options::L0_DATA_SOURCE_ID_TO_NUM[sourceID];
-		return 0;
-	}
-
-	/*
-	 * @return bool <true> if the sourceID is correct, <false> else
-	 */
-	static inline bool CheckL0SourceID(const uint8_t sourceID) throw () {
-//		if (sourceID > Options::Instance()->LARGEST_L0_DATA_SOURCE_ID) {
-//			return false;
-//		}
-//		uint8_t num = Options::Instance()->L0_DATA_SOURCE_ID_TO_NUM[sourceID];
-//		if (sourceID != Options::Instance()->L0_DATA_SOURCE_IDS[num]) {
-//			return false;
-//		}
-		return true;
-	}
-
-	static inline bool CheckCREAMID(const uint8_t crateID, const uint8_t CREAM_ID) throw () {
-//		std::map<uint16_t, uint16_t>* cratesMap = &Options::Instance()->CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
-//		if (cratesMap->find((crateID << 8) | CREAM_ID) == cratesMap->end()) {
-//			return false;
-//		}
-		return true;
-	}
 
 private:
 	static po::variables_map vm;
