@@ -61,7 +61,7 @@ void ZMQHandler::ConnectInproc(zmq::socket_t* socket, std::string address) {
 	while (boundAddresses_.find(address) == boundAddresses_.end()) {
 		connectMutex_.unlock();
 		LOG(INFO) << "ZMQ not yet bound: " << address;
-		boost::this_thread::sleep(boost::posix_time::microsec(10000));
+		boost::this_thread::sleep(boost::posix_time::microsec(100000));
 		connectMutex_.lock();
 	}
 	socket->connect(address.c_str());

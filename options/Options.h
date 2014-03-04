@@ -35,6 +35,7 @@ namespace po = boost::program_options;
  */
 #define OPTION_L0_RECEIVER_PORT (char*)"L0Port"
 #define OPTION_CREAM_RECEIVER_PORT (char*)"CREAMPort"
+#define OPTION_EOB_BROADCAST_IP (char*)"EOBBroadcastIP"
 #define OPTION_EOB_BROADCAST_PORT (char*)"EOBBroadcastPort"
 
 /*
@@ -47,7 +48,27 @@ namespace po = boost::program_options;
 
 #define OPTION_CREAM_CRATES (char*)"CREAMCrates"
 
-class INotifiable;
+#define OPTION_FIRST_BURST_ID (char*)"firstBurstID"
+
+#define OPTION_CREAM_MULTICAST_GROUP (char*)"creamMulticastIP"
+#define OPTION_CREAM_MULTICAST_PORT (char*)"creamMulticastPort"
+#define OPTION_MAX_TRIGGERS_PER_L1MRP (char*)"maxTriggerPerL1MRP"
+
+/*
+ * Triggering
+ */
+#define OPTION_L1_DOWNSCALE_FACTOR  (char*)"L1DownscaleFactor"
+#define OPTION_L2_DOWNSCALE_FACTOR  (char*)"L2DownscaleFactor"
+
+#define OPTION_MIN_USEC_BETWEEN_L1_REQUESTS (char*)"minUsecsBetweenL1Requests"
+
+/*
+ * Merger
+ */
+#define OPTION_MERGER_HOST_NAME (char*)"mergerHostName"
+#define OPTION_MERGER_PORT (char*)"mergerPort"
+
+namespace na62 {
 class Options {
 public:
 	static void PrintVM(boost::program_options::variables_map vm);
@@ -92,4 +113,5 @@ public:
 private:
 	static po::variables_map vm;
 };
+}
 #endif /* OPTIONS_H_ */

@@ -13,13 +13,15 @@
 #include <netinet/in.h>
 #include <stdint.h>
 
+#include "../structs/Network.h"
+
 #define __USE_PFRING_FOR_MRP
 #define __USE_BIG_ENDIAN_FOR_MRP
 
 namespace na62 {
 namespace cream {
 
-#ifdef __USE_PFRING_FOR_MRP
+#ifdef __USE_BIG_ENDIAN_FOR_MRP
 /**
  * Defines the structure of a L1 trigger element as defined in table 4 in NA62-11-02.
  */

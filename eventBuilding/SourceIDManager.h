@@ -8,10 +8,15 @@
 #ifndef SOURCEIDMANAGER_H_
 #define SOURCEIDMANAGER_H_
 
+#include <cstdint>
+#include <map>
+#include <utility>
+
 namespace na62 {
 
 class SourceIDManager {
-private:
+
+public:
 	/**
 	 * Data Source IDs
 	 */
@@ -36,7 +41,7 @@ private:
 	static std::map<uint16_t, uint16_t> CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 	static std::pair<uint16_t, uint16_t>* LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
-public:
+
 
 	static void Initialize();
 

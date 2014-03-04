@@ -16,6 +16,7 @@
 #ifndef LOGGINGHANDLER_HPP_
 #define LOGGINGHANDLER_HPP_
 
+namespace na62 {
 static void InitializeLogging(char* argv[]) {
 
 	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
@@ -25,8 +26,9 @@ static void InitializeLogging(char* argv[]) {
 
 	FLAGS_log_dir = "/var/log/";
 	google::InitGoogleLogging(argv[0]);
-	LOG(INFO)<< "Found " << 235 << " cookies!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+	LOG(INFO)<<"Found " << 235 << " cookies!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
 
+}
 }
 
 #endif /* LOGGINGHANDLER_HPP_ */

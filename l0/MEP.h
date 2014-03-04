@@ -13,9 +13,14 @@
 #include <boost/thread/pthread/mutex.hpp>
 #include <cstdint>
 
-#include "../options/Options.h"
+#include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
+
+namespace na62 {
+class BrokenPacketReceivedError;
+class UnknownSourceIDFound;
+} /* namespace na62 */
 
 namespace na62 {
 namespace l0 {
@@ -74,7 +79,7 @@ public:
 	 * This is done by this method!
 	 */
 	inline const uint8_t getSourceIDNum() const {
-		return Options::SourceIDToNum(rawData->sourceID);
+		return SourceIDManager::SourceIDToNum(rawData->sourceID);
 	}
 
 	inline const uint32_t getFirstEventNum() const {

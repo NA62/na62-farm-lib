@@ -7,26 +7,47 @@
 
 #include "EventBuilder.h"
 
+#include <arpa/inet.h>
 #include <asm-generic/errno-base.h>
+#include <boost/thread/detail/thread.hpp>
+#include <glog/logging.h>
+#include <netinet/ip.h>
+#include <netinet/udp.h>
 #include <zmq.h>
 #include <zmq.hpp>
-#include <cstdint>
+#include <cstdbool>
 #include <iostream>
 #include <new>
 #include <string>
 
 #include "../exceptions/NA62Error.h"
 #include "../l0/MEPEvent.h"
+#include "../l1/L1TriggerProcessor.h"
+#include "../l2/L2TriggerProcessor.h"
+#include "../LKr/L1DistributionHandler.h"
 #include "../LKr/LKREvent.h"
 #include "../options/Options.h"
+#include "../socket/EthernetUtils.h"
+#include "../socket/PFringHandler.h"
 #include "../socket/ZMQHandler.h"
+#include "../structs/Network.h"
+
+#include "Event.h"
+#include "SourceIDManager.h"
+#include "StorageHandler.h"
 
 namespace na62 {
+std::vector<EventBuilder*> EventBuilder::Instances;
+
 EventBuilder::EventBuilder() :
 		L0Socket_(ZMQHandler::GenerateSocket(ZMQ_PULL)), LKrSocket_(
 				ZMQHandler::GenerateSocket(ZMQ_PULL)), NUMBER_OF_EBS(
-				Options::GetInt(OPTION_NUMBER_OF_EBS)) {
+				Options::GetInt(OPTION_NUMBER_OF_EBS)), changeBurstID_(
+		false), nextBurstID_(0), threadCurrentBurstID_(0), L1processor_(
+				new L1TriggerProcessor), L2processor_(
+				new L2TriggerProcessor(threadNum_)) {
 
+	Instances.push_back(this);
 }
 
 EventBuilder::~EventBuilder() {
@@ -37,6 +58,8 @@ EventBuilder::~EventBuilder() {
 }
 
 void EventBuilder::thread() {
+	threadCurrentBurstID_ = Options::GetInt(OPTION_FIRST_BURST_ID);
+
 	ZMQHandler::BindInproc(L0Socket_, ZMQHandler::GetEBL0Address(threadNum_));
 	ZMQHandler::BindInproc(LKrSocket_, ZMQHandler::GetEBLKrAddress(threadNum_));
 
@@ -137,7 +160,6 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 	}
 }
 
-
 void EventBuilder::processL1(Event *event) {
 	/*
 	 * Changing the BurstID will now be done by the dim interface
@@ -149,11 +171,11 @@ void EventBuilder::processL1(Event *event) {
 	/*
 	 * Process Level 1 trigger
 	 */
-	uint16_t L0L1Trigger = L1processor->compute(event);
-	L1Triggers_[L0L1Trigger >> 8]++; // The second 8 bits are the L1 trigger type word
+	uint16_t L0L1Trigger = L1processor_->compute(event);
+//	L1Triggers_[L0L1Trigger >> 8]++; // The second 8 bits are the L1 trigger type word
 	event->setL1Processed(L0L1Trigger);
 
-	if (Options::Instance()->NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT != 0) {
+	if (SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT != 0) {
 		if (L0L1Trigger != 0) {
 			/*
 			 * Only request accepted events from LKr
@@ -179,7 +201,7 @@ void EventBuilder::processL2(Event * event) {
 		/*
 		 * L1 already passed but non zero suppressed LKr data not yet requested -> Process Level 2 trigger
 		 */
-		uint8_t L2Trigger = L2processor->compute(event);
+		uint8_t L2Trigger = L2processor_->compute(event);
 
 		event->setL2Processed(L2Trigger);
 
@@ -189,25 +211,58 @@ void EventBuilder::processL2(Event * event) {
 		 */
 		if (!event->isWaitingForNonZSuppressedLKrData()) {
 			if (event->isL2Accepted()) {
-				bytesSentToStorage_ += StorageHandler::Async_SendEvent(EBNum_, event);
-				eventsSentToStorage_++;
+				StorageHandler::Async_SendEvent(threadNum_, event);
 			}
 
-			L2Triggers_[L2Trigger]++;
 			event->destroy();
 		}
 	} else {
-		uint8_t L2Trigger = L2processor->onNonZSuppressedLKrDataReceived(event);
+		uint8_t L2Trigger = L2processor_->onNonZSuppressedLKrDataReceived(
+				event);
 
 		event->setL2Processed(L2Trigger);
 		if (event->isL2Accepted()) {
-			bytesSentToStorage_ += StorageHandler::Async_SendEvent(EBNum_, event);
-			eventsSentToStorage_++;
+			StorageHandler::Async_SendEvent(threadNum_, event);
 		}
 
-		L2Triggers_[L2Trigger]++;
 		event->destroy();
 	}
 }
 
-} /* namespace na62 */
+void EventBuilder::sendL1RequestToCREAMS(Event* event) {
+	cream::L1DistributionHandler::Async_RequestLKRDataMulticast(threadNum_,
+			event, false);
+}
+
+void EventBuilder::SendEOBBroadcast(uint32_t eventNumber,
+		uint32_t finishedBurstID) {
+	LOG(INFO)<<"Sending EOB broadcast to "
+	<< Options::GetString(OPTION_EOB_BROADCAST_IP) << ":"
+	<< Options::GetInt(OPTION_EOB_BROADCAST_PORT);
+	EOB_FULL_FRAME EOBPacket;
+
+	EOBPacket.finishedBurstID = finishedBurstID;
+	EOBPacket.lastEventNum = eventNumber;
+
+	EthernetUtils::GenerateUDP((const char*) &EOBPacket,
+			EthernetUtils::StringToMAC("FF:FF:FF:FF:FF:FF"),
+			inet_addr(Options::GetString(OPTION_EOB_BROADCAST_IP).data()),
+			Options::GetInt(OPTION_EOB_BROADCAST_PORT),
+			Options::GetInt(OPTION_EOB_BROADCAST_PORT));
+
+	EOBPacket.udp.setPayloadSize(
+			sizeof(struct EOB_FULL_FRAME) - sizeof(struct UDP_HDR));
+	EOBPacket.udp.ip.check = 0;
+	EOBPacket.udp.ip.check = EthernetUtils::GenerateChecksum(
+			(const char*) (&EOBPacket.udp.ip), sizeof(struct iphdr));
+	EOBPacket.udp.udp.check = EthernetUtils::GenerateUDPChecksum(&EOBPacket.udp,
+			sizeof(struct EOB_FULL_FRAME));
+
+	PFringHandler::SendPacket((char*) &EOBPacket, sizeof(struct EOB_FULL_FRAME),
+			true, false);
+
+	EventBuilder::SetNextBurstID(EOBPacket.finishedBurstID + 1);
+}
+
+}
+/* namespace na62 */

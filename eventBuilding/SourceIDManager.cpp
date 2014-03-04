@@ -7,10 +7,11 @@
 
 #include "SourceIDManager.h"
 
-#include <cstdint>
-#include <vector>
 #include <glog/logging.h>
+#include <iostream>
+#include <vector>
 
+#include "../exceptions/BadOption.h"
 #include "../options/Options.h"
 
 namespace na62 {

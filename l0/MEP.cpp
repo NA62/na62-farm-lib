@@ -8,16 +8,17 @@
 #include "MEP.h"
 
 #include <boost/lexical_cast.hpp>
+#include <glog/logging.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 #include <iostream>
 #include <new>
 #include <string>
-#include <glog/logging.h>
 
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
+#include "../options/Options.h"
 #include "../socket/EthernetUtils.h"
 #include "../structs/Network.h"
 #include "MEPEvent.h"
@@ -50,7 +51,7 @@ MEP::MEP(const char *data, const uint16_t & dataLength, const char *originalData
 	 *
 	 * TODO: Do we need to check the sourceID? This is quite expensive!
 	 */
-	if (!Options::CheckL0SourceID(getSourceID())) {
+	if (!SourceIDManager::CheckL0SourceID(getSourceID())) {
 		throw UnknownSourceIDFound(getSourceID());
 	}
 	initializeMEPEvents(data, dataLength);

@@ -14,7 +14,6 @@
 #include <map>
 
 #include "../LKr/LKREvent.h"
-//#include "../options/Options.h"
 #include "SourceIDManager.h"
 
 namespace na62 {

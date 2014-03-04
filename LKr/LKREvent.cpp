@@ -7,9 +7,9 @@
 
 #include "LKREvent.h"
 
+#include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownCREAMSourceIDFound.h"
-#include "../options/Options.h"
 #include "LKRMEP.h"  // forward declaration
 
 using namespace na62;
@@ -21,7 +21,7 @@ LKREvent::LKREvent(LKRMEP* mep, const char *data, const uint16_t& dataLength) th
 	if (rawData->LKRsourceID != 0x24) {
 		throw BrokenPacketReceivedError("LKR Event with a non 0x24 source field received!");
 	}
-	if (!Options::CheckCREAMID(getCrateID(), getCREAMID())) {
+	if (!SourceIDManager::CheckCREAMID(getCrateID(), getCREAMID())) {
 		throw UnknownCREAMSourceIDFound(getCrateID(), getCREAMID());
 	}
 }

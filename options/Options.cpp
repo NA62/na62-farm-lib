@@ -7,29 +7,24 @@
 
 #include "Options.h"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/detail/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/any.hpp>
-#include <boost/filesystem/v3/operations.hpp>
+#include <boost/foreach.hpp>
+#include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/value_semantic.hpp>
-#include <boost/thread/detail/thread.hpp>
-//#include <boost/thread.hpp>
+#include <boost/thread.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <stddef.h>
 #include <sys/types.h>
-#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <map>
 #include <typeinfo>
 #include <utility>
 
-#include "../utils/Utils.h"
 #include "../exceptions/BadOption.h"
+#include "../utils/Utils.h"
 
+namespace na62 {
 po::variables_map Options::vm;
 po::options_description Options::desc("Allowed options");
 
@@ -73,8 +68,8 @@ void Options::Initialize(int argc, char* argv[]) {
 	(OPTION_L0_RECEIVER_PORT, po::value<int>()->default_value(58913),
 			"UDP-Port for L1 data reception")
 
-	(OPTION_CREAM_RECEIVER_PORT, po::value<int>()->default_value(58915),
-			"UDP-Port for L2 CREAM data reception")
+	(OPTION_EOB_BROADCAST_IP, po::value<std::string>()->required(),
+			"Broadcast IP for the distribution of the last event number. Should be the broadcast IP of a network attached to NICs with standard kernel drivers (e.g. farm-out).")
 
 	(OPTION_EOB_BROADCAST_PORT, po::value<int>()->default_value(14162),
 			"Port for Broadcast packets used to distribute the last event numbers ob a burst.")
@@ -87,11 +82,43 @@ void Options::Initialize(int argc, char* argv[]) {
 	(OPTION_DATA_SOURCE_IDS, po::value<std::string>()->required(),
 			"Comma separated list of all available data source IDs sending Data to L1 (all but LKr) together with the expected numbers of packets per source. The format is like following (A,B,C are sourceIDs and a,b,c are the number of expected packets per source):\n \t A:a,B:b,C:c")
 
+	(OPTION_CREAM_RECEIVER_PORT, po::value<int>()->default_value(58915),
+			"UDP-Port for L2 CREAM data reception")
+
 	(OPTION_CREAM_CRATES, po::value<std::string>()->required(),
-			"Defines the expected sourceIDs within the data packets from the CREAMs. The format is $crateID1:$CREAMID1,$crateID1:$CREAMID2,$crateID2:$CREAMID1... E.g. 1:2,1:4,2:3:2:5 for two crates (1 and 2) with two creams each (2,4 and 3,5).")
+			"Defines the expected sourceIDs within the data packets from the CREAMs. The format is $crateID1:$CREAMIDs,$crateID1:$CREAMIDs,$crateID2:$CREAMIDs... E.g. 1:2-4,1:11-13,2:2-5,2:7 for two crates (1 and 2) with following IDs (2,3,4,11,12,13 and 2,3,4,5,7).")
 
 	(OPTION_TS_SOURCEID, po::value<std::string>()->required(),
-			"Source ID of the detector which timestamp should be written into the final event and sent to the LKr for L1-triggers.");
+			"Source ID of the detector which timestamp should be written into the final event and sent to the LKr for L1-triggers.")
+
+	(OPTION_FIRST_BURST_ID, po::value<int>()->required(),
+			"The current or first burst ID. This must be set if a PC starts during a run.")
+
+	(OPTION_L1_DOWNSCALE_FACTOR, po::value<int>()->required(),
+			"With this integer you can downscale the event rate going to L2 to a factor of 1/L1DownscaleFactor. The L1 Trigger will accept every even if  i++%downscaleFactor==0")
+
+	(OPTION_L2_DOWNSCALE_FACTOR, po::value<int>()->required(),
+			"With this integer you can downscale the event rate accepted by L2 to a factor of 1/L1DownscaleFactor. The L2 Trigger will accept every even if  i++%downscaleFactor==0")
+
+	(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS, po::value<int>()->default_value(1000),
+			"Minimum time between two MRPs sent to the CREAMs")
+
+	(OPTION_CREAM_MULTICAST_GROUP, po::value<std::string>()->required(),
+			"The multicast group IP for L1 requests to the CREAMs (MRP)")
+
+	(OPTION_CREAM_MULTICAST_PORT, po::value<int>()->default_value(58914),
+			"The port all L1 multicast MRPs to the CREAMs should be sent to")
+
+	(OPTION_MAX_TRIGGERS_PER_L1MRP, po::value<int>()->default_value(100),
+			"Maximum Number of Triggers per L1 MRP")
+
+	(OPTION_MERGER_HOST_NAME, po::value<std::string>()->required(),
+			"IP or hostname of the merger PC.")
+
+	(OPTION_MERGER_PORT, po::value<int>()->required(),
+			"The TCP port the merger is listening to.")
+
+			;
 
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -226,7 +253,7 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 			throw BadOption(OPTION_DATA_SOURCE_IDS,
 					"Bad format! Must be 'A:a,B:b'");
 		}
-		values.push_back(std::make_pair(tuble[0], tuble[1]));
+		values.push_back(std::make_pair(tuple[0], tuple[1]));
 
 	}
 	return values;
@@ -234,7 +261,7 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 
 std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 	auto pairs = GetPairList(parameter);
-	std::vector<int, int> values;
+	std::vector<std::pair<int, int> > values;
 	for (auto pair : pairs) {
 		try {
 			/*
@@ -242,7 +269,7 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 			 */
 			std::vector<std::string> minMax;
 			boost::split(minMax, pair.second, boost::is_any_of("-")); // Now we have A in tuple[0] and a in tuple[1]
-			if (minMax == 2) {
+			if (minMax.size() == 2) {
 				int min = Utils::ToUInt(minMax[0]);
 				int max = Utils::ToUInt(minMax[1]);
 
@@ -253,7 +280,7 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 			} else {
 				values.push_back(
 						std::make_pair(Utils::ToUInt(pair.first),
-								Utils::ToUInt(pair.second)));
+								na62::Utils::ToUInt(pair.second)));
 			}
 		} catch (boost::bad_lexical_cast const&) {
 			throw BadOption(parameter, "Not an integer: '" + pair.first + "'");
@@ -271,4 +298,5 @@ float Options::GetFloat(char* parameter) {
 
 const std::type_info& Options::GetOptionType(std::string key) {
 	return vm[key].value().type();
+}
 }
