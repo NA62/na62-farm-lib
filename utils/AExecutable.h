@@ -35,7 +35,7 @@ public:
 //		SetThreadAffinity(thread_, threadPrio, CPUMask, Options::Instance()->SCHEDULER);
 	}
 
-	void startThread(unsigned short threadNum, unsigned short CPUMask, unsigned threadPrio) {
+	void startThread(unsigned short threadNum, unsigned short CPUMask=-1, unsigned threadPrio=15) {
 		threadNum_ = threadNum;
 		thread_ = new boost::thread(boost::bind(&AExecutable::thread, this));
 		threads_.add_thread(thread_);

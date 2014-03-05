@@ -27,11 +27,13 @@ namespace cream {
 
 typedef std::pair<struct TRIGGER_RAW_HDR*, std::vector<uint16_t> > unicastTriggerAndCrateCREAMIDs_type;
 
-class L1DistributionHandler: public AExecutable  {
+class L1DistributionHandler: public AExecutable {
 public:
 
-	static void Async_RequestLKRDataMulticast(const uint16_t threadNum, Event *event, bool zSuppressed);
-	static void Async_RequestLKRDataUnicast(const uint16_t threadNum, const Event *event, bool zSuppressed,
+	static void Async_RequestLKRDataMulticast(const uint16_t threadNum,
+			Event *event, bool zSuppressed);
+	static void Async_RequestLKRDataUnicast(const uint16_t threadNum,
+			const Event *event, bool zSuppressed,
 			const std::vector<uint16_t> crateCREAMIDs);
 
 	static inline uint64_t GetL1TriggersSent() {
@@ -72,7 +74,8 @@ private:
 	 * Will cause to send all the Triggers in <triggers> with the given <dataHDR> asynchronously
 	 * @return uint16_t The number of Bytes that will be sent
 	 */
-	static void Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR, std::vector<struct TRIGGER_RAW_HDR*>& triggers);
+	static void Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR,
+			std::vector<struct TRIGGER_RAW_HDR*>& triggers);
 
 	static void Initialize();
 
