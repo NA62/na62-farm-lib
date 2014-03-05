@@ -14,9 +14,11 @@
 #include <cstdint>
 #include <utility>
 #include <vector>
+#include <boost/thread.hpp>
 
-#include "../options/Options.h"
+#include "../socket/EthernetUtils.h"
 #include "../utils/ThreadsafeQueue.h"
+#include "../utils/AExecutable.h"
 #include "MRP.h"
 
 namespace na62 {
@@ -25,12 +27,11 @@ namespace cream {
 
 typedef std::pair<struct TRIGGER_RAW_HDR*, std::vector<uint16_t> > unicastTriggerAndCrateCREAMIDs_type;
 
-class L1DistributionHandler {
+class L1DistributionHandler: public AExecutable  {
 public:
-	static void StartThread();
 
-	static void Async_RequestLKRDataMulticast(const uint16_t& threadNum, Event *event, bool zSuppressed);
-	static void Async_RequestLKRDataUnicast(const uint16_t& threadNum, const Event *event, bool zSuppressed,
+	static void Async_RequestLKRDataMulticast(const uint16_t threadNum, Event *event, bool zSuppressed);
+	static void Async_RequestLKRDataUnicast(const uint16_t threadNum, const Event *event, bool zSuppressed,
 			const std::vector<uint16_t> crateCREAMIDs);
 
 	static inline uint64_t GetL1TriggersSent() {
@@ -59,16 +60,21 @@ public:
 		return paused;
 	}
 
-private:
 	/*
-	 * Will send all the Triggers in <triggers> with the given <dataHDR>
-	 * @return uint16_t The number of Bytes sent
+	 * Should be called by the PacketHandler threads to actually send the queued MRPs
+	 * @return <true> in case a frame has been sent (and time has passed therefore)
 	 */
-	static void SendMRP(struct cream::MRP_FRAME_HDR* dataHDR, std::vector<struct TRIGGER_RAW_HDR*>& triggers);
+	static bool DoSendMRP(const uint16_t threadNum);
+private:
+	void thread();
+
+	/*
+	 * Will cause to send all the Triggers in <triggers> with the given <dataHDR> asynchronously
+	 * @return uint16_t The number of Bytes that will be sent
+	 */
+	static void Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR, std::vector<struct TRIGGER_RAW_HDR*>& triggers);
 
 	static void Initialize();
-
-	static uint16_t lastSentBytes;
 
 	static ThreadsafeQueue<struct TRIGGER_RAW_HDR*>* multicastMRPQueues;
 	static ThreadsafeQueue<unicastTriggerAndCrateCREAMIDs_type>* unicastMRPWithIPsQueues;
@@ -77,9 +83,13 @@ private:
 	static struct cream::MRP_FRAME_HDR* CREAM_UnicastRequestHdr;
 
 	static uint64_t L1TriggersSent;
-	static std::atomic<uint64_t> L1MRPsSent;
+	static uint64_t L1MRPsSent;
 
 	static bool paused;
+
+	static std::vector<DataContainer> MRPQueues;
+
+	static boost::mutex sendMutex_;
 };
 
 } /* namespace cream */

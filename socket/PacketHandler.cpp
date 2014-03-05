@@ -7,6 +7,7 @@
 
 #include "PacketHandler.h"
 
+#include <asm-generic/errno-base.h>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/time_duration.hpp>
 #include <boost/thread/pthread/thread_data.hpp>
@@ -16,7 +17,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
-#include <zmq.h>
+#include <sys/types.h>
 #include <zmq.hpp>
 #include <algorithm>
 #include <cstdbool>
@@ -30,6 +31,8 @@
 #include "../exceptions/UnknownSourceIDFound.h"
 #include "../l0/MEP.h"
 #include "../l0/MEPEvent.h"
+#include "../LKr/L1DistributionHandler.h"
+#include "../LKr/LKREvent.h"
 #include "../LKr/LKRMEP.h"
 #include "../options/Options.h"
 #include "../structs/Network.h"
@@ -42,8 +45,10 @@ namespace na62 {
 bool changeBurstID = false;
 uint32_t nextBurstID = 0;
 
-PacketHandler::PacketHandler() {
+uint NUMBER_OF_EBS = 0;
 
+PacketHandler::PacketHandler() {
+	NUMBER_OF_EBS = Options::GetInt(OPTION_NUMBER_OF_EBS);
 }
 
 PacketHandler::~PacketHandler() {
@@ -60,13 +65,13 @@ PacketHandler::~PacketHandler() {
 }
 
 void PacketHandler::connectZMQ() {
-	for (int i = 0; i < Options::GetInt(OPTION_NUMBER_OF_EBS); i++) {
+	for (uint i = 0; i < NUMBER_OF_EBS; i++) {
 		EBL0sockets_.push_back(ZMQHandler::GenerateSocket(ZMQ_PUSH));
 		ZMQHandler::ConnectInproc(EBL0sockets_[i],
 				ZMQHandler::GetEBL0Address(i));
 	}
 
-	for (int i = 0; i < Options::GetInt(OPTION_NUMBER_OF_EBS); i++) {
+	for (uint i = 0; i < NUMBER_OF_EBS; i++) {
 		EBLKrSockets_.push_back(ZMQHandler::GenerateSocket(ZMQ_PUSH));
 		ZMQHandler::ConnectInproc(EBLKrSockets_[i],
 				ZMQHandler::GetEBLKrAddress(i));
@@ -103,8 +108,10 @@ void PacketHandler::thread() {
 			/*
 			 * Use the time to send some packets
 			 */
-//			if (!PFringHandler::doSendPacket(threadNum_)) {
-//			}
+			if (cream::L1DistributionHandler::DoSendMRP(threadNum_)) {
+				sleepMicros = 1;
+				continue;
+			}
 			boost::this_thread::sleep(boost::posix_time::microsec(sleepMicros));
 			if (sleepMicros < 10000) {
 				sleepMicros *= 2;
@@ -159,6 +166,21 @@ bool PacketHandler::checkFrame(struct UDP_HDR* hdr, uint16_t length) {
 	return true;
 }
 
+void PacketHandler::processARPRequest(struct ARP_HDR* arp) {
+	/*
+	 * Look for ARP requests asking for my IP
+	 */
+	if (arp->targetIPAddr == PFringHandler::GetMyIP()) { // This is asking for me
+		struct DataContainer responseArp = EthernetUtils::GenerateARPv4(
+				PFringHandler::GetMyMac(), arp->sourceHardwAddr,
+				PFringHandler::GetMyIP(), arp->sourceIPAddr,
+				ARPOP_REPLY);
+		PFringHandler::SendPacketConcurrently(threadNum_, responseArp.data,
+				responseArp.length);
+		delete[] responseArp.data;
+	}
+}
+
 bool PacketHandler::processPacket(DataContainer container) {
 	uint16_t L0_Port = Options::GetInt(OPTION_L0_RECEIVER_PORT);
 	uint16_t CREAM_Port = Options::GetInt(OPTION_CREAM_RECEIVER_PORT);
@@ -173,27 +195,11 @@ bool PacketHandler::processPacket(DataContainer container) {
 		 * Check if we received an ARP request
 		 */
 		if (etherType != ETHERTYPE_IP || ipProto != IPPROTO_UDP) {
-			/*
-			 * No IP or at least no UDP packet received
-			 */
 			if (etherType == ETHERTYPE_ARP) {
-				/*
-				 * Look for ARP requests asking for my IP
-				 */
-				struct ARP_HDR* arp = (struct ARP_HDR*) container.data;
-				if (arp->targetIPAddr == PFringHandler::GetMyIP()) { // This is asking for me
-					struct DataContainer responseArp =
-							EthernetUtils::GenerateARPv4(
-									PFringHandler::GetMyMac(),
-									arp->sourceHardwAddr,
-									PFringHandler::GetMyIP(), arp->sourceIPAddr,
-									ARPOP_REPLY);
-					PFringHandler::SendPacket(responseArp.data,
-							responseArp.length);
-					delete[] responseArp.data;
-				}
+				processARPRequest((struct ARP_HDR*) container.data);
 			}
 
+			// Anyway delete the buffer afterwards
 			delete[] container.data;
 			return true;
 		}
@@ -211,7 +217,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 				- sizeof(struct udphdr);
 
 		/*
-		 * UDP and IP has been checked. Now let's see what's insight the packet
+		 *  Now let's see what's insight the packet
 		 */
 		if (destPort == L0_Port) {
 			/*
@@ -223,14 +229,13 @@ bool PacketHandler::processPacket(DataContainer container) {
 			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
 				l0::MEPEvent* event = mep->getEvent(i);
 
-				zmq::message_t request((void*) event, event->getEventLength(),
-						(zmq::free_fn*) nullptr);
+				zmq::message_t zmqMessage((void*) event,
+						event->getEventLength(), (zmq::free_fn*) nullptr);
 
 				while (true) {
 					try {
-						EBL0sockets_[event->getEventNumber()
-								% Options::GetInt(OPTION_NUMBER_OF_EBS)]->send(
-								request);
+						EBL0sockets_[event->getEventNumber() % NUMBER_OF_EBS]->send(
+								zmqMessage);
 						break;
 					} catch (const zmq::error_t& ex) {
 						if (ex.num() != EINTR) { // try again if EINTR (signal caught)
@@ -248,7 +253,26 @@ bool PacketHandler::processPacket(DataContainer container) {
 			 */
 			cream::LKRMEP* mep = new cream::LKRMEP(UDPPayload, dataLength,
 					container.data);
-			// TODO: send mep to EB
+
+			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
+				cream::LKREvent* event = mep->getEvent(i);
+				zmq::message_t zmqMessage((void*) event,
+						event->getEventLength(), (zmq::free_fn*) nullptr);
+
+				while (true) {
+					try {
+						EBLKrSockets_[event->getEventNumber() % NUMBER_OF_EBS]->send(
+								zmqMessage);
+						break;
+					} catch (const zmq::error_t& ex) {
+						if (ex.num() != EINTR) { // try again if EINTR (signal caught)
+							std::cerr << ex.what() << std::endl;
+							return false;
+						}
+					}
+				}
+
+			}
 		} else if (destPort == Options::GetInt(OPTION_EOB_BROADCAST_PORT)) {
 			if (dataLength != sizeof(struct EOB_FULL_FRAME) - sizeof(UDP_HDR)) {
 				LOG(ERROR)<<

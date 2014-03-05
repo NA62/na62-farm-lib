@@ -71,16 +71,15 @@ void EventBuilder::thread() {
 			boost::this_thread::interruption_point();
 
 			zmq::message_t message;
-			zmq::poll(&items[0], 2, 1000); // Poll 1s to pass interruption_point
+			zmq::poll(&items[0], 2, 1000); // Poll only blocks for 1 s so that we pass interruption_point
 
-			if (items[0].revents & ZMQ_POLLIN) {
+			if (items[0].revents & ZMQ_POLLIN) { // L0 data
 				L0Socket_->recv(&message);
-				l0::MEPEvent* event = (l0::MEPEvent*) message.data();
-				std::cerr << event->getEventNumber() << " received"
-						<< std::endl;
+				handleL0Data((l0::MEPEvent*) message.data());
 			}
-			if (items[1].revents & ZMQ_POLLIN) {
+			if (items[1].revents & ZMQ_POLLIN) { // LKr data
 				LKrSocket_->recv(&message);
+				handleLKRData((cream::LKREvent*) message.data());
 			}
 		} catch (const zmq::error_t& ex) {
 			if (ex.num() != EINTR) {
@@ -117,7 +116,6 @@ void EventBuilder::handleL0Data(l0::MEPEvent *mepEvent) {
 	if (!event->addL0Event(mepEvent, getCurrentBurstID())) {
 		return;
 	} else {
-		// result == true -> Last missing packet received!
 		/*
 		 * This event is complete -> process it
 		 */
@@ -149,7 +147,7 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 	 * Add new packet to EventCollector
 	 */
 	if (!event->addLKREvent(lkrEvent)) {
-		// result == false -> still subevents incomplete
+		// result == false -> subevents are still incomplete
 		return;
 	} else {
 		// result == true -> Last missing packet received!

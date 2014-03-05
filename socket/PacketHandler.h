@@ -28,6 +28,7 @@ private:
 	 * @return <true> In case of success, false in case of a serious error (we should stop the thread in this case)
 	 */
 	bool processPacket(DataContainer container);
+	void processARPRequest(struct ARP_HDR* arp);
 	void thread();
 	void connectZMQ();
 
