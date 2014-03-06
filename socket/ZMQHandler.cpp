@@ -15,6 +15,8 @@
 #include <map>
 #include <sstream>
 
+#include "../options/Options.h"
+
 namespace na62 {
 
 zmq::context_t ZMQHandler::context_;
@@ -49,6 +51,13 @@ std::string ZMQHandler::GetEBLKrAddress(int threadNum) {
 	return address.str();
 }
 
+std::string ZMQHandler::GetMergerAddress() {
+	std::stringstream address;
+	address << "tcp://" << Options::GetString(OPTION_MERGER_HOST_NAME) << ":"
+			<< Options::GetInt(OPTION_MERGER_PORT);
+	return address.str();
+}
+
 void ZMQHandler::BindInproc(zmq::socket_t* socket, std::string address) {
 	socket->bind(address.c_str());
 
@@ -60,7 +69,7 @@ void ZMQHandler::ConnectInproc(zmq::socket_t* socket, std::string address) {
 	connectMutex_.lock();
 	while (boundAddresses_.find(address) == boundAddresses_.end()) {
 		connectMutex_.unlock();
-		LOG(INFO) << "ZMQ not yet bound: " << address;
+		LOG(INFO)<< "ZMQ not yet bound: " << address;
 		boost::this_thread::sleep(boost::posix_time::microsec(100000));
 		connectMutex_.lock();
 	}

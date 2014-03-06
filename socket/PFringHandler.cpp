@@ -76,7 +76,7 @@ void PFringHandler::StartARPThread() {
 	 * Periodically send a gratuitous ARP packets
 	 */
 	while (true) {
-		SendPacket(arp.data, arp.length);
+		SendFrame(arp.data, arp.length);
 		boost::this_thread::sleep(boost::posix_time::seconds(60));
 	}
 }

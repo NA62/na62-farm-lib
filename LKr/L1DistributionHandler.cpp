@@ -270,7 +270,7 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 		DataContainer container = MRPQueues.back();
 		MRPQueues.pop_back();
 
-		PFringHandler::SendPacketConcurrently(threadNum, container.data,
+		PFringHandler::SendFrameConcurrently(threadNum, container.data,
 				container.length);
 
 		sendMutex_.unlock();

@@ -96,7 +96,7 @@ void PacketHandler::thread() {
 		 * The actual  polling!
 		 * Do not wait for incoming packets as this will block the ring and make sending impossible
 		 */
-		result = PFringHandler::GetNextPacket(&hdr, &data, 0, false,
+		result = PFringHandler::GetNextFrame(&hdr, &data, 0, false,
 				threadNum_);
 		if (result == 1) {
 			char* buff = new char[hdr.len];
@@ -175,7 +175,7 @@ void PacketHandler::processARPRequest(struct ARP_HDR* arp) {
 				PFringHandler::GetMyMac(), arp->sourceHardwAddr,
 				PFringHandler::GetMyIP(), arp->sourceIPAddr,
 				ARPOP_REPLY);
-		PFringHandler::SendPacketConcurrently(threadNum_, responseArp.data,
+		PFringHandler::SendFrameConcurrently(threadNum_, responseArp.data,
 				responseArp.length);
 		delete[] responseArp.data;
 	}

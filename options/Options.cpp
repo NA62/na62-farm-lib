@@ -56,7 +56,7 @@ void Options::Initialize(int argc, char* argv[]) {
 	(OPTION_HELP, "Produce help message")
 
 	(OPTION_VERBOSITY, po::value<int>()->default_value(0),
-			"Verbosity mode:\n\t0:\tError\n\t1:\tWarning\n\t2\tInfo")
+			"Verbosity mode:\n0: Error\n1: Warning\n2: Info")
 
 	(OPTION_CONFIG_FILE,
 			po::value<std::string>()->default_value("/etc/na62-farm2_0.cfg"),
@@ -175,9 +175,13 @@ std::string Options::GetString(char* parameter) {
 
 int Options::GetInt(char* parameter) {
 	if (SettingStore.find(std::string(parameter)) != SettingStore.end()) {
-		return atoi(SettingStore[parameter].c_str());
+		return Utils::ToUInt(SettingStore[parameter].c_str());
 	}
-	return vm[parameter].as<int>();
+
+	if (GetOptionType(parameter) == typeid(int)) {
+		return vm[parameter].as<int>();
+	}
+	return Utils::ToUInt(vm[parameter].as<std::string>());
 }
 
 std::vector<int> Options::GetIntList(char* parameter) {

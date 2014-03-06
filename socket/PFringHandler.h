@@ -28,7 +28,7 @@ public:
 
 	static void StartARPThread();
 
-	static inline int GetNextPacket(struct pfring_pkthdr *hdr, char** pkt,
+	static inline int GetNextFrame(struct pfring_pkthdr *hdr, char** pkt,
 			u_int pkt_len, uint8_t wait_for_incoming_packet, uint queueNumber) {
 		int result = queueRings_[queueNumber]->get_next_packet(hdr, pkt,
 				pkt_len, wait_for_incoming_packet);
@@ -44,8 +44,8 @@ public:
 		return deviceName_;
 	}
 
-	static inline int SendPacket(char *pkt, u_int pktLen, bool flush = true,
-			bool activePoll = true) {
+	static inline int SendFrame(char *pkt, u_int pktLen, bool flush = true,
+	bool activePoll = true) {
 		/*
 		 * Check if an Ethernet trailer is needed
 		 */
@@ -54,11 +54,11 @@ public:
 			pktLen = 64;
 		}
 		boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock sendMutex until return
-		return queueRings_[1]->send_packet((char*) pkt, pktLen, flush,
+		return queueRings_[0]->send_packet((char*) pkt, pktLen, flush,
 				activePoll);
 	}
 
-	static inline int SendPacketConcurrently(uint16_t threadNum, char *pkt,
+	static inline int SendFrameConcurrently(uint16_t threadNum, char *pkt,
 			u_int pktLen, bool flush = true, bool activePoll = true) {
 		/*
 		 * Check if an Ethernet trailer is needed
@@ -68,7 +68,7 @@ public:
 			pktLen = 64;
 		}
 
-		if (numberOfQueues_ > 1) {
+		if (numberOfQueues_ != 1) {
 			return queueRings_[threadNum % numberOfQueues_]->send_packet(
 					(char*) pkt, pktLen, flush, activePoll);
 		} else {

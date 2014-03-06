@@ -97,19 +97,21 @@ void EventBuilder::handleL0Data(l0::MEPEvent *mepEvent) {
 	 * Receiver only pushes MEPEVENT::eventNum%EBNum events. To fill all holes in eventPool we need divide by the number of event builder
 	 */
 	const uint32_t eventPoolIndex = (mepEvent->getEventNumber() / NUMBER_OF_EBS);
-	if (eventPoolIndex >= eventPool.size()) {
-		eventPool.reserve(eventPool.size() * 2);
-	}
+	Event *event;
 
-	/*
-	 * Get the corresponding Event object. It may NOT be NULL (no delete call, Event::destroy() instead) but may be empty if mepEvent is the first part of this Event.
-	 */
-
-	Event *event = eventPool[eventPoolIndex];
-	if (event == nullptr) {
-		event = new (std::nothrow) Event(mepEvent->getEventNumber());
+	if (eventPoolIndex >= eventPool.size()) { // Memory overflow
+		eventPool.reserve(eventPoolIndex * 2);
+		event = new Event(mepEvent->getEventNumber());
 		eventPool[eventPoolIndex] = event;
+		eventPool.resize(eventPoolIndex + 1);
+	} else {
+		event = eventPool[eventPoolIndex];
+		if (event == nullptr) { // An event with a higher eventPoolIndex has been received before this one
+			event = new Event(mepEvent->getEventNumber());
+			eventPool[eventPoolIndex] = event;
+		}
 	}
+
 	/*
 	 * Add new packet to Event
 	 */
@@ -209,7 +211,7 @@ void EventBuilder::processL2(Event * event) {
 		 */
 		if (!event->isWaitingForNonZSuppressedLKrData()) {
 			if (event->isL2Accepted()) {
-				StorageHandler::Async_SendEvent(threadNum_, event);
+				StorageHandler::SendEvent(threadNum_, event);
 			}
 
 			event->destroy();
@@ -220,7 +222,7 @@ void EventBuilder::processL2(Event * event) {
 
 		event->setL2Processed(L2Trigger);
 		if (event->isL2Accepted()) {
-			StorageHandler::Async_SendEvent(threadNum_, event);
+			StorageHandler::SendEvent(threadNum_, event);
 		}
 
 		event->destroy();
@@ -256,7 +258,7 @@ void EventBuilder::SendEOBBroadcast(uint32_t eventNumber,
 	EOBPacket.udp.udp.check = EthernetUtils::GenerateUDPChecksum(&EOBPacket.udp,
 			sizeof(struct EOB_FULL_FRAME));
 
-	PFringHandler::SendPacket((char*) &EOBPacket, sizeof(struct EOB_FULL_FRAME),
+	PFringHandler::SendFrame((char*) &EOBPacket, sizeof(struct EOB_FULL_FRAME),
 			true, false);
 
 	EventBuilder::SetNextBurstID(EOBPacket.finishedBurstID + 1);

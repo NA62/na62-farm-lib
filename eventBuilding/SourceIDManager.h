@@ -41,8 +41,6 @@ public:
 	static std::map<uint16_t, uint16_t> CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 	static std::pair<uint16_t, uint16_t>* LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
-
-
 	static void Initialize();
 
 	/*
@@ -68,23 +66,14 @@ public:
 	 * 0 <= sourceID < L1_LARGEST_DATA_SOURCE_ID
 	 */
 	static inline uint8_t SourceIDToNum(const uint8_t sourceID) throw () {
-//		return Options::L0_DATA_SOURCE_ID_TO_NUM[sourceID];
+		return L0_DATA_SOURCE_ID_TO_NUM[sourceID];
 		return 0;
 	}
 
 	/*
 	 * @return bool <true> if the sourceID is correct, <false> else
 	 */
-	static inline bool CheckL0SourceID(const uint8_t sourceID) throw () {
-//		if (sourceID > Options::Instance()->LARGEST_L0_DATA_SOURCE_ID) {
-//			return false;
-//		}
-//		uint8_t num = Options::Instance()->L0_DATA_SOURCE_ID_TO_NUM[sourceID];
-//		if (sourceID != Options::Instance()->L0_DATA_SOURCE_IDS[num]) {
-//			return false;
-//		}
-		return true;
-	}
+	static bool CheckL0SourceID(const uint8_t sourceID) throw ();
 
 	/**
 	 * Returns the local CREAMID corresponding to the given crateID and CREAM_ID
@@ -107,10 +96,11 @@ public:
 
 	static inline bool CheckCREAMID(const uint8_t crateID,
 			const uint8_t CREAM_ID) throw () {
-//		std::map<uint16_t, uint16_t>* cratesMap = &Options::Instance()->CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
-//		if (cratesMap->find((crateID << 8) | CREAM_ID) == cratesMap->end()) {
-//			return false;
-//		}
+		std::map<uint16_t, uint16_t>* cratesMap =
+				&CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
+		if (cratesMap->find((crateID << 8) | CREAM_ID) == cratesMap->end()) {
+			return false;
+		}
 		return true;
 	}
 };

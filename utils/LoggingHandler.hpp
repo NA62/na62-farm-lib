@@ -24,7 +24,7 @@ static void InitializeLogging(char* argv[]) {
 	}
 	FLAGS_minloglevel = 2 - Options::GetInt(OPTION_VERBOSITY);
 
-	FLAGS_log_dir = "/var/log/";
+	FLAGS_log_dir = "/var/log/na62-farm";
 	google::InitGoogleLogging(argv[0]);
 	LOG(INFO)<<"Found " << 235 << " cookies!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
 

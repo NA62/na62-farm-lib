@@ -40,6 +40,9 @@ void SourceIDManager::Initialize() {
 	auto SourceIDs = Options::GetIntPairList(OPTION_DATA_SOURCE_IDS);
 	NUMBER_OF_L0_DATA_SOURCES = SourceIDs.size();
 
+	L0_DATA_SOURCE_IDS = new uint8_t[NUMBER_OF_L0_DATA_SOURCES];
+	L0_DATA_SOURCE_NUM_TO_PACKNUM = new uint16_t[NUMBER_OF_L0_DATA_SOURCES];
+
 	bool LKrActive = false;
 
 	int pos = -1;
@@ -85,6 +88,33 @@ void SourceIDManager::Initialize() {
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 
+	LARGEST_L0_DATA_SOURCE_ID = 0;
+	for (int i = 0; i < NUMBER_OF_L0_DATA_SOURCES; i++) {
+		if (LARGEST_L0_DATA_SOURCE_ID < L0_DATA_SOURCE_IDS[i]) {
+			LARGEST_L0_DATA_SOURCE_ID = L0_DATA_SOURCE_IDS[i];
+		}
+	}
+
+	L0_DATA_SOURCE_ID_TO_NUM = new uint8_t[LARGEST_L0_DATA_SOURCE_ID + 1];
+	L0_DATA_SOURCE_ID_TO_PACKNUM = new uint16_t[LARGEST_L0_DATA_SOURCE_ID + 1];
+
+	for (uint8_t i = 0; i < NUMBER_OF_L0_DATA_SOURCES; i++) {
+		L0_DATA_SOURCE_ID_TO_NUM[L0_DATA_SOURCE_IDS[i]] = i;
+		L0_DATA_SOURCE_ID_TO_PACKNUM[L0_DATA_SOURCE_IDS[i]] =
+				L0_DATA_SOURCE_NUM_TO_PACKNUM[i];
+	}
+
+}
+
+bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) throw () {
+	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
+		return false;
+	}
+	uint8_t num = L0_DATA_SOURCE_ID_TO_NUM[sourceID];
+	if (sourceID != L0_DATA_SOURCE_IDS[num]) {
+		return false;
+	}
+	return true;
 }
 
 }

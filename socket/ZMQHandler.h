@@ -28,6 +28,7 @@ public:
 
 	static std::string GetEBL0Address(int threadNum);
 	static std::string GetEBLKrAddress(int threadNum);
+	static std::string GetMergerAddress();
 
 	/*
 	 * Binds the socket to the specified address and stores the enables connections to this address
