@@ -11,6 +11,7 @@
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/time_duration.hpp>
 #include <boost/thread/pthread/thread_data.hpp>
+#include <glog/logging.h>
 #include <linux/pf_ring.h>
 #include <net/ethernet.h>
 #include <net/if_arp.h>
@@ -18,6 +19,7 @@
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 #include <sys/types.h>
+#include <zmq.h>
 #include <zmq.hpp>
 #include <algorithm>
 #include <cstdbool>
@@ -25,7 +27,6 @@
 #include <cstring>
 #include <iostream>
 #include <queue>
-#include <glog/logging.h>
 
 #include "../exceptions/UnknownCREAMSourceIDFound.h"
 #include "../exceptions/UnknownSourceIDFound.h"
@@ -35,6 +36,7 @@
 #include "../LKr/LKREvent.h"
 #include "../LKr/LKRMEP.h"
 #include "../options/Options.h"
+#include "../structs/Event.h"
 #include "../structs/Network.h"
 #include "EthernetUtils.h"
 #include "PFringHandler.h"
@@ -46,6 +48,10 @@ bool changeBurstID = false;
 uint32_t nextBurstID = 0;
 
 uint NUMBER_OF_EBS = 0;
+
+std::atomic<uint64_t>* PacketHandler::MEPsReceivedBySourceID_;
+std::atomic<uint64_t>* PacketHandler::EventsReceivedBySourceID_;
+std::atomic<uint64_t>* PacketHandler::BytesReceivedBySourceID_;
 
 PacketHandler::PacketHandler() {
 	NUMBER_OF_EBS = Options::GetInt(OPTION_NUMBER_OF_EBS);
@@ -61,6 +67,23 @@ PacketHandler::~PacketHandler() {
 	for (auto socket : EBLKrSockets_) {
 		socket->close();
 		delete socket;
+	}
+}
+
+void PacketHandler::Initialize() {
+	int highestSourceID = SourceIDManager::LARGEST_L0_DATA_SOURCE_ID;
+	if (highestSourceID < LKR_SOURCE_ID) { // Add LKr
+		highestSourceID = LKR_SOURCE_ID;
+	}
+
+	MEPsReceivedBySourceID_ = new std::atomic<uint64_t>[highestSourceID + 1];
+	EventsReceivedBySourceID_ = new std::atomic<uint64_t>[highestSourceID + 1];
+	BytesReceivedBySourceID_ = new std::atomic<uint64_t>[highestSourceID + 1];
+
+	for (int i = 0; i <= highestSourceID; i++) {
+		MEPsReceivedBySourceID_[i] = 0;
+		EventsReceivedBySourceID_[i] = 0;
+		BytesReceivedBySourceID_[i] = 0;
 	}
 }
 
@@ -96,8 +119,7 @@ void PacketHandler::thread() {
 		 * The actual  polling!
 		 * Do not wait for incoming packets as this will block the ring and make sending impossible
 		 */
-		result = PFringHandler::GetNextFrame(&hdr, &data, 0, false,
-				threadNum_);
+		result = PFringHandler::GetNextFrame(&hdr, &data, 0, false, threadNum_);
 		if (result == 1) {
 			char* buff = new char[hdr.len];
 			memcpy(buff, data, hdr.len);
@@ -220,11 +242,17 @@ bool PacketHandler::processPacket(DataContainer container) {
 		 *  Now let's see what's insight the packet
 		 */
 		if (destPort == L0_Port) {
+
 			/*
 			 * L0 Data
 			 * * Length is hdr->ip.tot_len-sizeof(struct udphdr) and not container.length because of ethernet padding bytes!
 			 */
 			l0::MEP* mep = new l0::MEP(UDPPayload, dataLength, container.data);
+
+			MEPsReceivedBySourceID_[mep->getSourceID()]++;
+			EventsReceivedBySourceID_[mep->getSourceID()] +=
+					mep->getNumberOfEvents();
+			BytesReceivedBySourceID_[mep->getSourceID()] += container.length;
 
 			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
 				l0::MEPEvent* event = mep->getEvent(i);
@@ -239,7 +267,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 						break;
 					} catch (const zmq::error_t& ex) {
 						if (ex.num() != EINTR) { // try again if EINTR (signal caught)
-							std::cerr << ex.what() << std::endl;
+							LOG(ERROR)<< ex.what();
 							return false;
 						}
 					}
@@ -254,6 +282,10 @@ bool PacketHandler::processPacket(DataContainer container) {
 			cream::LKRMEP* mep = new cream::LKRMEP(UDPPayload, dataLength,
 					container.data);
 
+			MEPsReceivedBySourceID_[LKR_SOURCE_ID]++;
+			EventsReceivedBySourceID_[LKR_SOURCE_ID] +=
+			mep->getNumberOfEvents();
+			BytesReceivedBySourceID_[LKR_SOURCE_ID] += container.length;
 			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
 				cream::LKREvent* event = mep->getEvent(i);
 				zmq::message_t zmqMessage((void*) event,

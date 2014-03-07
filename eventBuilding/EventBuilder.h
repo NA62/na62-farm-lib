@@ -16,7 +16,6 @@
 #include "../utils/AExecutable.h"
 #include "Event.h"
 
-
 namespace na62 {
 class Event;
 class L1TriggerProcessor;
@@ -41,6 +40,15 @@ class EventBuilder: public AExecutable {
 public:
 	EventBuilder();
 	virtual ~EventBuilder();
+	static void Initialize();
+
+	static inline const std::atomic<uint64_t>* GetL1TriggerStats() const {
+		return L1Triggers_;
+	}
+
+	static inline const std::atomic<uint64_t>* GetL2TriggerStats() const {
+		return L2Triggers_;
+	}
 
 private:
 	void thread();
@@ -64,9 +72,9 @@ private:
 	}
 
 	static void SetNextBurstID(uint32_t nextBurstID) {
-		LOG(INFO) <<"Changing BurstID to " << nextBurstID;
-		for (unsigned int i = 0; i < Instances.size(); i++) {
-			Instances[i]->setNextBurstID(nextBurstID);
+		LOG(INFO)<<"Changing BurstID to " << nextBurstID;
+		for (unsigned int i = 0; i < Instances_.size(); i++) {
+			Instances_[i]->setNextBurstID(nextBurstID);
 		}
 	}
 
@@ -92,9 +100,13 @@ private:
 	L1TriggerProcessor* L1processor_;
 	L2TriggerProcessor* L2processor_;
 
-	static std::vector<EventBuilder*> Instances;
+	static std::vector<EventBuilder*> Instances_;
+
+	static std::atomic<uint64_t>* L1Triggers_;
+	static std::atomic<uint64_t>* L2Triggers_;
 
 };
 
-} /* namespace na62 */
+}
+/* namespace na62 */
 #endif /* EVENTBUILDER_H_ */

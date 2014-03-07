@@ -43,14 +43,6 @@ public:
 
 	static void Initialize();
 
-	/*
-	 * sourceID must be a valid SourceID! So use checkSourceID if you are not sure!
-	 * 0 <= sourceID < L1_LARGEST_DATA_SOURCE_ID
-	 */
-	static inline uint8_t sourceIDToNum(const uint8_t sourceID) throw () {
-		return L0_DATA_SOURCE_ID_TO_NUM[sourceID];
-	}
-
 	static inline uint16_t getExpectedPacksByEventNum(
 			const uint8_t sourceNum) throw () {
 		return L0_DATA_SOURCE_NUM_TO_PACKNUM[sourceNum];
@@ -67,7 +59,13 @@ public:
 	 */
 	static inline uint8_t SourceIDToNum(const uint8_t sourceID) throw () {
 		return L0_DATA_SOURCE_ID_TO_NUM[sourceID];
-		return 0;
+	}
+
+	/*
+	 * 0 <= sourceNum < L1_NUMBER_OF_DATA_SOURCES
+	 */
+	static inline uint8_t SourceNumToID(const uint8_t sourceNum) throw () {
+		return L0_DATA_SOURCE_IDS[sourceNum];
 	}
 
 	/*

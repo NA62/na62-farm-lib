@@ -9,6 +9,7 @@
 #define STORAGEHANDLER_H_
 
 #include <zmq.hpp>
+#include <atomic>
 #include <cstdint>
 #include <vector>
 
@@ -25,10 +26,14 @@ public:
 	static int SendEvent(const uint16_t& thredNum, Event* event);
 
 private:
+	static char* ResizeBuffer(char* buffer, const int oldLength, const int newLength);
 	/*
 	 * One Socket for every EventBuilder
 	 */
 	static std::vector<zmq::socket_t*> MergerSockets_;
+
+	static std::atomic<int> InitialEventBufferSize_;
+	static int TotalNumberOfDetectors_;
 };
 
 } /* namespace na62 */

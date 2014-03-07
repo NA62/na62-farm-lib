@@ -60,25 +60,6 @@ struct ARP_HDR {
 	// disallow padding via "__attribute__ ((__packed__))"
 }__attribute__ ((__packed__));
 
-
-struct L0_BLOCK_HDR {
-	uint16_t dataBlockSize;
-	uint8_t sourceSubID;
-	uint8_t reserved;
-}__attribute__ ((__packed__));
-
-struct EVENT_TRAILER {
-	uint32_t eventNum :24;
-	uint8_t reserved;
-}__attribute__ ((__packed__));
-
-struct EOB_FULL_FRAME {
-	struct UDP_HDR udp;
-	uint32_t finishedBurstID;
-	uint32_t lastEventNum :24;
-	uint8_t reserved;
-}__attribute__ ((__packed__));
-
 } /* namespace na62 */
 
 #endif /* NETWORK_H_ */

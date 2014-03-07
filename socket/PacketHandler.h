@@ -9,11 +9,16 @@
 #ifndef PACKETHANDLER_H_
 #define PACKETHANDLER_H_
 
+#include <sys/types.h>
+#include <zmq.hpp>
+#include <atomic>
+#include <cstdint>
 #include <vector>
-#include "../utils/AExecutable.h"
+
+//#include "../utils/AExecutable.h"
 
 namespace zmq {
-	class socket_t;
+class socket_t;
 }
 namespace na62 {
 struct DataContainer;
@@ -22,6 +27,20 @@ class PacketHandler: public AExecutable {
 public:
 	PacketHandler();
 	virtual ~PacketHandler();
+
+	static void Initialize();
+
+	static inline uint64_t GetMEPsReceivedBySourceID(uint8_t sourceID) {
+		return MEPsReceivedBySourceID_[sourceID];
+	}
+
+	static inline uint64_t GetEventsReceivedBySourceID(uint8_t sourceID) {
+		return EventsReceivedBySourceID_[sourceID];
+	}
+
+	static inline uint64_t GetBytesReceivedBySourceID(uint8_t sourceID) {
+		return BytesReceivedBySourceID_[sourceID];
+	}
 
 private:
 	/**
@@ -39,6 +58,10 @@ private:
 
 	std::vector<zmq::socket_t*> EBL0sockets_;
 	std::vector<zmq::socket_t*> EBLKrSockets_;
+
+	static std::atomic<uint64_t>* MEPsReceivedBySourceID_;
+	static std::atomic<uint64_t>* EventsReceivedBySourceID_;
+	static std::atomic<uint64_t>* BytesReceivedBySourceID_;
 };
 
 } /* namespace na62 */

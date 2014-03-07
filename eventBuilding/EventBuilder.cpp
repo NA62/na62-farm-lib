@@ -31,13 +31,17 @@
 #include "../socket/PFringHandler.h"
 #include "../socket/ZMQHandler.h"
 #include "../structs/Network.h"
+#include "../structs/Event.h"
 
 #include "Event.h"
 #include "SourceIDManager.h"
 #include "StorageHandler.h"
 
 namespace na62 {
-std::vector<EventBuilder*> EventBuilder::Instances;
+std::vector<EventBuilder*> EventBuilder::Instances_;
+
+std::atomic<uint64_t>* EventBuilder::L1Triggers_;
+std::atomic<uint64_t>* EventBuilder::L2Triggers_;
 
 EventBuilder::EventBuilder() :
 		L0Socket_(ZMQHandler::GenerateSocket(ZMQ_PULL)), LKrSocket_(
@@ -47,7 +51,7 @@ EventBuilder::EventBuilder() :
 				new L1TriggerProcessor), L2processor_(
 				new L2TriggerProcessor(threadNum_)) {
 
-	Instances.push_back(this);
+	Instances_.push_back(this);
 }
 
 EventBuilder::~EventBuilder() {
@@ -55,6 +59,16 @@ EventBuilder::~EventBuilder() {
 	LKrSocket_->close();
 	delete L0Socket_;
 	delete LKrSocket_;
+}
+
+void EventBuilder::Initialize() {
+	L1Triggers_ = new std::atomic<uint64_t>[0xFF];
+	L2Triggers_ = new std::atomic<uint64_t>[0xFF];
+
+	for (int i = 0; i <= 0xFF; i++) {
+		L1Triggers_[i] = 0;
+		L2Triggers_[i] = 0;
+	}
 }
 
 void EventBuilder::thread() {
@@ -172,7 +186,7 @@ void EventBuilder::processL1(Event *event) {
 	 * Process Level 1 trigger
 	 */
 	uint16_t L0L1Trigger = L1processor_->compute(event);
-//	L1Triggers_[L0L1Trigger >> 8]++; // The second 8 bits are the L1 trigger type word
+	L1Triggers_[L0L1Trigger >> 8]++; // The second 8 bits are the L1 trigger type word
 	event->setL1Processed(L0L1Trigger);
 
 	if (SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT != 0) {
@@ -213,7 +227,7 @@ void EventBuilder::processL2(Event * event) {
 			if (event->isL2Accepted()) {
 				StorageHandler::SendEvent(threadNum_, event);
 			}
-
+			L2Triggers_[L2Trigger]++;
 			event->destroy();
 		}
 	} else {
@@ -224,7 +238,7 @@ void EventBuilder::processL2(Event * event) {
 		if (event->isL2Accepted()) {
 			StorageHandler::SendEvent(threadNum_, event);
 		}
-
+		L2Triggers_[L2Trigger]++;
 		event->destroy();
 	}
 }
