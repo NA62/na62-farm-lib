@@ -20,7 +20,6 @@ namespace po = boost::program_options;
  * Compile time options
  */
 #define MTU 1500
-#define LKR_SOURCE_ID 0x24
 
 /*
  * Dynamic Options

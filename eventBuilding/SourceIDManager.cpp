@@ -47,7 +47,7 @@ void SourceIDManager::Initialize() {
 
 	int pos = -1;
 	for (auto pair : SourceIDs) {
-		if (pair.first == LKR_SOURCE_ID) {
+		if (pair.first == SOURCE_ID_LKr) {
 			NUMBER_OF_L0_DATA_SOURCES--;
 			LKrActive = true;
 			continue;

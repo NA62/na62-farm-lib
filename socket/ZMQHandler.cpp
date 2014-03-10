@@ -28,7 +28,6 @@ void ZMQHandler::Initialize() {
 }
 
 void ZMQHandler::Destroy() {
-	context_.~context_t();
 }
 
 zmq::socket_t* ZMQHandler::GenerateSocket(int socketType) {

@@ -5,9 +5,25 @@
  *      Author: Jonas Kunze (kunzej@cern.ch)
  */
 
-#include <boost/asio.hpp>
-#include "../eventBuilding/EventBuilder.h"
 #include "CommandConnector.h"
+
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/interprocess/creation_tags.hpp>
+#include <boost/interprocess/exceptions.hpp>
+#include <boost/interprocess/interprocess_fwd.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/system/error_code.hpp>
+#include <glog/logging.h>
+#include <algorithm>
+#include <cctype>
+#include <cstdbool>
+#include <cstdint>
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <vector>
 
 namespace na62 {
 
@@ -64,9 +80,6 @@ void CommandConnector::thread() {
 				uint32_t burst = boost::lexical_cast<int>(strings[1]);
 				LOG(INFO) << "Updating burst to " << burst;
 //				EventBuilder::SetNextBurstID(burst);
-			} else if (command == "sob_timestamp") {
-				uint32_t timestamp = boost::lexical_cast<int>(strings[1]);
-				EventBuilder::SetSOBtimestamp_(timestamp);
 			}
 		}
 	}

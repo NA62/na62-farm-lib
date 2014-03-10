@@ -10,13 +10,14 @@
 #define MONITORCONNECTOR_H_
 
 #include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_service.hpp>
+#include <boost/asio.hpp>
 #include <stdint.h>
 #include <cstdbool>
 #include <map>
 #include <string>
 
 #include "../utils/Stopwatch.h"
+#include "../utils/AExecutable.h"
 
 #define LAST_VALUE_SUFFIX "_lastValue"
 
@@ -35,15 +36,8 @@ struct ReceiverRateStruct {
 
 class MonitorConnector: public AExecutable {
 public:
-	MonitorConnector(na62::EventBuilder** EBs);
+	MonitorConnector();
 	virtual ~MonitorConnector();
-
-	/*
-	 * Datarate of received packets by pf_ring in Bps.
-	 */
-	static inline unsigned long int GetReceiverRate() {
-		return LastReceiverRate;
-	}
 
 private:
 	virtual void thread();
@@ -55,9 +49,6 @@ private:
 
 	boost::asio::io_service monitoringService;
 
-	ReceiverRateStruct receiverRate_;
-
-	na62::EventBuilder** EBs_;
 	boost::asio::deadline_timer timer_;
 
 	Stopwatch updateWatch_;
@@ -67,9 +58,6 @@ private:
 	std::map<std::string, float> continuousFloats_;
 
 	std::map<std::string, bool> existingKey_;
-
-	static float LastReceiverRate;
-
 };
 
 } /* namespace monitoring */

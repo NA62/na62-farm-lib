@@ -146,7 +146,7 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 		 * Put the LKr into the pointer table
 		 */
 		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
-		std::memset(eventBuffer + pointerTableOffset + 3, LKR_SOURCE_ID, 1); // 0x24 is the LKr sourceID
+		std::memset(eventBuffer + pointerTableOffset + 3, SOURCE_ID_LKr, 1); // 0x24 is the LKr sourceID
 
 		for (int localCreamID = event->getNumberOfZSuppressedLKrEvents() - 1;
 				localCreamID >= 0; localCreamID--) {

@@ -8,8 +8,9 @@
 #include "MonitorConnector.h"
 
 #include <boost/asio/basic_deadline_timer.hpp>
-#include <boost/bind/bind.hpp>
-#include <boost/bind/bind_mf_cc.hpp>
+#include <boost/interprocess/interprocess_fwd.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/time_duration.hpp>
 #include <boost/lexical_cast.hpp>
@@ -19,19 +20,18 @@
 #include "../eventBuilding/EventBuilder.h"
 #include "../eventBuilding/SourceIDManager.h"
 #include "../LKr/L1DistributionHandler.h"
-#include "../options/Options.h"
 #include "../socket/PacketHandler.h"
 #include "../socket/PFringHandler.h"
 #include "../utils/Utils.h"
+
 #include "IPCHandler.h"
 
 using namespace boost::interprocess;
 
 namespace na62 {
 namespace monitoring {
-float MonitorConnector::LastReceiverRate = 0;
-MonitorConnector::MonitorConnector(na62::EventBuilder** EBs) :
-		EBs_(EBs), timer_(monitoringService) {
+MonitorConnector::MonitorConnector() :
+		timer_(monitoringService) {
 
 	LOG(INFO)<<"Started monitor connector";
 }
@@ -60,9 +60,8 @@ void MonitorConnector::handleUpdate() {
 
 	IPCHandler::updateState(RUNNING);
 
-//		receiverRate_.bytesPerSecond = setDifferentialData("ReceiverRate", PFringHandler::GetBytesReceived());
-//		receiverRate_.packetsPerSecond = setDifferentialData("ReceiverPacks", PFringHandler::GetPacksReceived());
-//		LastReceiverRate = receiverRate_.bytesPerSecond;
+	setDifferentialData("ReceiverRate", PFringHandler::GetBytesReceived());
+	setDifferentialData("ReceiverPacks", PFringHandler::GetPacksReceived());
 
 	/*
 	 * Number of Events and data rate from all detectors
@@ -90,26 +89,26 @@ void MonitorConnector::handleUpdate() {
 	}
 
 	if (SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT > 0) {
-		statistics << "0x" << std::hex << (int) LKR_SOURCE_ID << ";";
+		statistics << "0x" << std::hex << (int) SOURCE_ID_LKr << ";";
 	}
 
 	setDetectorDifferentialData("MEPsReceived",
-			PacketHandler::GetMEPsReceivedBySourceID(LKR_SOURCE_ID),
-			LKR_SOURCE_ID);
+			PacketHandler::GetMEPsReceivedBySourceID(SOURCE_ID_LKr),
+			SOURCE_ID_LKr);
 	statistics << std::dec
-			<< PacketHandler::GetMEPsReceivedBySourceID(LKR_SOURCE_ID) << ";";
+			<< PacketHandler::GetMEPsReceivedBySourceID(SOURCE_ID_LKr) << ";";
 
 	setDetectorDifferentialData("EventsReceived",
-			PacketHandler::GetEventsReceivedBySourceID(LKR_SOURCE_ID),
-			LKR_SOURCE_ID);
+			PacketHandler::GetEventsReceivedBySourceID(SOURCE_ID_LKr),
+			SOURCE_ID_LKr);
 	statistics << std::dec
-			<< PacketHandler::GetEventsReceivedBySourceID(LKR_SOURCE_ID) << ";";
+			<< PacketHandler::GetEventsReceivedBySourceID(SOURCE_ID_LKr) << ";";
 
 	setDetectorDifferentialData("BytesReceived",
-			PacketHandler::GetBytesReceivedBySourceID(LKR_SOURCE_ID),
-			LKR_SOURCE_ID);
+			PacketHandler::GetBytesReceivedBySourceID(SOURCE_ID_LKr),
+			SOURCE_ID_LKr);
 	statistics << std::dec
-			<< PacketHandler::GetBytesReceivedBySourceID(LKR_SOURCE_ID) << ";";
+			<< PacketHandler::GetBytesReceivedBySourceID(SOURCE_ID_LKr) << ";";
 
 	IPCHandler::sendStatistics("DetectorData", statistics.str());
 
@@ -144,16 +143,13 @@ void MonitorConnector::handleUpdate() {
 	IPCHandler::sendStatistics("L1TriggerData", L1Stats.str());
 	IPCHandler::sendStatistics("L2TriggerData", L2Stats.str());
 
-	uint32_t bytesToStorage = 0;
-	uint32_t eventsToStorage = 0;
-	for (int EBNum = Options::Instance()->NUMBER_OF_EBS - 1; EBNum >= 0;
-			EBNum--) {
-		EventBuilder* eb = EBs_[EBNum];
-		bytesToStorage += eb->getBytesSentToStorage();
-		eventsToStorage += eb->getEventsSentToStorage();
-	}
-	setDifferentialData("BytesToStorage", bytesToStorage);
-	setDifferentialData("eventsToStorage", eventsToStorage);
+	uint32_t bytesToStorage = bytesToStorage =
+			EventBuilder::GetBytesSentToStorage();
+	uint32_t eventsToStorage = eventsToStorage =
+			EventBuilder::GetEventsSentToStorage();
+
+	setDifferentialData("BytesToMerger", bytesToStorage);
+	setDifferentialData("EventsToMerger", eventsToStorage);
 
 	IPCHandler::sendStatistics("BytesToMerger",
 			boost::lexical_cast<std::string>(bytesToStorage));
@@ -177,20 +173,17 @@ void MonitorConnector::handleUpdate() {
 //		 */
 //		setContinuousData("CPULoad", CPULoad);
 
-	IPCHandler::sendStatistics("PF_PacksReceived",
-			boost::lexical_cast<std::string>(
-					PFringHandler::GetPacksReceived()));
-	IPCHandler::sendStatistics("PF_BytesReceived",
-			boost::lexical_cast<std::string>(
-					PFringHandler::GetBytesReceived()));
-	IPCHandler::sendStatistics("PF_PacksDropped",
-			boost::lexical_cast<std::string>(
-					PFringHandler::GetPacksDroppedWorker()));
+//	IPCHandler::sendStatistics("PF_PacksReceived",
+//			boost::lexical_cast<std::string>(
+//					PFringHandler::GetPacksReceived()));
+//	IPCHandler::sendStatistics("PF_BytesReceived",
+//			boost::lexical_cast<std::string>(
+//					PFringHandler::GetBytesReceived()));
+//	IPCHandler::sendStatistics("PF_PacksDropped",
+//			boost::lexical_cast<std::string>(
+//					PFringHandler::GetPacksDroppedWorker()));
 
-	if (Options::Instance()->VERBOSE) {
-		MallocHandler::PrintStats();
-		PFringHandler::PrintStats();
-	}
+	PFringHandler::PrintStats();
 }
 
 float MonitorConnector::setDifferentialData(std::string key, uint64_t value) {
@@ -200,10 +193,9 @@ float MonitorConnector::setDifferentialData(std::string key, uint64_t value) {
 		differentialInts_[key] = 0;
 	}
 	uint64_t lastValue = differentialInts_[key];
-//	if (differentialInts_[key + LAST_VALUE_SUFFIX] - lastValue != lastValue - value) {
-	if (lastValue > 0) {
-		LOG(INFO)<<key << " : " << boost::lexical_cast<std::string>(value - differentialInts_[key]);
-		LOG(INFO) <<"total " << key << " : " << boost::lexical_cast<std::string>(value);
+
+	if (value != 0) {
+		LOG(INFO)<<key << " : " << boost::lexical_cast<std::string>(value - differentialInts_[key]) << " (" << boost::lexical_cast<std::string>(value) <<")";
 	}
 
 	differentialInts_[key + LAST_VALUE_SUFFIX] = differentialInts_[key];

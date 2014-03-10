@@ -43,6 +43,9 @@ std::vector<EventBuilder*> EventBuilder::Instances_;
 std::atomic<uint64_t>* EventBuilder::L1Triggers_;
 std::atomic<uint64_t>* EventBuilder::L2Triggers_;
 
+std::atomic<uint64_t> EventBuilder::BytesSentToStorage_(0);
+std::atomic<uint64_t> EventBuilder::EventsSentToStorage_(0);
+
 EventBuilder::EventBuilder() :
 		L0Socket_(ZMQHandler::GenerateSocket(ZMQ_PULL)), LKrSocket_(
 				ZMQHandler::GenerateSocket(ZMQ_PULL)), NUMBER_OF_EBS(
@@ -225,7 +228,9 @@ void EventBuilder::processL2(Event * event) {
 		 */
 		if (!event->isWaitingForNonZSuppressedLKrData()) {
 			if (event->isL2Accepted()) {
-				StorageHandler::SendEvent(threadNum_, event);
+				BytesSentToStorage_ += StorageHandler::SendEvent(threadNum_,
+						event);
+				EventsSentToStorage_++;
 			}
 			L2Triggers_[L2Trigger]++;
 			event->destroy();
@@ -236,7 +241,8 @@ void EventBuilder::processL2(Event * event) {
 
 		event->setL2Processed(L2Trigger);
 		if (event->isL2Accepted()) {
-			StorageHandler::SendEvent(threadNum_, event);
+			BytesSentToStorage_ += StorageHandler::SendEvent(threadNum_, event);
+			EventsSentToStorage_++;
 		}
 		L2Triggers_[L2Trigger]++;
 		event->destroy();

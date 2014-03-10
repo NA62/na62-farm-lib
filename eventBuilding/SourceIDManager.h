@@ -8,6 +8,19 @@
 #ifndef SOURCEIDMANAGER_H_
 #define SOURCEIDMANAGER_H_
 
+#define SOURCE_ID_CEDAR 0x04
+#define SOURCE_ID_GTK 0x08
+#define SOURCE_ID_CHANTI 0x0C
+#define SOURCE_ID_LAV 0x10
+#define SOURCE_ID_STRAW 0x14
+#define SOURCE_ID_CHOD 0x18
+#define SOURCE_ID_RICH 0x1C
+#define SOURCE_ID_IRC 0x20
+#define SOURCE_ID_LKr 0x24
+#define SOURCE_ID_MUV 0x28
+#define SOURCE_ID_SAC 0x2C
+#define SOURCE_ID_L0TP 0x40
+
 #include <cstdint>
 #include <map>
 #include <utility>

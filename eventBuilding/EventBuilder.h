@@ -9,9 +9,11 @@
 #ifndef EVENTBUILDER_H_
 #define EVENTBUILDER_H_
 
-#include <cstdint>
-#include <vector>
 #include <glog/logging.h>
+#include <atomic>
+#include <cstdint>
+#include <iostream>
+#include <vector>
 
 #include "../utils/AExecutable.h"
 #include "Event.h"
@@ -42,12 +44,20 @@ public:
 	virtual ~EventBuilder();
 	static void Initialize();
 
-	static inline const std::atomic<uint64_t>* GetL1TriggerStats() const {
+	static inline const std::atomic<uint64_t>* GetL1TriggerStats() {
 		return L1Triggers_;
 	}
 
-	static inline const std::atomic<uint64_t>* GetL2TriggerStats() const {
+	static inline const std::atomic<uint64_t>* GetL2TriggerStats() {
 		return L2Triggers_;
+	}
+
+	static inline const uint64_t GetBytesSentToStorage() {
+		return BytesSentToStorage_;
+	}
+
+	static inline const uint64_t GetEventsSentToStorage() {
+		return EventsSentToStorage_;
 	}
 
 private:
@@ -104,6 +114,9 @@ private:
 
 	static std::atomic<uint64_t>* L1Triggers_;
 	static std::atomic<uint64_t>* L2Triggers_;
+
+	static std::atomic<uint64_t> BytesSentToStorage_;
+	static std::atomic<uint64_t> EventsSentToStorage_;
 
 };
 

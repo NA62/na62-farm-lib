@@ -72,8 +72,8 @@ PacketHandler::~PacketHandler() {
 
 void PacketHandler::Initialize() {
 	int highestSourceID = SourceIDManager::LARGEST_L0_DATA_SOURCE_ID;
-	if (highestSourceID < LKR_SOURCE_ID) { // Add LKr
-		highestSourceID = LKR_SOURCE_ID;
+	if (highestSourceID < SOURCE_ID_LKr) { // Add LKr
+		highestSourceID = SOURCE_ID_LKr;
 	}
 
 	MEPsReceivedBySourceID_ = new std::atomic<uint64_t>[highestSourceID + 1];
@@ -282,10 +282,10 @@ bool PacketHandler::processPacket(DataContainer container) {
 			cream::LKRMEP* mep = new cream::LKRMEP(UDPPayload, dataLength,
 					container.data);
 
-			MEPsReceivedBySourceID_[LKR_SOURCE_ID]++;
-			EventsReceivedBySourceID_[LKR_SOURCE_ID] +=
+			MEPsReceivedBySourceID_[SOURCE_ID_LKr]++;
+			EventsReceivedBySourceID_[SOURCE_ID_LKr] +=
 			mep->getNumberOfEvents();
-			BytesReceivedBySourceID_[LKR_SOURCE_ID] += container.length;
+			BytesReceivedBySourceID_[SOURCE_ID_LKr] += container.length;
 			for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
 				cream::LKREvent* event = mep->getEvent(i);
 				zmq::message_t zmqMessage((void*) event,
