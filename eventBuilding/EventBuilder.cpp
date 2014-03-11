@@ -65,8 +65,8 @@ EventBuilder::~EventBuilder() {
 }
 
 void EventBuilder::Initialize() {
-	L1Triggers_ = new std::atomic<uint64_t>[0xFF];
-	L2Triggers_ = new std::atomic<uint64_t>[0xFF];
+	L1Triggers_ = new std::atomic<uint64_t>[0xFF+1];
+	L2Triggers_ = new std::atomic<uint64_t>[0xFF+1];
 
 	for (int i = 0; i <= 0xFF; i++) {
 		L1Triggers_[i] = 0;
@@ -102,7 +102,8 @@ void EventBuilder::thread() {
 			if (ex.num() != EINTR) {
 				L0Socket_->close();
 				LKrSocket_->close();
-				std::cerr << ex.what() << std::endl;
+				delete L0Socket_;
+				delete LKrSocket_;
 				return;
 			}
 		}

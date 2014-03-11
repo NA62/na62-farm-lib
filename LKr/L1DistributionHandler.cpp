@@ -192,12 +192,12 @@ void L1DistributionHandler::thread() {
 	multicastRequests.reserve(MAX_TRIGGERS_PER_L1MRP);
 	const unsigned int sleepMicros = Options::GetInt(
 	OPTION_MIN_USEC_BETWEEN_L1_REQUESTS);
+
+	const int NUMBER_OF_EBS = Options::GetInt(OPTION_NUMBER_OF_EBS);
 	while (true) {
 		ThreadsafeQueue<struct TRIGGER_RAW_HDR*>* queue =
-				&multicastMRPQueues[threadNum
-						% Options::GetInt(OPTION_NUMBER_OF_EBS)];
+				&multicastMRPQueues[threadNum % NUMBER_OF_EBS];
 
-		const int NUMBER_OF_EBS = Options::GetInt(OPTION_NUMBER_OF_EBS);
 		while (multicastRequests.size() < MAX_TRIGGERS_PER_L1MRP) {
 			struct TRIGGER_RAW_HDR* hdr;
 			if (queue->pop(hdr)) {

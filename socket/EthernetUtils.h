@@ -9,15 +9,18 @@
 #ifndef ETHERNETHANDLER_H_
 #define ETHERNETHANDLER_H_
 
+#include <linux/if_ether.h>
 #include <net/ethernet.h>
 #include <net/if_arp.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 #include <sys/types.h>
+#include <cstdbool>
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "../structs/Network.h"
 
@@ -46,7 +49,7 @@ public:
 	 * Note: This also works with interfaces running with a pf_ring driver like "dna:ethX". So you
 	 * cann call EthernetUtils::GetMacOfInterface(PFringHandler::getDeviceName()); as implemented in PFringHandler.cpp
 	 */
-	static char* GetMacOfInterface(std::string iface);
+	static std::vector<char> GetMacOfInterface(std::string iface);
 
 	static u_int32_t GetIPOfInterface(std::string iface);
 

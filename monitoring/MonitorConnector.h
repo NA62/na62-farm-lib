@@ -41,6 +41,7 @@ public:
 
 private:
 	virtual void thread();
+	void onInterruption();
 	void handleUpdate();
 	float setDifferentialData(std::string key, uint64_t value);
 	void setDetectorDifferentialData(std::string key, uint64_t value,

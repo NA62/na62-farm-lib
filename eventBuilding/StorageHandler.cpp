@@ -57,6 +57,13 @@ char* StorageHandler::ResizeBuffer(char* buffer, const int oldLength,
 }
 
 int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
+
+//	std::cout << event->getL0BuildingTime() << "\t"
+//			<< event->getL1ProcessingTime() << "\t"
+//			<< event->getL1BuildingTime() << "\t"
+//			<< event->getL2ProcessingTime() << "\t"
+//			<< event->getTimeSinceFirstMEPReceived() << std::endl;
+
 	int eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
@@ -197,7 +204,12 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 		} catch (const zmq::error_t& ex) {
 			if (ex.num() != EINTR) { // try again if EINTR (signal caught)
 				LOG(ERROR)<< ex.what();
-				return false;
+
+				for (int i = 0; i < Options::GetInt(OPTION_NUMBER_OF_EBS); i++) {
+					MergerSockets_[i]->close();
+					delete MergerSockets_[i];
+				}
+				return 0;
 			}
 		}
 	}

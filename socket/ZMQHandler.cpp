@@ -19,20 +19,21 @@
 
 namespace na62 {
 
-zmq::context_t ZMQHandler::context_;
+zmq::context_t* ZMQHandler::context_;
 std::set<std::string> ZMQHandler::boundAddresses_;
 boost::mutex ZMQHandler::connectMutex_;
 
 void ZMQHandler::Initialize() {
-	zmq::context_t context_(1);
+	context_ = new zmq::context_t(1);
 }
 
 void ZMQHandler::Destroy() {
+	delete context_;
 }
 
 zmq::socket_t* ZMQHandler::GenerateSocket(int socketType) {
 	int linger = 0;
-	zmq::socket_t* socket = new zmq::socket_t(context_, socketType);
+	zmq::socket_t* socket = new zmq::socket_t(*context_, socketType);
 	socket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
 
 	return socket;

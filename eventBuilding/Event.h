@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <map>
+#include <boost/timer/timer.hpp>
 
 #include "../LKr/LKREvent.h"
 #include "SourceIDManager.h"
@@ -128,6 +129,9 @@ public:
 	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
 	 */
 	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
+		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+				- l0BuildingTime_;
+
 		triggerTypeWord_ = L0L1TriggerTypeWord;
 		L1Processed_ = true;
 	}
@@ -138,6 +142,9 @@ public:
 	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
 	 */
 	void setL2Processed(const uint8_t L2TriggerTypeWord) {
+		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+				- l0BuildingTime_;
+
 		L2Accepted_ = L2TriggerTypeWord > 0;
 		// Move the L2 trigger type word to the third byte of triggerTypeWord_
 		triggerTypeWord_ |= L2TriggerTypeWord << 16;
@@ -249,10 +256,47 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	/*
+	 * Returns the number of wall microseconds since the first event part has been added to this event
+	 */
+	u_int32_t getTimeSinceFirstMEPReceived() const {
+		return firstEventPartAddedTime_.elapsed().wall / 1E3;
+	}
+
+	/*
+	 * Returns the number of wall microseconds passed between the first and last L0 MEP received
+	 */
+	u_int32_t getL0BuildingTime() const {
+		return l0BuildingTime_;
+	}
+
+	/*
+	 * Returns the number of wall microseconds passed between the last L0 MEP received and the end of the L1 processing
+	 */
+	u_int32_t getL1ProcessingTime() const {
+		return l1ProcessingTime_;
+	}
+
+	/*
+	 * Returns the number of wall microseconds passed between the  end of the L1 processing and the last LKr MEP received
+	 */
+	u_int32_t getL1BuildingTime() const {
+		return l1BuildingTime_;
+	}
+
+	/*
+	 * Returns the number of wall microseconds passed between the  LKr MEP received and the end of the L2 processing
+	 */
+	u_int32_t getL2ProcessingTime() const {
+		return l2ProcessingTime_;
+	}
+
 private:
 	void setBurstID(const uint32_t L0ID) {
 		burstID_ = L0ID;
 	}
+
+	void reset();
 
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
@@ -285,7 +329,15 @@ private:
 	bool L2Accepted_;
 
 	bool lastEventOfBurst_;
-	void reset();
+
+	boost::timer::cpu_timer firstEventPartAddedTime_;
+	/*
+	 * Times in microseconds
+	 */
+	u_int32_t l0BuildingTime_;
+	u_int32_t l1ProcessingTime_;
+	u_int32_t l1BuildingTime_;
+	u_int32_t l2ProcessingTime_;
 };
 
 } /* namespace na62 */

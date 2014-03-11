@@ -26,8 +26,6 @@ static void InitializeLogging(char* argv[]) {
 
 	FLAGS_log_dir = "/var/log/na62-farm";
 	google::InitGoogleLogging(argv[0]);
-	LOG(INFO)<<"Found " << 235 << " cookies!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-
 }
 }
 

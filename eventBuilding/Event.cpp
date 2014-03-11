@@ -25,6 +25,7 @@ Event::Event(uint32_t eventNumber) :
 				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), lastEventOfBurst_(
 				false) {
+	firstEventPartAddedTime_.stop(); //We'll start the first time addL0Event is called
 
 	/*
 	 * Initialize subevents at the existing sourceIDs as position
@@ -68,6 +69,9 @@ Event::~Event() {
 }
 
 bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
+	if (firstEventPartAddedTime_.is_stopped()) {
+		firstEventPartAddedTime_.start();
+	}
 	// If the new event number does not equal the first one something went terribly wrong!
 	if (eventNumber_ != l0Event->getEventNumber()) {
 		LOG(ERROR)<<
@@ -83,7 +87,7 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	} else {
 		if (l0Event->isLastEventOfBurst() != lastEventOfBurst_) {
 			destroy();
-			LOG(ERROR) <<"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
+			LOG(ERROR)<<"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
 			return addL0Event(l0Event, burstID);
 		}
 	}
@@ -96,7 +100,7 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 		/*
 		 * Event not build during last burst -> destroy it!
 		 */
-		LOG(ERROR) <<
+		LOG(ERROR)<<
 		"Overwriting unfinished event from Burst " + boost::lexical_cast<std::string>((int ) getBurstID()) + "! Eventnumber: "
 		+ boost::lexical_cast<std::string>((int ) getEventNumber());
 		destroy();
@@ -105,11 +109,13 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 
 	l0::Subevent* subevent = L0Subevents[l0Event->getSourceIDNum()];
 
-	if (subevent->getNumberOfParts() >= SourceIDManager::getExpectedPacksByEventID(l0Event->getSourceID())) {
+	if (subevent->getNumberOfParts()
+			>= SourceIDManager::getExpectedPacksByEventID(
+					l0Event->getSourceID())) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
-		LOG(ERROR) <<"Event number " << l0Event->getEventNumber() << " already received from source " << ((int) l0Event->getSourceID());
+		LOG(ERROR)<<"Event number " << l0Event->getEventNumber() << " already received from source " << ((int) l0Event->getSourceID());
 		destroy();
 		return addL0Event(l0Event, burstID);
 	}
@@ -117,7 +123,13 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	subevent->addEventPart(l0Event);
 	numberOfL0Events_++;
 
-	return numberOfL0Events_ == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+	if (numberOfL0Events_
+			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
+		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
+
+		return true;
+	}
+	return false;
 }
 
 bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
@@ -181,7 +193,14 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		zSuppressedLKrEventsByCrateCREAMID[localCreamID] = lkrEvent;
 		numberOfCREAMEvents_++;
 
-		return numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+		if (numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+			std::cout << l1ProcessingTime_ << "\t" << firstEventPartAddedTime_.elapsed().wall/1E3 << std::endl;
+			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-l1ProcessingTime_;
+
+			return true;
+		}
+
+		return false;
 	}
 }
 
@@ -200,6 +219,8 @@ void Event::reset() {
 }
 
 void Event::destroy() {
+	firstEventPartAddedTime_.stop();
+
 	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0Subevents[i]->destroy();
 	}

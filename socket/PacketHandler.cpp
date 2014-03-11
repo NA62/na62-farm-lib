@@ -60,13 +60,17 @@ PacketHandler::PacketHandler() {
 PacketHandler::~PacketHandler() {
 	std::cout << "Deleting PacketHandler " << threadNum_ << std::endl;
 	for (auto socket : EBL0sockets_) {
-		socket->close();
-		delete socket;
+		if (socket != nullptr) {
+			socket->close();
+			delete socket;
+		}
 	}
 
 	for (auto socket : EBLKrSockets_) {
-		socket->close();
-		delete socket;
+		if (socket != nullptr) {
+			socket->close();
+			delete socket;
+		}
 	}
 }
 
@@ -113,6 +117,7 @@ void PacketHandler::thread() {
 	register int result = 0;
 	int sleepMicros = 1;
 	while (true) {
+		boost::this_thread::interruption_point();
 		result = 0;
 		data = NULL;
 		/*
@@ -194,7 +199,7 @@ void PacketHandler::processARPRequest(struct ARP_HDR* arp) {
 	 */
 	if (arp->targetIPAddr == PFringHandler::GetMyIP()) { // This is asking for me
 		struct DataContainer responseArp = EthernetUtils::GenerateARPv4(
-				PFringHandler::GetMyMac(), arp->sourceHardwAddr,
+				PFringHandler::GetMyMac().data(), arp->sourceHardwAddr,
 				PFringHandler::GetMyIP(), arp->sourceIPAddr,
 				ARPOP_REPLY);
 		PFringHandler::SendFrameConcurrently(threadNum_, responseArp.data,
@@ -268,6 +273,12 @@ bool PacketHandler::processPacket(DataContainer container) {
 					} catch (const zmq::error_t& ex) {
 						if (ex.num() != EINTR) { // try again if EINTR (signal caught)
 							LOG(ERROR)<< ex.what();
+							for (uint i = 0; i < NUMBER_OF_EBS; i++) {
+								EBL0sockets_[i]->close();
+								EBLKrSockets_[i]->close();
+								delete EBL0sockets_[i];
+								delete EBLKrSockets_[i];
+							}
 							return false;
 						}
 					}
@@ -298,12 +309,17 @@ bool PacketHandler::processPacket(DataContainer container) {
 						break;
 					} catch (const zmq::error_t& ex) {
 						if (ex.num() != EINTR) { // try again if EINTR (signal caught)
-							std::cerr << ex.what() << std::endl;
+							LOG(ERROR)<< ex.what();
+							for (uint i = 0; i < NUMBER_OF_EBS; i++) {
+								EBL0sockets_[i]->close();
+								EBLKrSockets_[i]->close();
+								delete EBL0sockets_[i];
+								delete EBLKrSockets_[i];
+							}
 							return false;
 						}
 					}
 				}
-
 			}
 		} else if (destPort == Options::GetInt(OPTION_EOB_BROADCAST_PORT)) {
 			if (dataLength != sizeof(struct EOB_FULL_FRAME) - sizeof(UDP_HDR)) {

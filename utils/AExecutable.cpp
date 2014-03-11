@@ -22,6 +22,7 @@ AExecutable::AExecutable() :
 }
 
 AExecutable::~AExecutable() {
+	delete thread_;
 }
 
 void AExecutable::SetThreadAffinity(boost::thread& daThread, unsigned short threadPriority, short unsigned CPUToBind, int scheduler) {

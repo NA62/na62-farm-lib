@@ -12,21 +12,19 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 #include <atomic>
+#include <vector>
 
 #include "EthernetUtils.h"
 #include "../utils/Utils.h"
 #include "../utils/ThreadsafeQueue.h"
 #include "../utils/Stopwatch.h"
+#include "../utils/AExecutable.h"
 #include "PFring.h" // BUGFIX: must be included AFTER any boost-header
 
 namespace na62 {
-class PFringHandler {
+class PFringHandler: public AExecutable {
 public:
-	static void Initialize(std::string deviceName);
-
-	static void Shutdown();
-
-	static void StartARPThread();
+	PFringHandler(std::string deviceName);
 
 	static inline int GetNextFrame(struct pfring_pkthdr *hdr, char** pkt,
 			u_int pkt_len, uint8_t wait_for_incoming_packet, uint queueNumber) {
@@ -68,22 +66,22 @@ public:
 			pktLen = 64;
 		}
 
-		if (numberOfQueues_ != 1) {
+//		if (numberOfQueues_ != 1) {
 			return queueRings_[threadNum % numberOfQueues_]->send_packet(
 					(char*) pkt, pktLen, flush, activePoll);
-		} else {
-			boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock sendMutex until return
-			int result = queueRings_[0]->send_packet((char*) pkt, pktLen, flush,
-					activePoll);
-			return result;
-		}
+//		} else {
+//			boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock sendMutex until return
+//			int result = queueRings_[0]->send_packet((char*) pkt, pktLen, flush,
+//					activePoll);
+//			return result;
+//		}
 	}
 
 	/**
 	 * Returns the 6 byte long hardware address of the NIC the PFring object is assigned to.
 	 */
-	static inline char* GetMyMac() {
-		return EthernetUtils::GetMacOfInterface(PFringHandler::GetDeviceName());
+	static inline std::vector<char> GetMyMac() {
+		return std::move(EthernetUtils::GetMacOfInterface(PFringHandler::GetDeviceName()));
 	}
 
 	/**
@@ -125,8 +123,6 @@ private:
 	static uint16_t numberOfQueues_;
 	static std::string deviceName_;
 
-	static boost::thread* ARPThread;
-
 	static pfring_stat GetStats() {
 		pfring_stat stats = { 0 };
 		pfring_stat result = { 0 };
@@ -137,6 +133,11 @@ private:
 		}
 		return stats;
 	}
+
+	/*
+	 * The thread will send gratuitous arp requests
+	 */
+	void thread();
 }
 ;
 

@@ -16,10 +16,9 @@ uint16_t PFringHandler::numberOfQueues_;
 std::atomic<uint64_t> PFringHandler::bytesReceived_(0);
 std::atomic<uint64_t> PFringHandler::packetsReceived_(0);
 std::string PFringHandler::deviceName_ = "";
-boost::thread* PFringHandler::ARPThread;
 boost::mutex PFringHandler::sendMutex_;
 
-void PFringHandler::Initialize(std::string deviceName) {
+PFringHandler::PFringHandler(std::string deviceName) {
 	deviceName_ = deviceName;
 	u_int32_t flags = 0;
 	//flags |= PF_RING_REENTRANT;
@@ -55,25 +54,28 @@ void PFringHandler::Initialize(std::string deviceName) {
 		queueRings_[i] = tmpRing;
 
 		if (tmpRing->enable_ring() >= 0) {
-			LOG(INFO) << "Successfully opened device "
-					<< tmpRing->get_device_name() << " with "
-					<< (int) tmpRing->get_num_rx_channels() << " rx queues";
+			LOG(INFO)<< "Successfully opened device "
+			<< tmpRing->get_device_name() << " with "
+			<< (int) tmpRing->get_num_rx_channels() << " rx queues";
 		} else {
 			LOG(ERROR) << "Unable to open device " << queDeviceName
-					<< "! Is pf_ring not loaded or do you use quick mode and have already a socket bound to this device?!";
+			<< "! Is pf_ring not loaded or do you use quick mode and have already a socket bound to this device?!";
 			exit(1);
 		}
 	}
 
-	ARPThread = new boost::thread(boost::bind(&PFringHandler::StartARPThread));
+	/*
+	 * Start gratuitous ARP request sending thread
+	 */
+	startThread();
 }
 
-void PFringHandler::StartARPThread() {
+void PFringHandler::thread() {
 
 	struct DataContainer arp = EthernetUtils::GenerateGratuitousARPv4(
-			GetMyMac(), GetMyIP());
+			GetMyMac().data(), GetMyIP());
 	/*
-	 * Periodically send a gratuitous ARP packets
+	 * Periodically send a gratuitous ARP frames
 	 */
 	while (true) {
 		SendFrame(arp.data, arp.length);
@@ -81,21 +83,12 @@ void PFringHandler::StartARPThread() {
 	}
 }
 
-void PFringHandler::Shutdown() {
-	ARPThread->interrupt();
-	delete ARPThread;
-	for (uint8_t i = 0; i < numberOfQueues_; i++) {
-		delete queueRings_[i];
-	}
-	delete[] queueRings_;
-}
-
 void PFringHandler::PrintStats() {
 	pfring_stat stats = { 0 };
-	LOG(INFO) << "Ring\trecv\tdrop";
+	LOG(INFO)<< "Ring\trecv\tdrop";
 	for (int i = 0; i < numberOfQueues_; i++) {
 		queueRings_[i]->get_stats(&stats);
-		LOG(INFO) << i << " \t" << stats.recv << "\t" << stats.drop;
+		LOG(INFO)<<i << " \t" << stats.recv << "\t" << stats.drop;
 	}
 
 //
@@ -103,4 +96,5 @@ void PFringHandler::PrintStats() {
 //	LOG(INFO) <<
 //			"Total Pkts=" << (unsigned int) (pfringStat.recv+pfringStat.drop) << "/Dropped=" << (pfringStat.recv== 0 ? 0 : (float) (pfringStat.drop * 100) / (float) (pfringStat.recv + pfringStat.drop));
 }
-} /* namespace na62 */
+}
+/* namespace na62 */

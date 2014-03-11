@@ -45,6 +45,10 @@ void MonitorConnector::thread() {
 }
 
 MonitorConnector::~MonitorConnector() {
+	monitoringService.stop();
+}
+
+void MonitorConnector::onInterruption() {
 	LOG(ERROR)<<"Stopping MonitorConnector";
 	monitoringService.stop();
 }
@@ -215,11 +219,7 @@ void MonitorConnector::setDetectorDifferentialData(std::string key,
 	}
 	lastValue = detectorDifferentialInts_[detectorID][key];
 
-	if (detectorDifferentialInts_[detectorID][key + LAST_VALUE_SUFFIX]
-			- lastValue != lastValue - value) {
-		LOG(INFO)<<key << boost::lexical_cast<std::string>((int) detectorID) << " : " << boost::lexical_cast<std::string>(value - lastValue);
-		LOG(INFO) <<"total " << key << boost::lexical_cast<std::string>((int) detectorID) << " : " << boost::lexical_cast<std::string>(value);
-	}
+	LOG(INFO)<<key << boost::lexical_cast<std::string>((int) detectorID) << " : " << boost::lexical_cast<std::string>(value - lastValue) << "( " <<boost::lexical_cast<std::string>(value)<<")";
 
 	detectorDifferentialInts_[detectorID][key + LAST_VALUE_SUFFIX] =
 			detectorDifferentialInts_[detectorID][key];

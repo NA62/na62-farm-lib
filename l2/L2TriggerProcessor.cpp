@@ -44,10 +44,10 @@ uint8_t L2TriggerProcessor::compute(Event* event) {
 //	}
 //	async_requestNonZSuppressedLKrData(localCreamIDsToRequestNonZSuppressedData, event);
 
-	if (rr++ % L2_DOWNSCALE_FACTOR == 0) {
-		// Accept event
-		return 3;
-	}
+//	if (rr++ % L2_DOWNSCALE_FACTOR == 0) {
+//		// Accept event
+//		return 3;
+//	}
 	return 0;
 }
 

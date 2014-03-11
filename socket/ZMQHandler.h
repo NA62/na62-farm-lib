@@ -40,7 +40,7 @@ public:
 	 */
 	static void ConnectInproc(zmq::socket_t* socket, std::string address);
 private:
-	static zmq::context_t context_;
+	static zmq::context_t* context_;
 	static std::set<std::string> boundAddresses_;
 	static boost::mutex connectMutex_;
 };

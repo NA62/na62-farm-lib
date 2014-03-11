@@ -32,8 +32,9 @@ char* EthernetUtils::StringToMAC(const std::string address) {
 	return macAddress;
 }
 
-char * EthernetUtils::GetMacOfInterface(std::string iface) {
-	char *macAddress = new char[6];
+std::vector<char> EthernetUtils::GetMacOfInterface(std::string iface) {
+	std::vector<char>macAddress;
+	macAddress.resize(6);
 
 	/*
 	 * substring if the interface is formated like dna:ethX
@@ -100,7 +101,7 @@ UDP_HDR* EthernetUtils::GenerateUDP(const void* buffer, const char* dMacAddr, co
 	hdr->ip.protocol = IPPROTO_UDP;
 
 	memcpy(hdr->eth.ether_dhost, dMacAddr, ETH_ALEN);
-	memcpy(hdr->eth.ether_shost, PFringHandler::GetMyMac(), ETH_ALEN);
+	memcpy(hdr->eth.ether_shost, PFringHandler::GetMyMac().data(), ETH_ALEN);
 
 	hdr->ip.version = 4; // IP version
 	hdr->ip.ihl = 5; // Internet Header Length = ihl*4B (5 = 20B is standard without additional options)
