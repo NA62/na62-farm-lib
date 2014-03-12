@@ -65,8 +65,8 @@ EventBuilder::~EventBuilder() {
 }
 
 void EventBuilder::Initialize() {
-	L1Triggers_ = new std::atomic<uint64_t>[0xFF+1];
-	L2Triggers_ = new std::atomic<uint64_t>[0xFF+1];
+	L1Triggers_ = new std::atomic<uint64_t>[0xFF + 1];
+	L2Triggers_ = new std::atomic<uint64_t>[0xFF + 1];
 
 	for (int i = 0; i <= 0xFF; i++) {
 		L1Triggers_[i] = 0;
@@ -119,9 +119,9 @@ void EventBuilder::handleL0Data(l0::MEPEvent *mepEvent) {
 
 	if (eventPoolIndex >= eventPool.size()) { // Memory overflow
 		eventPool.reserve(eventPoolIndex * 2);
+		eventPool.resize(eventPoolIndex + 1);
 		event = new Event(mepEvent->getEventNumber());
 		eventPool[eventPoolIndex] = event;
-		eventPool.resize(eventPoolIndex + 1);
 	} else {
 		event = eventPool[eventPoolIndex];
 		if (event == nullptr) { // An event with a higher eventPoolIndex has been received before this one
@@ -149,7 +149,10 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 	 */
 	const uint32_t eventPoolIndex = (lkrEvent->getEventNumber() / NUMBER_OF_EBS);
 	if (eventPoolIndex >= eventPool.size()) {
-		eventPool.reserve(eventPool.size() * 2);
+		throw na62::NA62Error(
+				"Received an LKrEvent with ID "
+						+ std::to_string(lkrEvent->getEventNumber())
+						+ " while there has not been any L0 data received for this event");
 	}
 
 	/*
