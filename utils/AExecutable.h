@@ -23,15 +23,15 @@ public:
 
 	void startThread() {
 		threadNum_ = 0;
-		thread_ = new boost::thread(boost::bind(&AExecutable::thread, this));
-		threads_.add_thread(thread_);
+		thread_ = threads_.create_thread(
+				boost::bind(&AExecutable::thread, this));
 	}
 
 	void startThread(unsigned short threadNum,
 			std::vector<unsigned short> CPUMask, unsigned threadPrio) {
 		threadNum_ = threadNum;
-		thread_ = new boost::thread(boost::bind(&AExecutable::thread, this));
-		threads_.add_thread(thread_);
+		thread_ = threads_.create_thread(
+				boost::bind(&AExecutable::thread, this));
 
 //		SetThreadAffinity(thread_, threadPrio, CPUMask, Options::Instance()->SCHEDULER);
 	}
@@ -39,8 +39,8 @@ public:
 	void startThread(unsigned short threadNum, unsigned short CPUMask = -1,
 			unsigned threadPrio = 15) {
 		threadNum_ = threadNum;
-		thread_ = new boost::thread(boost::bind(&AExecutable::thread, this));
-		threads_.add_thread(thread_);
+		thread_ = threads_.create_thread(
+				boost::bind(&AExecutable::thread, this));
 
 //		SetThreadAffinity(thread_, 15, CPUMask, Options::Instance()->SCHEDULER);
 	}

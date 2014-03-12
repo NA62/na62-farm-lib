@@ -48,6 +48,15 @@ void StorageHandler::Initialize() {
 	InitialEventBufferSize_ = 1000;
 }
 
+void StorageHandler::OnShutDown() {
+	for (auto socket : MergerSockets_) {
+		if (socket != nullptr) {
+			socket->close();
+			delete socket;
+		}
+	}
+}
+
 char* StorageHandler::ResizeBuffer(char* buffer, const int oldLength,
 		const int newLength) {
 	char* newBuffer = new char[newLength];
@@ -64,14 +73,14 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 //			<< event->getL2ProcessingTime() << "\t"
 //			<< event->getTimeSinceFirstMEPReceived() << std::endl;
 
-	int eventBufferSize = InitialEventBufferSize_;
+	uint eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
 	struct EVENT_HDR* header = (struct EVENT_HDR*) eventBuffer;
 
 	header->eventNum = event->getEventNumber();
 	header->format = 0x62; // TODO: update current format
-	// header->length will be written later on;
+	// header->length will be written later on
 	header->burstID = event->getBurstID();
 	header->timestamp = event->getTimestamp();
 	header->triggerWord = event->getTriggerTypeWord();

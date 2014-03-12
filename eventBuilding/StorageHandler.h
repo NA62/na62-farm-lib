@@ -22,6 +22,7 @@ namespace na62 {
 class StorageHandler {
 public:
 	static void Initialize();
+	static void OnShutDown();
 
 	static int SendEvent(const uint16_t& thredNum, Event* event);
 
