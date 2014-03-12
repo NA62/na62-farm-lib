@@ -65,8 +65,8 @@ EventBuilder::~EventBuilder() {
 }
 
 void EventBuilder::Initialize() {
-	L1Triggers_ = new std::atomic<uint64_t>[0xFF+1];
-	L2Triggers_ = new std::atomic<uint64_t>[0xFF+1];
+	L1Triggers_ = new std::atomic<uint64_t>[0xFF + 1];
+	L2Triggers_ = new std::atomic<uint64_t>[0xFF + 1];
 
 	for (int i = 0; i <= 0xFF; i++) {
 		L1Triggers_[i] = 0;
@@ -151,9 +151,9 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 
 	if (eventPoolIndex >= eventPool.size()) {
 		throw na62::NA62Error(
-						"Received an LKrEvent with ID "
-								+ std::to_string(lkrEvent->getEventNumber())
-								+ " while there has not been any L0 data received for this event");
+				"Received an LKrEvent with ID "
+						+ std::to_string(lkrEvent->getEventNumber())
+						+ " while there has not been any L0 data received for this event");
 	}
 
 	/*

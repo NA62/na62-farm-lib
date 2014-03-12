@@ -194,7 +194,6 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		numberOfCREAMEvents_++;
 
 		if (numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
-			std::cout << l1ProcessingTime_ << "\t" << firstEventPartAddedTime_.elapsed().wall/1E3 << std::endl;
 			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-l1ProcessingTime_;
 
 			return true;

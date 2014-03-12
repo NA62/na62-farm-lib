@@ -266,16 +266,19 @@ void L1DistributionHandler::thread() {
 }
 
 bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
-	if (sendMutex_.try_lock() && !MRPQueues.empty()) {
-		DataContainer container = MRPQueues.back();
-		MRPQueues.pop_back();
+	if (sendMutex_.try_lock()) {
+		if (!MRPQueues.empty()) {
+			DataContainer container = MRPQueues.back();
+			MRPQueues.pop_back();
 
-		PFringHandler::SendFrameConcurrently(threadNum, container.data,
-				container.length);
+			PFringHandler::SendFrameConcurrently(threadNum, container.data,
+					container.length);
 
-		sendMutex_.unlock();
-		return true;
+			sendMutex_.unlock();
+			return true;
+		}
 	}
+	sendMutex_.unlock();
 	return false;
 }
 
