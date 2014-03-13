@@ -8,14 +8,12 @@
 #include "L1DistributionHandler.h"
 
 #include <arpa/inet.h>
-#include <bits/atomic_base.h>
-#include <boost/asio/io_service.hpp>
-#include <boost/asio/ip/address.hpp>
-#include <boost/asio/ip/basic_endpoint.hpp>
-#include <boost/asio/ip/udp.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/time_duration.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/pthread/mutex.hpp>
 #include <boost/thread/pthread/thread_data.hpp>
+#include <glog/logging.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
@@ -26,7 +24,6 @@
 #include <iostream>
 #include <new>
 #include <string>
-#include <glog/logging.h>
 
 #include "../eventBuilding/Event.h"
 #include "../eventBuilding/SourceIDManager.h"
@@ -49,7 +46,7 @@ bool L1DistributionHandler::paused = false;
 
 uint MAX_TRIGGERS_PER_L1MRP = 0;
 
-std::vector<DataContainer> L1DistributionHandler::MRPQueues;
+std::queue<DataContainer> L1DistributionHandler::MRPQueues;
 boost::mutex L1DistributionHandler::sendMutex_;
 
 boost::timer::cpu_timer L1DistributionHandler::MRPSendTimer_;
@@ -188,7 +185,7 @@ void L1DistributionHandler::thread() {
 			} else {
 				if (++EBIterations == NUMBER_OF_EBS) {
 					/*
-					 * Now we should send the MRP although we didn't summon MAX_TRIGGERS_PER_L1MRP as all queues seem to be (almost) empty
+					 * Now we should send the MRP although we didn't summon MAX_TRIGGERS_PER_L1MRP as all queues seem to be empty
 					 */
 					EBIterations = 0;
 					break;
@@ -249,22 +246,28 @@ void L1DistributionHandler::thread() {
 }
 
 bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
-	if (sendMutex_.try_lock() && !MRPQueues.empty()) {
-		if (MRPSendTimer_.elapsed().wall * 1000
-				> Options::GetInt(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS)) {
-			DataContainer container = MRPQueues.back();
-			MRPQueues.pop_back();
+	if (sendMutex_.try_lock()) {
+		if (!MRPQueues.empty()) {
+			if (MRPSendTimer_.elapsed().wall / 1000
+					> Options::GetInt(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS)) {
+				DataContainer container = MRPQueues.back();
+				MRPQueues.pop();
 
-			PFringHandler::SendFrameConcurrently(threadNum, container.data,
-					container.length);
+				if (container.data == nullptr) {
+					std::cout << container.length << ":-( :-( :-( :-( :-("
+							<< MRPQueues.size() << std::endl;
+				}
 
-			MRPSendTimer_.start();
+				PFringHandler::SendFrameConcurrently(threadNum, container.data,
+						container.length);
 
-			sendMutex_.unlock();
-			return true;
+				MRPSendTimer_.start();
+
+				sendMutex_.unlock();
+				return true;
+			}
 		}
 	}
-	sendMutex_.unlock();
 	return false;
 }
 
@@ -297,7 +300,9 @@ void L1DistributionHandler::Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR,
 
 	char* buff = new char[offset];
 	memcpy(buff, dataHDR, offset);
-	MRPQueues.push_back( { buff, offset });
+
+	boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock mutex until return
+	MRPQueues.push( { buff, offset });
 
 	L1TriggersSent += numberOfTriggers;
 	L1MRPsSent++;

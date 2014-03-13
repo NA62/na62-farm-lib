@@ -13,7 +13,7 @@
 #include <cstdbool>
 #include <cstdint>
 #include <utility>
-#include <vector>
+#include <queue>
 #include <boost/thread.hpp>
 #include <boost/timer/timer.hpp>
 
@@ -91,7 +91,7 @@ private:
 
 	static bool paused;
 
-	static std::vector<DataContainer> MRPQueues;
+	static std::queue<DataContainer> MRPQueues;
 
 	static boost::mutex sendMutex_;
 

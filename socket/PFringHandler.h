@@ -63,11 +63,12 @@ public:
 		 */
 		if (pktLen < 64) {
 			/*
-			 * TODO: using tc_malloc the buffer will already be 64 Byte long: no need to create new one
+			 * TODO: using tc_malloc pkt  will already be 64 Bytes long: no need to create new one! Just check it's length...
 			 */
 			char* buff = new char[64];
-			memset(pkt + pktLen, 0, 64 - pktLen);
 			memcpy(buff, pkt, pktLen);
+
+			memset(buff + pktLen, 0, 64 - pktLen);
 			pktLen = 64;
 
 			int rc = queueRings_[threadNum % numberOfQueues_]->send_packet(

@@ -27,7 +27,7 @@ namespace na62 {
 
 std::vector<zmq::socket_t*> StorageHandler::MergerSockets_;
 
-std::atomic<int> StorageHandler::InitialEventBufferSize_;
+std::atomic<uint> StorageHandler::InitialEventBufferSize_;
 int StorageHandler::TotalNumberOfDetectors_;
 
 void StorageHandler::Initialize() {

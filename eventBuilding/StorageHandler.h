@@ -33,7 +33,7 @@ private:
 	 */
 	static std::vector<zmq::socket_t*> MergerSockets_;
 
-	static std::atomic<int> InitialEventBufferSize_;
+	static std::atomic<uint> InitialEventBufferSize_;
 	static int TotalNumberOfDetectors_;
 };
 
