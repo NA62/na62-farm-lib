@@ -62,14 +62,24 @@ public:
 		 * Check if an Ethernet trailer is needed
 		 */
 		if (pktLen < 64) {
+			/*
+			 * TODO: using tc_malloc the buffer will already be 64 Byte long: no need to create new one
+			 */
+			char* buff = new char[64];
 			memset(pkt + pktLen, 0, 64 - pktLen);
+			memcpy(buff, pkt, pktLen);
 			pktLen = 64;
+
+			int rc = queueRings_[threadNum % numberOfQueues_]->send_packet(
+					(char*) buff, pktLen, flush, activePoll);
+			delete[] buff;
+			return rc;
 		}
 
-//		if (numberOfQueues_ != 1) {
-			return queueRings_[threadNum % numberOfQueues_]->send_packet(
-					(char*) pkt, pktLen, flush, activePoll);
-//		} else {
+		return queueRings_[threadNum % numberOfQueues_]->send_packet(
+				(char*) pkt, pktLen, flush, activePoll);
+
+//		if (numberOfQueues_ == 1) {
 //			boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock sendMutex until return
 //			int result = queueRings_[0]->send_packet((char*) pkt, pktLen, flush,
 //					activePoll);
@@ -81,7 +91,9 @@ public:
 	 * Returns the 6 byte long hardware address of the NIC the PFring object is assigned to.
 	 */
 	static inline std::vector<char> GetMyMac() {
-		return std::move(EthernetUtils::GetMacOfInterface(PFringHandler::GetDeviceName()));
+		return std::move(
+				EthernetUtils::GetMacOfInterface(
+						PFringHandler::GetDeviceName()));
 	}
 
 	/**

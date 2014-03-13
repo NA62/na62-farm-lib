@@ -98,6 +98,8 @@ void EventBuilder::thread() {
 				LKrSocket_->recv(&message);
 				handleLKRData((cream::LKREvent*) message.data());
 			}
+		} catch (NA62Error &e) {
+			// Continue... Message will be printed automatically
 		} catch (const zmq::error_t& ex) {
 			if (ex.num() != EINTR) {
 				L0Socket_->close();

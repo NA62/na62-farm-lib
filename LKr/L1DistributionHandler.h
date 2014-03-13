@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <boost/thread.hpp>
+#include <boost/timer/timer.hpp>
 
 #include "../socket/EthernetUtils.h"
 #include "../utils/ThreadsafeQueue.h"
@@ -93,6 +94,8 @@ private:
 	static std::vector<DataContainer> MRPQueues;
 
 	static boost::mutex sendMutex_;
+
+	static boost::timer::cpu_timer MRPSendTimer_;
 };
 
 } /* namespace cream */

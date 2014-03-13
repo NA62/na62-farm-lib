@@ -44,10 +44,10 @@ uint8_t L2TriggerProcessor::compute(Event* event) {
 //	}
 //	async_requestNonZSuppressedLKrData(localCreamIDsToRequestNonZSuppressedData, event);
 
-//	if (rr++ % L2_DOWNSCALE_FACTOR == 0) {
-//		// Accept event
-//		return 3;
-//	}
+	if (rr++ % L2_DOWNSCALE_FACTOR == 0) {
+		// Accept event
+		return 3;
+	}
 	return 0;
 }
 
@@ -60,6 +60,6 @@ void L2TriggerProcessor::async_requestNonZSuppressedLKrData(
 		const std::vector<uint16_t> crateCREAMIDs, Event* event) {
 	event->setNonZSuppressedDataRequestedNum((uint16_t) crateCREAMIDs.size());
 	cream::L1DistributionHandler::Async_RequestLKRDataUnicast(ThreadNum_, event,
-			true, crateCREAMIDs);
+	true, crateCREAMIDs);
 }
 } /* namespace na62 */

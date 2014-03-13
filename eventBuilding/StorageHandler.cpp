@@ -66,13 +66,15 @@ char* StorageHandler::ResizeBuffer(char* buffer, const int oldLength,
 }
 
 int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
+	/*
+	 * TODO: Use multimessage instead of creating a separate buffer and copying the MEP data into it
+	 */
 
 //	std::cout << event->getL0BuildingTime() << "\t"
 //			<< event->getL1ProcessingTime() << "\t"
 //			<< event->getL1BuildingTime() << "\t"
 //			<< event->getL2ProcessingTime() << "\t"
 //			<< event->getTimeSinceFirstMEPReceived() << std::endl;
-
 	uint eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
@@ -100,7 +102,8 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 		l0::Subevent* subevent = event->getL0SubeventBySourceIDNum(sourceNum);
 
 		if (eventOffset + 4 > eventBufferSize) {
-			ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + 1000);
+			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+					eventBufferSize + 1000);
 			eventBufferSize += 1000;
 		}
 
@@ -123,7 +126,7 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 					- sizeof(struct l0::MEPEVENT_RAW_HDR)
 					+ sizeof(struct L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
-				ResizeBuffer(eventBuffer, eventBufferSize,
+				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
 						eventBufferSize + payloadLength);
 				eventBufferSize += payloadLength;
 			}
@@ -152,7 +155,8 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 	 * Write the LKr data
 	 */
 	if (eventOffset + 4 > eventBufferSize) {
-		ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + 1000);
+		eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+				eventBufferSize + 1000);
 		eventBufferSize += 1000;
 	}
 
@@ -169,7 +173,7 @@ int StorageHandler::SendEvent(const uint16_t& threadNum, Event* event) {
 			cream::LKREvent* e = event->getZSuppressedLKrEvent(localCreamID);
 
 			if (eventOffset + e->getEventLength() > eventBufferSize) {
-				ResizeBuffer(eventBuffer, eventBufferSize,
+				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
 						eventBufferSize + e->getEventLength());
 				eventBufferSize += e->getEventLength();
 			}

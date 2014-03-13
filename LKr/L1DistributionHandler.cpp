@@ -12,7 +12,6 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/ip/basic_endpoint.hpp>
-#include <boost/asio/ip/multicast.hpp>
 #include <boost/asio/ip/udp.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/time_duration.hpp>
@@ -53,10 +52,7 @@ uint MAX_TRIGGERS_PER_L1MRP = 0;
 std::vector<DataContainer> L1DistributionHandler::MRPQueues;
 boost::mutex L1DistributionHandler::sendMutex_;
 
-static boost::asio::ip::udp::endpoint multicast_endpoint_;
-boost::asio::io_service io_service;
-static boost::asio::ip::udp::socket multicast_socket_(io_service,
-		multicast_endpoint_.protocol());
+boost::timer::cpu_timer L1DistributionHandler::MRPSendTimer_;
 
 struct cream::TRIGGER_RAW_HDR* generateTriggerHDR(const Event * event,
 bool zSuppressed) {
@@ -154,19 +150,6 @@ void L1DistributionHandler::Initialize() {
 	CREAM_UnicastRequestHdr->MRP_HDR.reserved = 0;
 
 //	EthernetUtils::GenerateUDP(CREAM_RequestBuff, EthernetUtils::StringToMAC("00:15:17:b2:26:fa"), "10.0.4.3", sPort, dPort);
-
-	/*
-	 * Sending Multicast via Vanilla Kernel sockets
-	 */
-// set ttl
-	const boost::asio::ip::multicast::hops option(128);
-	multicast_socket_.set_option(option);
-
-	multicast_endpoint_ = boost::asio::ip::udp::endpoint(
-			boost::asio::ip::address::from_string(
-					Options::GetString(OPTION_CREAM_MULTICAST_GROUP)),
-			Options::GetInt(OPTION_CREAM_MULTICAST_PORT));
-
 }
 
 void L1DistributionHandler::thread() {
@@ -266,13 +249,16 @@ void L1DistributionHandler::thread() {
 }
 
 bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
-	if (sendMutex_.try_lock()) {
-		if (!MRPQueues.empty()) {
+	if (sendMutex_.try_lock() && !MRPQueues.empty()) {
+		if (MRPSendTimer_.elapsed().wall * 1000
+				> Options::GetInt(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS)) {
 			DataContainer container = MRPQueues.back();
 			MRPQueues.pop_back();
 
 			PFringHandler::SendFrameConcurrently(threadNum, container.data,
 					container.length);
+
+			MRPSendTimer_.start();
 
 			sendMutex_.unlock();
 			return true;
