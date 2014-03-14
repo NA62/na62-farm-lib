@@ -69,6 +69,8 @@ private:
 	void processL1(Event *event);
 	void processL2(Event * event);
 
+	Event* getNewEvent(uint32_t eventNumber);
+
 	/*
 	 * @return <true> if any packet has been sent (time has passed)
 	 */
@@ -99,7 +101,8 @@ private:
 	zmq::socket_t* L0Socket_;
 	zmq::socket_t* LKrSocket_;
 
-	std::vector<Event*> eventPool;
+	std::vector<Event*> unusedEvents_;
+	std::vector<Event*> eventPool_;
 
 	const int NUMBER_OF_EBS;
 

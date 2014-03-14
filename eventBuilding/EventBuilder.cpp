@@ -75,6 +75,10 @@ void EventBuilder::Initialize() {
 }
 
 void EventBuilder::thread() {
+	for (int i = 0; i != 10000; ++i) {
+		unusedEvents_.push_back(new Event(0));
+	}
+
 	threadCurrentBurstID_ = Options::GetInt(OPTION_FIRST_BURST_ID);
 
 	ZMQHandler::BindInproc(L0Socket_, ZMQHandler::GetEBL0Address(threadNum_));
@@ -112,6 +116,18 @@ void EventBuilder::thread() {
 	}
 }
 
+Event* EventBuilder::getNewEvent(uint32_t eventNumber) {
+	if (!unusedEvents_.empty()) {
+		Event *event;
+		event = unusedEvents_.back();
+		unusedEvents_.pop_back();
+		event->setEventNumber(eventNumber);
+		return event;
+	} else {
+		return new Event(eventNumber);
+	}
+}
+
 void EventBuilder::handleL0Data(l0::MEPEvent *mepEvent) {
 	/*
 	 * Receiver only pushes MEPEVENT::eventNum%EBNum events. To fill all holes in eventPool we need divide by the number of event builder
@@ -119,16 +135,16 @@ void EventBuilder::handleL0Data(l0::MEPEvent *mepEvent) {
 	const uint32_t eventPoolIndex = (mepEvent->getEventNumber() / NUMBER_OF_EBS);
 	Event *event;
 
-	if (eventPoolIndex >= eventPool.size()) { // Memory overflow
-		eventPool.reserve(eventPoolIndex * 2);
-		eventPool.resize(eventPoolIndex + 1);
-		event = new Event(mepEvent->getEventNumber());
-		eventPool[eventPoolIndex] = event;
+	if (eventPoolIndex >= eventPool_.size()) { // Memory overflow
+		eventPool_.reserve(eventPoolIndex * 2);
+		eventPool_.resize(eventPoolIndex + 1);
+		event = getNewEvent(mepEvent->getEventNumber());
+		eventPool_[eventPoolIndex] = event;
 	} else {
-		event = eventPool[eventPoolIndex];
+		event = eventPool_[eventPoolIndex];
 		if (event == nullptr) { // An event with a higher eventPoolIndex has been received before this one
-			event = new Event(mepEvent->getEventNumber());
-			eventPool[eventPoolIndex] = event;
+			event = getNewEvent(mepEvent->getEventNumber());
+			eventPool_[eventPoolIndex] = event;
 		}
 	}
 
@@ -151,7 +167,7 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 	 */
 	const uint32_t eventPoolIndex = (lkrEvent->getEventNumber() / NUMBER_OF_EBS);
 
-	if (eventPoolIndex >= eventPool.size()) {
+	if (eventPoolIndex >= eventPool_.size()) {
 		throw na62::NA62Error(
 				"Received an LKrEvent with ID "
 						+ std::to_string(lkrEvent->getEventNumber())
@@ -161,7 +177,7 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 	/*
 	 * Get the corresponding Event object. It may NOT be NULL (don't delete, call Event::destroy() instead) but may be empty if mepEvent is the first part of this Event.
 	 */
-	Event *event = eventPool[eventPoolIndex];
+	Event *event = eventPool_[eventPoolIndex];
 
 	if (event == nullptr) {
 		throw na62::NA62Error(

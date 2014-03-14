@@ -74,6 +74,10 @@ public:
 		return L2Accepted_;
 	}
 
+	void setEventNumber(uint32_t eventNumber) {
+		eventNumber_ = eventNumber;
+	}
+
 	uint32_t getEventNumber() const {
 		return eventNumber_;
 	}
