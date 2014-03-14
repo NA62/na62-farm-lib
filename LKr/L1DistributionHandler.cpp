@@ -267,6 +267,7 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 				return true;
 			}
 		}
+		sendMutex_.unlock();
 	}
 	return false;
 }

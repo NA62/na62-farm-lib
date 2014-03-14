@@ -74,9 +74,6 @@ public:
 
 	static void JoinAll() {
 		std::cout << "Joining " << instances_.size() << " threads" << std::endl;
-		for (unsigned int i = 0; i < instances_.size(); i++) {
-			instances_[i]->join();
-		}
 		threads_.join_all();
 	}
 
