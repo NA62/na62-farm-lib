@@ -75,7 +75,9 @@ void EventBuilder::Initialize() {
 }
 
 void EventBuilder::thread() {
-	for (int i = 0; i != 10000; ++i) {
+	for (int i = 0;
+			i != Options::GetInt(OPTION_MAX_TRIGGERS_PER_L1MRP) / NUMBER_OF_EBS;
+			++i) {
 		unusedEvents_.push_back(new Event(0));
 	}
 

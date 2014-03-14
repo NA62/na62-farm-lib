@@ -53,6 +53,8 @@ namespace po = boost::program_options;
 #define OPTION_CREAM_MULTICAST_PORT (char*)"creamMulticastPort"
 #define OPTION_MAX_TRIGGERS_PER_L1MRP (char*)"maxTriggerPerL1MRP"
 
+#define OPTION_MAX_NUMBER_OF_EVENTS_PER_BURST (char*)"maxEventsPerBurst"
+
 /*
  * Triggering
  */

@@ -110,7 +110,10 @@ void Options::Initialize(int argc, char* argv[]) {
 			"The port all L1 multicast MRPs to the CREAMs should be sent to")
 
 	(OPTION_MAX_TRIGGERS_PER_L1MRP, po::value<int>()->default_value(100),
-			"Maximum Number of Triggers per L1 MRP")
+			"Maximum number of Triggers per L1 MRP")
+
+	(OPTION_MAX_NUMBER_OF_EVENTS_PER_BURST, po::value<int>()->default_value(1000000),
+			"Maximum number of events per Burst")
 
 	(OPTION_MERGER_HOST_NAME, po::value<std::string>()->required(),
 			"IP or hostname of the merger PC.")
