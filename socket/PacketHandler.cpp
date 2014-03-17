@@ -38,9 +38,11 @@
 #include "../options/Options.h"
 #include "../structs/Event.h"
 #include "../structs/Network.h"
+#include "../eventBuilding/EventBuilder.h"
 #include "EthernetUtils.h"
 #include "PFringHandler.h"
 #include "ZMQHandler.h"
+
 
 namespace na62 {
 

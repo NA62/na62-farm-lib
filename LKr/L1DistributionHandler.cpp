@@ -253,11 +253,6 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 				DataContainer container = MRPQueues.back();
 				MRPQueues.pop();
 
-				if (container.data == nullptr) {
-					std::cout << container.length << ":-( :-( :-( :-( :-("
-							<< MRPQueues.size() << std::endl;
-				}
-
 				PFringHandler::SendFrameConcurrently(threadNum, container.data,
 						container.length);
 

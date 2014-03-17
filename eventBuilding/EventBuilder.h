@@ -60,6 +60,14 @@ public:
 		return EventsSentToStorage_;
 	}
 
+	static void SetNextBurstID(uint32_t nextBurstID) {
+		EOBReceivedTime_.start();
+		LOG(INFO)<<"Changing BurstID to " << nextBurstID;
+		for (unsigned int i = 0; i < Instances_.size(); i++) {
+			Instances_[i]->setNextBurstID(nextBurstID);
+		}
+	}
+
 private:
 	void thread();
 
@@ -81,14 +89,6 @@ private:
 
 	inline uint32_t getCurrentBurstID() {
 		return threadCurrentBurstID_;
-	}
-
-	static void SetNextBurstID(uint32_t nextBurstID) {
-		EOBReceivedTime_.start();
-		LOG(INFO)<<"Changing BurstID to " << nextBurstID;
-		for (unsigned int i = 0; i < Instances_.size(); i++) {
-			Instances_[i]->setNextBurstID(nextBurstID);
-		}
 	}
 
 	/*
