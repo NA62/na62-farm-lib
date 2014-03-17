@@ -44,9 +44,6 @@
 
 namespace na62 {
 
-bool changeBurstID = false;
-uint32_t nextBurstID = 0;
-
 uint NUMBER_OF_EBS = 0;
 
 std::atomic<uint64_t>* PacketHandler::MEPsReceivedBySourceID_;
@@ -209,8 +206,8 @@ void PacketHandler::processARPRequest(struct ARP_HDR* arp) {
 }
 
 bool PacketHandler::processPacket(DataContainer container) {
-	uint16_t L0_Port = Options::GetInt(OPTION_L0_RECEIVER_PORT);
-	uint16_t CREAM_Port = Options::GetInt(OPTION_CREAM_RECEIVER_PORT);
+	const uint16_t L0_Port = Options::GetInt(OPTION_L0_RECEIVER_PORT);
+	const uint16_t CREAM_Port = Options::GetInt(OPTION_CREAM_RECEIVER_PORT);
 
 	try {
 		struct UDP_HDR* hdr = (struct UDP_HDR*) container.data;
@@ -331,8 +328,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 			EOB_FULL_FRAME* pack = (struct EOB_FULL_FRAME*) container.data;
 			LOG(INFO) <<
 			"Received EOB Farm-Broadcast. Will increment BurstID now to" << pack->finishedBurstID + 1;
-			changeBurstID = true;
-			nextBurstID = pack->finishedBurstID + 1;
+			EventBuilder::SetNextBurstID(pack->finishedBurstID + 1);
 		} else {
 			/*
 			 * Packet with unknown UDP port received
@@ -350,86 +346,5 @@ bool PacketHandler::processPacket(DataContainer container) {
 	}
 	return true;
 }
-
-//void PacketHandler::StartDemultiplexerThread() throw () {
-//	l0::MEP* mep = NULL;
-//	cream::LKRMEP* lkrMep = NULL;
-//	unsigned int sleepMicros = 10;
-//
-//	while (true) {
-//		mep = NULL;
-//		lkrMep = NULL;
-//
-//		/*
-//		 * First move L0 MEPEvents to release memory at the CREAM side
-//		 * Do this as long as you can find a MEP within the input queues
-//		 */
-//
-//		for (int thread = NumberOfHandlers - 1; thread >= 0; thread--) {
-//			while (createdMEPs[thread].pop(mep)) {
-//				/*
-//				 * Found a non-empty queue -> send the MEPEvents to the EBs by popping until the queue is empty
-//				 */
-//				MEPsReceivedBySourceID_[mep->getSourceID()]++;
-//				BytesReceivedBySourceID_[mep->getSourceID()] +=
-//						mep->getLength();
-//				for (int i = mep->getNumberOfEvents() - 1; i >= 0; i--) {
-//					l0::MEPEvent* event = mep->getEvent(i);
-//
-//					EventsReceivedBySourceID_[mep->getSourceID()]++;
-//					eventBuilders_[event->getEventNumber()
-//							% Options::Instance()->NUMBER_OF_EBS]->pushMEPEvent(
-//							event);
-//				}
-//			}
-//		}
-//
-//		/*
-//		 * If no new L0 MEP has arrived we can increment the BurstID if the broadcast has been received
-//		 */
-//		if (changeBurstID && mep == NULL) {
-//			changeBurstID = false;
-//			EventBuilder::SetNextBurstID (nextBurstID);
-//		}
-//		/*
-//		 * Now move LKREvents
-//		 * Do this only once so that we can check for L0MEPs again
-//		 */
-//		for (int thread = NumberOfHandlers - 1; thread >= 0; thread--) {
-//			while (createdLKRMEPs[thread].pop(lkrMep)) {
-//				/*
-//				 * Found a non-empty queue -> send the LKREvents to the EBs
-//				 */
-//				MEPsReceivedBySourceID_[LKR_SOURCE_ID]++;
-//				BytesReceivedBySourceID_[LKR_SOURCE_ID] += lkrMep->getLength();
-//				for (int i = lkrMep->getNumberOfEvents() - 1; i >= 0; i--) {
-//					cream::LKREvent* event = lkrMep->getEvent(i);
-//					EventsReceivedBySourceID_[LKR_SOURCE_ID]++;
-//					eventBuilders_[event->getEventNumber()
-//							% Options::Instance()->NUMBER_OF_EBS]->pushLKREvent(
-//							event);
-//				}
-//			}
-//		}
-//
-//		if (mep == NULL && lkrMep == NULL) {
-//			/*
-//			 * No empty queue found -> fight the greenhouse effect and save energy!
-//			 */
-//			if (Options::DO_SHUTDOWN) {
-//				std::cout << "Stopping StorageHandler Demultiplexer"
-//						<< std::endl;
-//				return;
-//			}
-//			boost::this_thread::sleep(boost::posix_time::microsec(sleepMicros));
-//			if (sleepMicros < 10000) {
-//				sleepMicros *= 2;
-//			}
-//		} else {
-//			sleepMicros = 1000;
-//		}
-//	}
-//}
-
 }
 /* namespace na62 */

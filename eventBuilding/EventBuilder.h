@@ -84,6 +84,7 @@ private:
 	}
 
 	static void SetNextBurstID(uint32_t nextBurstID) {
+		EOBReceivedTime_.start();
 		LOG(INFO)<<"Changing BurstID to " << nextBurstID;
 		for (unsigned int i = 0; i < Instances_.size(); i++) {
 			Instances_[i]->setNextBurstID(nextBurstID);
@@ -120,6 +121,8 @@ private:
 
 	static std::atomic<uint64_t> BytesSentToStorage_;
 	static std::atomic<uint64_t> EventsSentToStorage_;
+
+	static boost::timer::cpu_timer EOBReceivedTime_;
 
 };
 

@@ -46,6 +46,8 @@ std::atomic<uint64_t>* EventBuilder::L2Triggers_;
 std::atomic<uint64_t> EventBuilder::BytesSentToStorage_(0);
 std::atomic<uint64_t> EventBuilder::EventsSentToStorage_(0);
 
+boost::timer::cpu_timer EventBuilder::EOBReceivedTime_;
+
 EventBuilder::EventBuilder() :
 		L0Socket_(ZMQHandler::GenerateSocket(ZMQ_PULL)), LKrSocket_(
 				ZMQHandler::GenerateSocket(ZMQ_PULL)), NUMBER_OF_EBS(
@@ -99,13 +101,21 @@ void EventBuilder::thread() {
 			if (items[0].revents & ZMQ_POLLIN) { // L0 data
 				L0Socket_->recv(&message);
 				handleL0Data((l0::MEPEvent*) message.data());
+			} else if (changeBurstID_) {
+				if (EOBReceivedTime_.elapsed().wall > 100E6) {
+					LOG(INFO)<< "EB "<<threadNum_ <<" changed burst number to " << nextBurstID_ << " (" << (EOBReceivedTime_.elapsed().wall*1E6) << " ms after receiving the EOB)";
+					threadCurrentBurstID_ = nextBurstID_;
+					changeBurstID_ = false;
+				}
 			}
+
 			if (items[1].revents & ZMQ_POLLIN) { // LKr data
 				LKrSocket_->recv(&message);
 				handleLKRData((cream::LKREvent*) message.data());
 			}
+
 		} catch (NA62Error &e) {
-			// Continue... Message will be printed automatically
+// Continue... Message will be printed automatically
 		} catch (const zmq::error_t& ex) {
 			if (ex.num() != EINTR) {
 				L0Socket_->close();
@@ -191,10 +201,10 @@ void EventBuilder::handleLKRData(cream::LKREvent *lkrEvent) {
 	 * Add new packet to EventCollector
 	 */
 	if (!event->addLKREvent(lkrEvent)) {
-		// result == false -> subevents are still incomplete
+// result == false -> subevents are still incomplete
 		return;
 	} else {
-		// result == true -> Last missing packet received!
+// result == true -> Last missing packet received!
 		/*
 		 * This event is complete -> process it
 		 */
@@ -276,7 +286,8 @@ void EventBuilder::processL2(Event * event) {
 
 void EventBuilder::sendL1RequestToCREAMS(Event* event) {
 	cream::L1DistributionHandler::Async_RequestLKRDataMulticast(threadNum_,
-			event, false);
+			event,
+			false);
 }
 
 void EventBuilder::SendEOBBroadcast(uint32_t eventNumber,
