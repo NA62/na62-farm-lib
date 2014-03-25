@@ -329,7 +329,7 @@ bool PacketHandler::processPacket(DataContainer container) {
 			}
 			EOB_FULL_FRAME* pack = (struct EOB_FULL_FRAME*) container.data;
 			LOG(INFO) <<
-			"Received EOB Farm-Broadcast. Will increment BurstID now to" << pack->finishedBurstID + 1;
+			"Received EOB Farm-Broadcast. Will increment BurstID now to " << pack->finishedBurstID + 1;
 			EventBuilder::SetNextBurstID(pack->finishedBurstID + 1);
 		} else {
 			/*

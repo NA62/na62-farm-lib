@@ -61,11 +61,17 @@ public:
 	}
 
 	static void SetNextBurstID(uint32_t nextBurstID) {
+		currentBurstID_ = nextBurstID;
+
 		EOBReceivedTime_.start();
 		LOG(INFO)<<"Changing BurstID to " << nextBurstID;
 		for (unsigned int i = 0; i < Instances_.size(); i++) {
 			Instances_[i]->setNextBurstID(nextBurstID);
 		}
+	}
+
+	static uint32_t getCurrentBurstId() {
+		return currentBurstID_;
 	}
 
 private:
@@ -96,7 +102,6 @@ private:
 	 */
 	inline void setNextBurstID(uint32_t nextBurstID) {
 		changeBurstID_ = true;
-		nextBurstID_ = nextBurstID;
 	}
 
 	zmq::socket_t* L0Socket_;
@@ -108,7 +113,7 @@ private:
 	const int NUMBER_OF_EBS;
 
 	bool changeBurstID_;
-	uint32_t nextBurstID_;
+	static uint32_t currentBurstID_;
 	uint32_t threadCurrentBurstID_;
 
 	L1TriggerProcessor* L1processor_;

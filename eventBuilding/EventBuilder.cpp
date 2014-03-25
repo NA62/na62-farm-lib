@@ -48,12 +48,13 @@ std::atomic<uint64_t> EventBuilder::EventsSentToStorage_(0);
 
 boost::timer::cpu_timer EventBuilder::EOBReceivedTime_;
 
+uint32_t EventBuilder::currentBurstID_ = 0;
+
 EventBuilder::EventBuilder() :
 		L0Socket_(ZMQHandler::GenerateSocket(ZMQ_PULL)), LKrSocket_(
 				ZMQHandler::GenerateSocket(ZMQ_PULL)), NUMBER_OF_EBS(
 				Options::GetInt(OPTION_NUMBER_OF_EBS)), changeBurstID_(
-		false), nextBurstID_(0), threadCurrentBurstID_(0), L1processor_(
-				new L1TriggerProcessor), L2processor_(
+		false), threadCurrentBurstID_(0), L1processor_(new L1TriggerProcessor), L2processor_(
 				new L2TriggerProcessor(threadNum_)) {
 
 	Instances_.push_back(this);
@@ -103,8 +104,8 @@ void EventBuilder::thread() {
 				handleL0Data((l0::MEPEvent*) message.data());
 			} else if (changeBurstID_) {
 				if (EOBReceivedTime_.elapsed().wall > 100E6) {
-					LOG(INFO)<< "EB "<<threadNum_ <<" changed burst number to " << nextBurstID_ << " (" << (EOBReceivedTime_.elapsed().wall*1E6) << " ms after receiving the EOB)";
-					threadCurrentBurstID_ = nextBurstID_;
+					LOG(INFO)<< "EB "<<threadNum_ <<" changed burst number to " << currentBurstID_ << " (" << (EOBReceivedTime_.elapsed().wall*1E6) << " ms after receiving the EOB)";
+					threadCurrentBurstID_ = currentBurstID_;
 					changeBurstID_ = false;
 				}
 			}
