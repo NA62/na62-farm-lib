@@ -43,8 +43,10 @@ void StorageHandler::Initialize() {
 	// TODO: Delete this as soon as the LKR is running
 	if (SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT == 0) {
 		TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
+	} else {
+		TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
+				+ 1;
 	}
-	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1;
 	InitialEventBufferSize_ = 1000;
 }
 
