@@ -28,8 +28,6 @@ namespace na62 {
 po::variables_map Options::vm;
 po::options_description Options::desc("Allowed options");
 
-std::map<std::string, std::string> SettingStore;
-
 void Options::PrintVM(po::variables_map vm) {
 	using namespace po;
 	for (variables_map::iterator it = vm.begin(); it != vm.end(); ++it) {
@@ -59,7 +57,7 @@ void Options::Initialize(int argc, char* argv[]) {
 			"Verbosity mode:\n0: Error\n1: Warning\n2: Info")
 
 	(OPTION_CONFIG_FILE,
-			po::value<std::string>()->default_value("/etc/na62-farm2_0.cfg"),
+			po::value<std::string>()->default_value("/etc/na62-farm.cfg"),
 			"Config file for these options")
 
 	(OPTION_LOGTOSTDERR, po::value<int>()->default_value(0),
@@ -112,8 +110,9 @@ void Options::Initialize(int argc, char* argv[]) {
 	(OPTION_MAX_TRIGGERS_PER_L1MRP, po::value<int>()->default_value(100),
 			"Maximum number of Triggers per L1 MRP")
 
-	(OPTION_MAX_NUMBER_OF_EVENTS_PER_BURST, po::value<int>()->default_value(1000000),
-			"Maximum number of events per Burst")
+	(OPTION_NUMBER_OF_EVENTS_PER_BURST_EXPECTED,
+			po::value<int>()->default_value(10000000),
+			"Expected number of events per burst and PC")
 
 	(OPTION_MERGER_HOST_NAME, po::value<std::string>()->required(),
 			"IP or hostname of the merger PC.")
@@ -161,12 +160,7 @@ bool Options::Isset(char* parameter) {
 }
 
 std::string Options::GetString(char* parameter) {
-	std::string str;
-	if (SettingStore.find(std::string(parameter)) != SettingStore.end()) {
-		str = SettingStore[parameter].c_str();
-	} else {
-		str = vm[parameter].as<std::string>();
-	}
+	std::string str = vm[parameter].as<std::string>();
 
 	size_t pos = 0;
 	while ((pos = str.find("\\n", pos)) != std::string::npos) {
@@ -177,10 +171,6 @@ std::string Options::GetString(char* parameter) {
 }
 
 int Options::GetInt(char* parameter) {
-	if (SettingStore.find(std::string(parameter)) != SettingStore.end()) {
-		return Utils::ToUInt(SettingStore[parameter].c_str());
-	}
-
 	if (GetOptionType(parameter) == typeid(int)) {
 		return vm[parameter].as<int>();
 	}
@@ -297,9 +287,6 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 }
 
 float Options::GetFloat(char* parameter) {
-	if (SettingStore.find(std::string(parameter)) != SettingStore.end()) {
-		return atof(SettingStore[parameter].c_str());
-	}
 	return vm[parameter].as<float>();
 }
 

@@ -9,13 +9,14 @@
 
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
+#include <atomic>
 #include <iostream>
 #include <string>
 #include <utility>
 
 #include "../l0/MEPEvent.h"
 #include "../l0/Subevent.h"
-#include "../LKr/LKREvent.h"
+//#include "../LKr/LKREvent.h"
 
 namespace na62 {
 
@@ -24,8 +25,8 @@ Event::Event(uint32_t eventNumber) :
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), lastEventOfBurst_(
-				false), l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(
-				0), l2ProcessingTime_(0) {
+		false), l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
+				0) {
 	firstEventPartAddedTime_.stop(); //We'll start the first time addL0Event is called
 
 	/*
