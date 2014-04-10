@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
 #include <boost/date_time/time_duration.hpp>
-#include <boost/thread/locks.hpp>
+#include <boost/thread/lock_guard.hpp>
 #include <boost/thread/pthread/mutex.hpp>
 #include <boost/thread/pthread/thread_data.hpp>
 #include <glog/logging.h>
@@ -24,6 +24,7 @@
 #include <iostream>
 #include <new>
 #include <string>
+#include <vector>
 
 #include "../eventBuilding/Event.h"
 #include "../eventBuilding/SourceIDManager.h"
@@ -118,25 +119,20 @@ void L1DistributionHandler::Initialize() {
 				unicastTriggerAndCrateCREAMIDs_type>(100000);
 	}
 
-	char * CREAM_MulticastRequestBuff = new char[MTU];
-	char * CREAM_UnicastRequestBuff = new char[MTU];
-
-	CREAM_MulticastRequestHdr =
-			(struct cream::MRP_FRAME_HDR*) (CREAM_MulticastRequestBuff);
-	CREAM_UnicastRequestHdr =
-			(struct cream::MRP_FRAME_HDR*) (CREAM_UnicastRequestBuff);
+	CREAM_MulticastRequestHdr = new struct cream::MRP_FRAME_HDR();
+	CREAM_UnicastRequestHdr = new struct cream::MRP_FRAME_HDR();
 
 	const uint32_t multicastGroup = inet_addr(
 			Options::GetString(OPTION_CREAM_MULTICAST_GROUP).data());
 	uint16_t sPort = Options::GetInt(OPTION_CREAM_RECEIVER_PORT);
 	uint16_t dPort = Options::GetInt(OPTION_CREAM_MULTICAST_PORT);
-	EthernetUtils::GenerateUDP(CREAM_MulticastRequestBuff,
+	EthernetUtils::GenerateUDP((char*) CREAM_MulticastRequestHdr,
 			EthernetUtils::GenerateMulticastMac(multicastGroup), multicastGroup,
 			sPort, dPort);
 	/*
 	 * TODO: The router MAC has to be set here:
 	 */
-	EthernetUtils::GenerateUDP(CREAM_UnicastRequestBuff,
+	EthernetUtils::GenerateUDP((char*) CREAM_UnicastRequestHdr,
 			EthernetUtils::StringToMAC("00:11:22:33:44:55"),
 			0/*Will be set later*/, sPort, dPort);
 
@@ -250,6 +246,7 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 		if (!MRPQueues.empty()) {
 			if (MRPSendTimer_.elapsed().wall / 1000
 					> Options::GetInt(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS)) {
+
 				DataContainer container = MRPQueues.back();
 				MRPQueues.pop();
 
@@ -267,19 +264,34 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 	return false;
 }
 
-/*
- * The pf_ring version for the 10G link
+/**
+ * This method uses the given dataHDR and fills it with the given triggers. Then this buffer will be queued to be sent
  */
-void L1DistributionHandler::Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR,
+void L1DistributionHandler::Async_SendMRP(
+		const struct cream::MRP_FRAME_HDR* dataHDR,
 		std::vector<struct TRIGGER_RAW_HDR*>& triggers) {
+
 	uint16_t offset = sizeof(struct cream::MRP_FRAME_HDR);
+
+	const uint sizeOfMRP = offset
+			+ (triggers.size() > MAX_TRIGGERS_PER_L1MRP ?
+					MAX_TRIGGERS_PER_L1MRP : triggers.size());
+
+	/*
+	 * Copy tha dataHDR into a new buffer which will be sent afterwards
+	 */
+	char* buff = new char[sizeOfMRP];
+	memcpy(buff, reinterpret_cast<const char*>(dataHDR),
+			sizeof(struct cream::MRP_FRAME_HDR));
+	struct cream::MRP_FRAME_HDR* dataHDRToBeSent =
+			(struct cream::MRP_FRAME_HDR*) buff;
 
 	uint numberOfTriggers = 0;
 	while (triggers.size() != 0 && numberOfTriggers != MAX_TRIGGERS_PER_L1MRP) {
 		struct TRIGGER_RAW_HDR* trigger = triggers.back();
 		triggers.pop_back();
 
-		memcpy(reinterpret_cast<char*>(dataHDR) + offset, trigger,
+		memcpy(reinterpret_cast<char*>(buff) + offset, trigger,
 				sizeof(struct cream::TRIGGER_RAW_HDR));
 		offset += sizeof(struct cream::TRIGGER_RAW_HDR);
 
@@ -287,15 +299,14 @@ void L1DistributionHandler::Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR,
 		numberOfTriggers++;
 	}
 
-	dataHDR->SetNumberOfTriggers(numberOfTriggers);
-	dataHDR->udp.ip.check = 0;
-	dataHDR->udp.ip.check = EthernetUtils::GenerateChecksum(
-			(const char*) (&dataHDR->udp.ip), sizeof(struct iphdr));
-	dataHDR->udp.udp.check = EthernetUtils::GenerateUDPChecksum(&dataHDR->udp,
-			dataHDR->MRP_HDR.MRPLength);
+	dataHDRToBeSent->SetNumberOfTriggers(numberOfTriggers);
+	dataHDRToBeSent->udp.ip.check = 0;
+	dataHDRToBeSent->udp.ip.check = EthernetUtils::GenerateChecksum(
+			(const char*) (&dataHDRToBeSent->udp.ip), sizeof(struct iphdr));
+	dataHDRToBeSent->udp.udp.check = EthernetUtils::GenerateUDPChecksum(
+			&dataHDRToBeSent->udp, dataHDRToBeSent->MRP_HDR.MRPLength);
 
-	char* buff = new char[offset];
-	memcpy(buff, dataHDR, offset);
+	memcpy(buff, dataHDRToBeSent, offset);
 
 	boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock mutex until return
 	MRPQueues.push( { buff, offset });

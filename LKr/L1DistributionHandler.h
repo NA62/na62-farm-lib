@@ -75,7 +75,7 @@ private:
 	 * Will cause to send all the Triggers in <triggers> with the given <dataHDR> asynchronously
 	 * @return uint16_t The number of Bytes that will be sent
 	 */
-	static void Async_SendMRP(struct cream::MRP_FRAME_HDR* dataHDR,
+	static void Async_SendMRP(const  struct cream::MRP_FRAME_HDR* dataHDR,
 			std::vector<struct TRIGGER_RAW_HDR*>& triggers);
 
 	static void Initialize();
