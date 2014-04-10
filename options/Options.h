@@ -69,6 +69,11 @@ namespace po = boost::program_options;
 #define OPTION_MERGER_HOST_NAME (char*)"mergerHostName"
 #define OPTION_MERGER_PORT (char*)"mergerPort"
 
+/*
+ * Performance
+ */
+#define OPTION_ZMQ_IO_THREADS (char*)"zmqIoThreads"
+
 namespace na62 {
 class Options {
 public:

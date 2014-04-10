@@ -120,6 +120,9 @@ void Options::Initialize(int argc, char* argv[]) {
 	(OPTION_MERGER_PORT, po::value<int>()->required(),
 			"The TCP port the merger is listening to.")
 
+	(OPTION_ZMQ_IO_THREADS, po::value<int>()->default_value(1),
+			"Number of ZMQ IO threads")
+
 			;
 
 	po::store(po::parse_command_line(argc, argv, desc), vm);
