@@ -24,7 +24,7 @@ public:
 	static void Initialize();
 
 	static void Destroy();
-	static zmq::socket_t* GenerateSocket(int socketType);
+	static zmq::socket_t* GenerateSocket(int socketType, int highWaterMark=100000);
 
 	static std::string GetEBL0Address(int threadNum);
 	static std::string GetEBLKrAddress(int threadNum);

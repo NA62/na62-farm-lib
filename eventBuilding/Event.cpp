@@ -9,13 +9,14 @@
 
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
-#include <atomic>
+#include <cstdbool>
 #include <iostream>
 #include <string>
 #include <utility>
 
 #include "../l0/MEPEvent.h"
 #include "../l0/Subevent.h"
+
 //#include "../LKr/LKREvent.h"
 
 namespace na62 {
@@ -25,10 +26,15 @@ Event::Event(uint32_t eventNumber) :
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), lastEventOfBurst_(
-		false), l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
-				0) {
+		false)
+#ifdef MEASURE_TIME
+, l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
+		0)
+#endif
+{
+#ifdef MEASURE_TIME
 	firstEventPartAddedTime_.stop(); //We'll start the first time addL0Event is called
-
+#endif
 	/*
 	 * Initialize subevents at the existing sourceIDs as position
 	 */
@@ -71,9 +77,11 @@ Event::~Event() {
 }
 
 bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
+#ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
 		firstEventPartAddedTime_.start();
 	}
+#endif
 	// If the new event number does not equal the first one something went terribly wrong!
 	if (eventNumber_ != l0Event->getEventNumber()) {
 		LOG(ERROR)<<
@@ -125,6 +133,7 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	subevent->addEventPart(l0Event);
 	numberOfL0Events_++;
 
+#ifdef MEASURE_TIME
 	if (numberOfL0Events_
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
@@ -132,6 +141,9 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 		return true;
 	}
 	return false;
+#else
+	return numberOfL0Events_ == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+#endif
 }
 
 bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
@@ -195,13 +207,15 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		zSuppressedLKrEventsByCrateCREAMID[localCreamID] = lkrEvent;
 		numberOfCREAMEvents_++;
 
+#ifdef MEASURE_TIME
 		if (numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-l1ProcessingTime_;
-
 			return true;
 		}
-
 		return false;
+#else
+		return numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+#endif
 	}
 }
 
@@ -220,7 +234,9 @@ void Event::reset() {
 }
 
 void Event::destroy() {
+#ifdef MEASURE_TIME
 	firstEventPartAddedTime_.stop();
+#endif
 
 	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0Subevents[i]->destroy();

@@ -12,8 +12,9 @@
 #include <vector>
 
 #include <boost/thread.hpp>
+#include <sys/prctl.h>
+#include <pthread.h>
 
-//#include "../options/Options.h"
 namespace na62 {
 
 class AExecutable {
@@ -21,28 +22,36 @@ public:
 	AExecutable();
 	virtual ~AExecutable();
 
-	void startThread() {
+	void startThread(const std::string threadName) {
 		threadNum_ = 0;
 		thread_ = threads_.create_thread(
-				boost::bind(&AExecutable::thread, this));
+				boost::bind(&AExecutable::runThread, this));
+		threadName_ = threadName;
+
+		pthread_setname_np(thread_->native_handle(), threadName.c_str());
+
 	}
 
-	void startThread(unsigned short threadNum,
+	void startThread(unsigned short threadNum, const std::string threadName,
 			std::vector<unsigned short> CPUMask, unsigned threadPrio) {
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
-				boost::bind(&AExecutable::thread, this));
+				boost::bind(&AExecutable::runThread, this));
 
 //		SetThreadAffinity(thread_, threadPrio, CPUMask, Options::Instance()->SCHEDULER);
+		threadName_ = threadName;
+		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
-	void startThread(unsigned short threadNum, unsigned short CPUMask = -1,
-			unsigned threadPrio = 15) {
+	void startThread(unsigned short threadNum, const std::string threadName,
+			unsigned short CPUMask = -1, unsigned threadPrio = 15) {
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
-				boost::bind(&AExecutable::thread, this));
+				boost::bind(&AExecutable::runThread, this));
 
 //		SetThreadAffinity(thread_, 15, CPUMask, Options::Instance()->SCHEDULER);
+		threadName_ = threadName;
+		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
 	static void SetThreadAffinity(boost::thread& daThread,
@@ -81,6 +90,10 @@ protected:
 	short threadNum_;
 
 private:
+	void runThread() {
+		thread();
+	}
+
 	virtual void thread() {
 	}
 
@@ -88,6 +101,8 @@ private:
 	}
 
 	boost::thread* thread_;
+	std::string threadName_;
+
 	static boost::thread_group threads_;
 	static std::vector<AExecutable*> instances_;
 };

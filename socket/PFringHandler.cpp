@@ -67,7 +67,7 @@ PFringHandler::PFringHandler(std::string deviceName) {
 	/*
 	 * Start gratuitous ARP request sending thread
 	 */
-	startThread();
+	startThread("ArpSender");
 }
 
 void PFringHandler::thread() {
