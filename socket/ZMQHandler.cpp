@@ -7,13 +7,15 @@
 
 #include "ZMQHandler.h"
 
-#include <boost/thread.hpp>
+#include <boost/date_time/posix_time/posix_time_duration.hpp>
+#include <boost/date_time/time_duration.hpp>
+#include <boost/thread/locks.hpp>
+#include <boost/thread/pthread/thread_data.hpp>
 #include <glog/logging.h>
-#include <unistd.h>
+#include <zmq.h>
 #include <zmq.hpp>
 #include <iostream>
 #include <map>
-#include <sstream>
 
 #include "../options/Options.h"
 
@@ -31,10 +33,12 @@ void ZMQHandler::Destroy() {
 	delete context_;
 }
 
-zmq::socket_t* ZMQHandler::GenerateSocket(int socketType) {
+zmq::socket_t* ZMQHandler::GenerateSocket(int socketType, int highWaterMark) {
 	int linger = 0;
 	zmq::socket_t* socket = new zmq::socket_t(*context_, socketType);
 	socket->setsockopt(ZMQ_LINGER, &linger, sizeof(linger));
+
+	socket->setsockopt(ZMQ_SNDHWM, &highWaterMark, sizeof(highWaterMark));
 
 	return socket;
 }
