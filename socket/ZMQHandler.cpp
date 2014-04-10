@@ -26,7 +26,7 @@ std::set<std::string> ZMQHandler::boundAddresses_;
 boost::mutex ZMQHandler::connectMutex_;
 
 void ZMQHandler::Initialize() {
-	context_ = new zmq::context_t(1);
+	context_ = new zmq::context_t(Options::GetInt(OPTION_ZMQ_IO_THREADS));
 }
 
 void ZMQHandler::Destroy() {
