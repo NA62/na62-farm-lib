@@ -250,6 +250,28 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 				DataContainer container = MRPQueues.back();
 				MRPQueues.pop();
 
+
+				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+				struct cream::MRP_FRAME_HDR* hdr = (struct cream::MRP_FRAME_HDR*) container.data;
+
+				std::stringstream msg;
+				msg << "Sending MRP with following "
+						<< ntohs(hdr->MRP_HDR.numberOfTriggers) << " event numbers:"
+						<< std::endl;
+				uint pointer = sizeof(cream::MRP_FRAME_HDR);
+				for (int trigger = 0; trigger < ntohs(hdr->MRP_HDR.numberOfTriggers);
+						trigger++) {
+					cream::TRIGGER_RAW_HDR* t = (cream::TRIGGER_RAW_HDR*) (container.data + pointer);
+					pointer += sizeof(cream::TRIGGER_RAW_HDR);
+
+					msg << (ntohl(t->eventNumber) >> 8) << " \t";
+				}
+				msg<< std::endl;
+				std::cout << msg.str();
+				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 				PFringHandler::SendFrameConcurrently(threadNum, container.data,
 						container.length);
 

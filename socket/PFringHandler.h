@@ -31,8 +31,8 @@ public:
 		int result = queueRings_[queueNumber]->get_next_packet(hdr, pkt,
 				pkt_len, wait_for_incoming_packet);
 		if (result == 1) {
-			bytesReceived_++;
-			packetsReceived_ += hdr->len;
+			bytesReceived_ += hdr->len;
+			packetsReceived_++;
 		}
 
 		return result;
@@ -108,7 +108,7 @@ public:
 		return bytesReceived_;
 	}
 
-	static inline uint64_t GetPacksReceived() {
+	static inline uint64_t GetFramesReceived() {
 		pfring_stat pfringStat = GetStats();
 		return pfringStat.recv;
 	}
