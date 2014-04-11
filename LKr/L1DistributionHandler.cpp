@@ -242,46 +242,46 @@ void L1DistributionHandler::thread() {
 }
 
 bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
-	if (sendMutex_.try_lock()) {
+	boost::mutex::scoped_lock lock(sendMutex_);
+	if (lock) {
 		if (!MRPQueues.empty()) {
 			if (MRPSendTimer_.elapsed().wall / 1000
 					> Options::GetInt(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS)) {
 
-				DataContainer container = MRPQueues.back();
+				DataContainer container = MRPQueues.front();
 				MRPQueues.pop();
 
-
-				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-				struct cream::MRP_FRAME_HDR* hdr = (struct cream::MRP_FRAME_HDR*) container.data;
-
-				std::stringstream msg;
-				msg << "Sending MRP with following "
-						<< ntohs(hdr->MRP_HDR.numberOfTriggers) << " event numbers:"
-						<< std::endl;
-				uint pointer = sizeof(cream::MRP_FRAME_HDR);
-				for (int trigger = 0; trigger < ntohs(hdr->MRP_HDR.numberOfTriggers);
-						trigger++) {
-					cream::TRIGGER_RAW_HDR* t = (cream::TRIGGER_RAW_HDR*) (container.data + pointer);
-					pointer += sizeof(cream::TRIGGER_RAW_HDR);
-
-					msg << (ntohl(t->eventNumber) >> 8) << " \t";
-				}
-				msg<< std::endl;
-				std::cout << msg.str();
-				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//				struct cream::MRP_FRAME_HDR* hdr =
+//						(struct cream::MRP_FRAME_HDR*) container.data;
+//
+//				std::stringstream msg;
+//				msg << "Sending MRP with following "
+//						<< ntohs(hdr->MRP_HDR.numberOfTriggers)
+//						<< " event numbers:" << std::endl;
+//				uint pointer = sizeof(cream::MRP_FRAME_HDR);
+//				for (int trigger = 0;
+//						trigger < ntohs(hdr->MRP_HDR.numberOfTriggers);
+//						trigger++) {
+//					cream::TRIGGER_RAW_HDR* t =
+//							(cream::TRIGGER_RAW_HDR*) (container.data + pointer);
+//					pointer += sizeof(cream::TRIGGER_RAW_HDR);
+//
+//					msg << (ntohl(t->eventNumber) >> 8) << " \t";
+//				}
+//				msg << std::endl;
+//				std::cout << msg.str();
+//				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				PFringHandler::SendFrameConcurrently(threadNum, container.data,
 						container.length);
 
 				MRPSendTimer_.start();
 
-				sendMutex_.unlock();
 				return true;
 			}
 		}
-		sendMutex_.unlock();
 	}
 	return false;
 }
