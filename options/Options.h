@@ -5,8 +5,9 @@
  *      Author: Jonas Kunze
  */
 
-#ifndef OPTIONS_H_
-#define OPTIONS_H_
+#pragma once
+#ifndef Options_H_
+#define Options_H_
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -16,69 +17,12 @@
 
 namespace po = boost::program_options;
 
-/*
- * Compile time options
- */
-#define MTU 1500
-
-/*
- * Dynamic Options
- */
-#define OPTION_HELP (char*)"help"
-#define OPTION_VERBOSITY (char*)"verbosity"
-#define OPTION_CONFIG_FILE (char*)"configFile"
-#define OPTION_LOGTOSTDERR (char*)"logtostderr"
-
-/*
- * Listening Ports
- */
-#define OPTION_L0_RECEIVER_PORT (char*)"L0Port"
-#define OPTION_CREAM_RECEIVER_PORT (char*)"CREAMPort"
-#define OPTION_EOB_BROADCAST_IP (char*)"EOBBroadcastIP"
-#define OPTION_EOB_BROADCAST_PORT (char*)"EOBBroadcastPort"
-
-/*
- * Event Building
- */
-#define OPTION_NUMBER_OF_EBS (char*)"numberOfEB"
-#define OPTION_DATA_SOURCE_IDS (char*)"L0DataSourceIDs"
-
-#define OPTION_TS_SOURCEID (char*)"timestampSourceID"
-
-#define OPTION_CREAM_CRATES (char*)"CREAMCrates"
-
-#define OPTION_FIRST_BURST_ID (char*)"firstBurstID"
-
-#define OPTION_CREAM_MULTICAST_GROUP (char*)"creamMulticastIP"
-#define OPTION_CREAM_MULTICAST_PORT (char*)"creamMulticastPort"
-#define OPTION_MAX_TRIGGERS_PER_L1MRP (char*)"maxTriggerPerL1MRP"
-
-#define OPTION_NUMBER_OF_EVENTS_PER_BURST_EXPECTED (char*)"numberOfEventsPerBurstExpected"
-
-/*
- * Triggering
- */
-#define OPTION_L1_DOWNSCALE_FACTOR  (char*)"L1DownscaleFactor"
-#define OPTION_L2_DOWNSCALE_FACTOR  (char*)"L2DownscaleFactor"
-
-#define OPTION_MIN_USEC_BETWEEN_L1_REQUESTS (char*)"minUsecsBetweenL1Requests"
-
-/*
- * Merger
- */
-#define OPTION_MERGER_HOST_NAME (char*)"mergerHostName"
-#define OPTION_MERGER_PORT (char*)"mergerPort"
-
-/*
- * Performance
- */
-#define OPTION_ZMQ_IO_THREADS (char*)"zmqIoThreads"
-
 namespace na62 {
 class Options {
 public:
 	static void PrintVM(boost::program_options::variables_map vm);
-	static void Initialize(int argc, char* argv[]);
+	static void Initialize(int argc, char* argv[],
+			po::options_description desc);
 
 	static bool Isset(char* parameter);
 	static std::string GetString(char* parameter);
