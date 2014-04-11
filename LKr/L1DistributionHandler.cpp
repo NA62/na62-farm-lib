@@ -274,8 +274,9 @@ void L1DistributionHandler::Async_SendMRP(
 	uint16_t offset = sizeof(struct cream::MRP_FRAME_HDR);
 
 	const uint sizeOfMRP = offset
-			+ (triggers.size() > MAX_TRIGGERS_PER_L1MRP ?
-					MAX_TRIGGERS_PER_L1MRP : triggers.size());
+			+ sizeof(struct cream::TRIGGER_RAW_HDR)
+					* (triggers.size() > MAX_TRIGGERS_PER_L1MRP ?
+							MAX_TRIGGERS_PER_L1MRP : triggers.size());
 
 	/*
 	 * Copy tha dataHDR into a new buffer which will be sent afterwards
