@@ -14,7 +14,7 @@ ntop::PFring ** PFringHandler::queueRings_;
 uint16_t PFringHandler::numberOfQueues_;
 
 std::atomic<uint64_t> PFringHandler::bytesReceived_(0);
-std::atomic<uint64_t> PFringHandler::packetsReceived_(0);
+std::atomic<uint64_t> PFringHandler::framesReceived_(0);
 std::string PFringHandler::deviceName_ = "";
 boost::mutex PFringHandler::sendMutex_;
 

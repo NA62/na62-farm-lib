@@ -32,7 +32,7 @@ public:
 				pkt_len, wait_for_incoming_packet);
 		if (result == 1) {
 			bytesReceived_ += hdr->len;
-			packetsReceived_++;
+			framesReceived_++;
 		}
 
 		return result;
@@ -109,8 +109,7 @@ public:
 	}
 
 	static inline uint64_t GetFramesReceived() {
-		pfring_stat pfringStat = GetStats();
-		return pfringStat.recv;
+		return framesReceived_;
 	}
 
 	static void PrintStats();
@@ -129,7 +128,7 @@ public:
 
 private:
 	static std::atomic<uint64_t> bytesReceived_;
-	static std::atomic<uint64_t> packetsReceived_;
+	static std::atomic<uint64_t> framesReceived_;
 	static boost::mutex sendMutex_;
 	static ntop::PFring ** queueRings_; // one ring per queue
 	static ntop::PFring * mainReceiverRing_; // ring which receives IP packets
