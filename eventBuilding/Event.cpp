@@ -9,13 +9,14 @@
 
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
-#include <cstdbool>
 #include <iostream>
 #include <string>
 #include <utility>
 
 #include "../l0/MEPEvent.h"
 #include "../l0/Subevent.h"
+#include "../LKr/LKRMEP.h"
+#include "../utils/DataDumper.h"
 
 //#include "../LKr/LKREvent.h"
 
@@ -26,7 +27,7 @@ Event::Event(uint32_t eventNumber) :
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), lastEventOfBurst_(
-		false)
+				false)
 #ifdef MEASURE_TIME
 , l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
 		0)
@@ -148,6 +149,14 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 
 bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (!L1Processed_) {
+		std::string fileName = "CREAM_NotRequested_EN-"
+				+ std::to_string(
+						lkrEvent->getEventNumber() + "_SOURCE-"
+								+ std::to_string(lkrEvent->getCrateCREAMID()))
+				+ "notRequested";
+		DataDumper::dumpToFile(fileName, "errorEventDump/", lkrEvent->getMep()->getRawData(),
+				lkrEvent->getMep()->getRawLength());
+
 		LOG(ERROR)<<
 		"Received LKR data with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
 		+ boost::lexical_cast<std::string>((int ) lkrEvent->getCrateID()) + " and CREAMID "
@@ -158,7 +167,15 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	}
 
 	if (eventNumber_ != lkrEvent->getEventNumber()) {
-		LOG(ERROR) <<
+		std::string fileName = "CREAM_Twice_EN-"
+				+ std::to_string(
+						lkrEvent->getEventNumber() + "_SOURCE-"
+								+ std::to_string(lkrEvent->getCrateCREAMID()))
+				+ "notRequested";
+		DataDumper::dumpToFile(fileName, "errorEventDump/", lkrEvent->getMep()->getRawData(),
+				lkrEvent->getMep()->getRawLength());
+
+		LOG(ERROR)<<
 		"Trying to add LKrevent with eventNumber " + boost::lexical_cast<std::string>(lkrEvent->getEventNumber())
 		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the LKrEvent!";
 		delete lkrEvent;
@@ -170,10 +187,13 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		/*
 		 * We were waiting for non zero suppressed data
 		 */
-		std::map<uint16_t, cream::LKREvent*>::iterator lb = nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
+		std::map<uint16_t, cream::LKREvent*>::iterator lb =
+				nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
 
-		if (lb != nonSuppressedLKrEventsByCrateCREAMID.end() && !(nonSuppressedLKrEventsByCrateCREAMID.key_comp()(crateCREAMID, lb->first))) {
-			LOG(ERROR) <<
+		if (lb != nonSuppressedLKrEventsByCrateCREAMID.end()
+				&& !(nonSuppressedLKrEventsByCrateCREAMID.key_comp()(
+						crateCREAMID, lb->first))) {
+			LOG(ERROR)<<
 			"Non zero suppressed LKr event with EventNumber " << (int ) lkrEvent->getEventNumber()
 			<< ", crateID " << (int ) lkrEvent->getCrateID() << " and CREAMID " << (int ) lkrEvent->getCREAMID() << " received twice! Will delete the whole event!";
 
@@ -186,16 +206,19 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 			 */
 			nonSuppressedLKrEventsByCrateCREAMID.insert(lb, std::map<uint16_t, cream::LKREvent*>::value_type(crateCREAMID, lkrEvent));
 		}
-		return nonSuppressedLKrEventsByCrateCREAMID.size() == nonZSuppressedDataRequestedNum;
+		return nonSuppressedLKrEventsByCrateCREAMID.size()
+				== nonZSuppressedDataRequestedNum;
 	} else {
-		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(lkrEvent->getCrateID(), lkrEvent->getCREAMID());
+		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(
+				lkrEvent->getCrateID(), lkrEvent->getCREAMID());
 		/*
 		 * This must be a zero suppressed event
 		 */
-		cream::LKREvent* oldEvent = zSuppressedLKrEventsByCrateCREAMID[localCreamID];
+		cream::LKREvent* oldEvent =
+				zSuppressedLKrEventsByCrateCREAMID[localCreamID];
 
 		if (oldEvent != NULL) {
-			LOG(ERROR) <<
+			LOG(ERROR)<<
 			"LKr event with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
 			+ boost::lexical_cast<std::string>((int ) lkrEvent->getCrateID()) + " and CREAMID "
 			+ boost::lexical_cast<std::string>((int ) lkrEvent->getCREAMID()) + " received twice! Will delete the whole event!";
@@ -214,7 +237,8 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		}
 		return false;
 #else
-		return numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+		return numberOfCREAMEvents_
+				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}
 }

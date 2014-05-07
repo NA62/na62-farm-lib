@@ -69,6 +69,14 @@ public:
 		return --eventNum == 0;
 	}
 
+	const char* getRawData() const{
+		return orignialData;
+	}
+
+	const uint16_t getRawLength() const{
+		return length_;
+	}
+
 private:
 	int eventNum;
 	boost::mutex deletionMutex;

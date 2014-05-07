@@ -1,0 +1,50 @@
+/*
+ * DataDumper.cpp
+ *
+ *  Created on: May 7, 2014
+ *      Author: root
+ */
+
+#include "DataDumper.h"
+
+#include<boost/filesystem.hpp>
+#include <fstream>
+#include <stddef.h>
+#include <sys/types.h>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <glog/logging.h>
+
+void DataDumper::dumpToFile(std::string fileName,
+		const std::string storageDir, const char* data, const uint length) {
+	std::string filePath = storageDir + "/" + fileName;
+	LOG(INFO)<< "Writing file " << filePath << std::endl;
+
+	if (boost::filesystem::exists(filePath)) {
+		std::cerr << "File already exists: " << filePath << std::endl;
+		int counter = 2;
+		std::string tmpName = fileName;
+		do {
+			std::cerr << "File already exists: " << tmpName << std::endl;
+			tmpName = fileName + "_" + std::to_string(++counter);
+		} while (boost::filesystem::exists(storageDir + "/" + tmpName));
+
+		std::cerr << "Instead writing file: " << tmpName << std::endl;
+		fileName = tmpName;
+		filePath = storageDir + "/" + fileName;
+	}
+
+	std::ofstream myfile;
+	myfile.open(filePath.data(),
+			std::ios::out | std::ios::trunc | std::ios::binary);
+
+	if (!myfile.good()) {
+		std::cerr << "Unable to write to file " << filePath << std::endl;
+		// carry on to free the memory. myfile.write will not throw!
+	} else {
+		myfile.write(data, length);
+	}
+
+	myfile.close();
+}

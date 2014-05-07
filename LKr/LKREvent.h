@@ -138,6 +138,10 @@ public:
 #endif
 	}
 
+	const LKRMEP* getMep() const {
+		return mep_;
+	}
+
 private:
 	LKRMEP* mep_;
 	const struct LKR_EVENT_RAW_HDR * rawData;
