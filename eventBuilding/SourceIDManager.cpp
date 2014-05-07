@@ -30,8 +30,10 @@ std::pair<uint16_t, uint16_t>* SourceIDManager::LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
 uint16_t SourceIDManager::TS_SOURCEID;
 
-void SourceIDManager::Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates) {
-	TS_SOURCEID =timeStampSourceID;
+void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
+		std::vector<std::pair<int, int> > sourceIDs,
+		std::vector<std::pair<int, int> > creamCrates) {
+	TS_SOURCEID = timeStampSourceID;
 
 	/*
 	 * OPTION_DATA_SOURCE_IDS
@@ -64,7 +66,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID, std::vector<s
 	if (LKrActive) {
 
 		if (creamCrates.size() == 0) {
-			throw BadOption(OPTION_CREAM_CRATES, "Must not be empty!'");
+			throw NA62Error("Option defining CREAM IDsmust not be empty!'");
 		}
 
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = creamCrates.size();
@@ -81,8 +83,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID, std::vector<s
 					CREAMID);
 		}
 	} else {
-		LOG(INFO)<<"There is no LKr SourceID in --" << OPTION_DATA_SOURCE_IDS
-		<< "! Will ignore --" << OPTION_CREAM_CRATES;
+		LOG(INFO)<<"There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 

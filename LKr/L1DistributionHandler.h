@@ -68,6 +68,11 @@ public:
 	 * @return <true> in case a frame has been sent (and time has passed therefore)
 	 */
 	static bool DoSendMRP(const uint16_t threadNum);
+
+	static void Initialize(uint maxTriggersPerMRP, uint numberOfEBs,
+			uint minUsecBetweenL1Requests, std::string multicastGroupName,
+			uint sourcePort, uint destinationPort);
+
 private:
 	void thread();
 
@@ -75,10 +80,8 @@ private:
 	 * Will cause to send all the Triggers in <triggers> with the given <dataHDR> asynchronously
 	 * @return uint16_t The number of Bytes that will be sent
 	 */
-	static void Async_SendMRP(const  struct cream::MRP_FRAME_HDR* dataHDR,
+	static void Async_SendMRP(const struct cream::MRP_FRAME_HDR* dataHDR,
 			std::vector<struct TRIGGER_RAW_HDR*>& triggers);
-
-	static void Initialize();
 
 	static ThreadsafeQueue<struct TRIGGER_RAW_HDR*>* multicastMRPQueues;
 	static ThreadsafeQueue<unicastTriggerAndCrateCREAMIDs_type>* unicastMRPWithIPsQueues;
@@ -96,6 +99,10 @@ private:
 	static boost::mutex sendMutex_;
 
 	static boost::timer::cpu_timer MRPSendTimer_;
+
+	static uint MAX_TRIGGERS_PER_L1MRP;
+	static uint NUMBER_OF_EBS;
+	static uint MIN_USEC_BETWEEN_L1_REQUESTS;
 };
 
 } /* namespace cream */

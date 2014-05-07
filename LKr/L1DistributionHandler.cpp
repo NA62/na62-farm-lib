@@ -42,10 +42,11 @@ struct cream::MRP_FRAME_HDR* L1DistributionHandler::CREAM_UnicastRequestHdr;
 
 uint64_t L1DistributionHandler::L1TriggersSent = 0;
 uint64_t L1DistributionHandler::L1MRPsSent = 0;
+uint L1DistributionHandler::NUMBER_OF_EBS = 0;
+uint L1DistributionHandler::MAX_TRIGGERS_PER_L1MRP = 0;
+uint L1DistributionHandler::MIN_USEC_BETWEEN_L1_REQUESTS = 0;
 
 bool L1DistributionHandler::paused = false;
-
-uint MAX_TRIGGERS_PER_L1MRP = 0;
 
 std::queue<DataContainer> L1DistributionHandler::MRPQueues;
 boost::mutex L1DistributionHandler::sendMutex_;
@@ -94,27 +95,31 @@ void L1DistributionHandler::Async_RequestLKRDataUnicast(
 	}
 }
 
-void L1DistributionHandler::Initialize() {
-	MAX_TRIGGERS_PER_L1MRP = Options::GetInt(OPTION_MAX_TRIGGERS_PER_L1MRP);
+void L1DistributionHandler::Initialize(uint maxTriggersPerMRP, uint numberOfEBs,
+		uint minUsecBetweenL1Requests, std::string multicastGroupName,
+		uint sourcePort, uint destinationPort) {
+	MAX_TRIGGERS_PER_L1MRP = maxTriggersPerMRP;
+	NUMBER_OF_EBS = numberOfEBs;
+	MIN_USEC_BETWEEN_L1_REQUESTS = minUsecBetweenL1Requests;
+
 	void* rawData = operator new[](
-			Options::GetInt(OPTION_NUMBER_OF_EBS)
-					* sizeof(ThreadsafeQueue<struct TRIGGER_RAW_HDR*> ));
+			numberOfEBs * sizeof(ThreadsafeQueue<struct TRIGGER_RAW_HDR*> ));
 	multicastMRPQueues =
 			static_cast<ThreadsafeQueue<struct TRIGGER_RAW_HDR*>*>(rawData);
 
-	for (int i = Options::GetInt(OPTION_NUMBER_OF_EBS) - 1; i != -1; i--) {
+	for (int i = numberOfEBs - 1; i != -1; i--) {
 		new (&multicastMRPQueues[i]) ThreadsafeQueue<struct TRIGGER_RAW_HDR*>(
 				100000);
 	}
 	rawData =
 			operator new[](
-					Options::GetInt(OPTION_NUMBER_OF_EBS)
+					numberOfEBs
 							* sizeof(ThreadsafeQueue<
 									unicastTriggerAndCrateCREAMIDs_type> ));
 	unicastMRPWithIPsQueues = static_cast<ThreadsafeQueue<
 			unicastTriggerAndCrateCREAMIDs_type>*>(rawData);
 
-	for (int i = Options::GetInt(OPTION_NUMBER_OF_EBS) - 1; i >= 0; i--) {
+	for (int i = numberOfEBs - 1; i >= 0; i--) {
 		new (&unicastMRPWithIPsQueues[i]) ThreadsafeQueue<
 				unicastTriggerAndCrateCREAMIDs_type>(100000);
 	}
@@ -122,19 +127,16 @@ void L1DistributionHandler::Initialize() {
 	CREAM_MulticastRequestHdr = new struct cream::MRP_FRAME_HDR();
 	CREAM_UnicastRequestHdr = new struct cream::MRP_FRAME_HDR();
 
-	const uint32_t multicastGroup = inet_addr(
-			Options::GetString(OPTION_CREAM_MULTICAST_GROUP).data());
-	uint16_t sPort = Options::GetInt(OPTION_CREAM_RECEIVER_PORT);
-	uint16_t dPort = Options::GetInt(OPTION_CREAM_MULTICAST_PORT);
+	const uint32_t multicastGroup = inet_addr(multicastGroupName.data());
 	EthernetUtils::GenerateUDP((char*) CREAM_MulticastRequestHdr,
 			EthernetUtils::GenerateMulticastMac(multicastGroup), multicastGroup,
-			sPort, dPort);
+			sourcePort, destinationPort);
 	/*
 	 * TODO: The router MAC has to be set here:
 	 */
 	EthernetUtils::GenerateUDP((char*) CREAM_UnicastRequestHdr,
 			EthernetUtils::StringToMAC("00:11:22:33:44:55"),
-			0/*Will be set later*/, sPort, dPort);
+			0/*Will be set later*/, sourcePort, destinationPort);
 
 	CREAM_MulticastRequestHdr->MRP_HDR.ipAddress = PFringHandler::GetMyIP();
 	CREAM_MulticastRequestHdr->MRP_HDR.reserved = 0;
@@ -146,8 +148,6 @@ void L1DistributionHandler::Initialize() {
 }
 
 void L1DistributionHandler::thread() {
-	Initialize();
-
 	/*
 	 * Round robin counter
 	 */
@@ -166,10 +166,8 @@ void L1DistributionHandler::thread() {
 
 	std::vector<struct TRIGGER_RAW_HDR*> multicastRequests;
 	multicastRequests.reserve(MAX_TRIGGERS_PER_L1MRP);
-	const unsigned int sleepMicros = Options::GetInt(
-	OPTION_MIN_USEC_BETWEEN_L1_REQUESTS);
+	const unsigned int sleepMicros = MIN_USEC_BETWEEN_L1_REQUESTS;
 
-	const int NUMBER_OF_EBS = Options::GetInt(OPTION_NUMBER_OF_EBS);
 	while (true) {
 		ThreadsafeQueue<struct TRIGGER_RAW_HDR*>* queue =
 				&multicastMRPQueues[threadNum % NUMBER_OF_EBS];
@@ -246,7 +244,7 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 	if (lock) {
 		if (!MRPQueues.empty()) {
 			if (MRPSendTimer_.elapsed().wall / 1000
-					> Options::GetInt(OPTION_MIN_USEC_BETWEEN_L1_REQUESTS)) {
+					> MIN_USEC_BETWEEN_L1_REQUESTS) {
 
 				DataContainer container = MRPQueues.front();
 				MRPQueues.pop();

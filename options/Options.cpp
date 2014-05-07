@@ -7,21 +7,12 @@
 
 #include "Options.h"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/detail/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/trim.hpp>
-//#include <boost/algorithm/string.hpp>
-#include <boost/any.hpp>
-#include <boost/filesystem/operations.hpp>
-//#include <boost/filesystem.hpp>
-//#include <boost/foreach.hpp>
+#include <boost/foreach.hpp>
+#include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/program_options/parsers.hpp>
-#include <boost/program_options/value_semantic.hpp>
-//#include <boost/program_options.hpp>
-#include <boost/thread/detail/thread.hpp>
-//#include <boost/thread.hpp>
+#include <boost/thread.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include <stddef.h>
 #include <sys/types.h>
 #include <cstdlib>
@@ -57,9 +48,21 @@ void Options::PrintVM(po::variables_map vm) {
 /**
  * The constructor must be public but should not be called! Use Instance() as factory Method instead.
  */
-void Options::Initialize(int argc, char* argv[],
-		po::options_description desc) {
-	Options::desc = desc;
+void Options::Initialize(int argc, char* argv[], po::options_description desc) {
+
+	desc.add_options()
+
+	(OPTION_HELP, "Produce help message")
+
+	(OPTION_VERBOSITY, po::value<int>()->default_value(0),
+			"Verbosity mode:\n0: Error\n1: Warning\n2: Info")
+
+	(OPTION_CONFIG_FILE,
+			po::value<std::string>()->default_value("/etc/na62-farm.cfg"),
+			"Config file for these options")
+
+	(OPTION_LOGTOSTDERR, po::value<int>()->default_value(0),
+			"Show logs in stderr");
 
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -186,8 +189,7 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 		boost::split(tuple, pairString, boost::is_any_of(":")); // Now we have A in tuple[0] and a in tuple[1]
 
 		if (tuple.size() != 2) {
-			throw BadOption(OPTION_DATA_SOURCE_IDS,
-					"Bad format! Must be 'A:a,B:b'");
+			throw BadOption(parameter, "Bad format! Must be 'A:a,B:b'");
 		}
 		values.push_back(std::make_pair(tuple[0], tuple[1]));
 

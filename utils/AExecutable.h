@@ -28,8 +28,7 @@ public:
 				boost::bind(&AExecutable::runThread, this));
 		threadName_ = threadName;
 
-		pthread_setname_np(thread_->native_handle(), threadName.c_str());
-
+//		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
 	void startThread(unsigned short threadNum, const std::string threadName,
@@ -40,7 +39,7 @@ public:
 
 //		SetThreadAffinity(thread_, threadPrio, CPUMask, Options::Instance()->SCHEDULER);
 		threadName_ = threadName;
-		pthread_setname_np(thread_->native_handle(), threadName.c_str());
+//		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
 	void startThread(unsigned short threadNum, const std::string threadName,
@@ -51,7 +50,7 @@ public:
 
 //		SetThreadAffinity(thread_, 15, CPUMask, Options::Instance()->SCHEDULER);
 		threadName_ = threadName;
-		pthread_setname_np(thread_->native_handle(), threadName.c_str());
+//		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
 	static void SetThreadAffinity(boost::thread& daThread,

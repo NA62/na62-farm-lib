@@ -49,12 +49,6 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 							+ boost::lexical_cast<std::string>(getLength())
 							+ " bytes");
 		}
-	} else if (getLength() > MTU) {
-		throw BrokenPacketReceivedError(
-				"Received MEP longer than buffer size! Received"
-						+ boost::lexical_cast<std::string>(dataLength)
-						+ " B, Buffer size is "
-						+ boost::lexical_cast<std::string>(MTU) + " B");
 	}
 
 	/*
