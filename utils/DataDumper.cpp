@@ -16,8 +16,9 @@
 #include <string>
 #include <glog/logging.h>
 
-void DataDumper::dumpToFile(std::string fileName,
-		const std::string storageDir, const char* data, const uint length) {
+namespace na62 {
+void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
+		const char* data, const uint length) {
 	std::string filePath = storageDir + "/" + fileName;
 	LOG(INFO)<< "Writing file " << filePath << std::endl;
 
@@ -35,6 +36,13 @@ void DataDumper::dumpToFile(std::string fileName,
 		filePath = storageDir + "/" + fileName;
 	}
 
+	if (!boost::filesystem::exists(storageDir)) {
+		if (!boost::filesystem::create_directory(storageDir)) {
+			std::cerr << "Unable to write to file " << filePath << std::endl;
+			return;
+		}
+	}
+
 	std::ofstream myfile;
 	myfile.open(filePath.data(),
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -47,4 +55,5 @@ void DataDumper::dumpToFile(std::string fileName,
 	}
 
 	myfile.close();
+}
 }

@@ -47,10 +47,6 @@ public:
 		return events[n];
 	}
 
-	inline uint16_t getLength() const {
-		return length_;
-	}
-
 	inline uint16_t getNumberOfEvents() const {
 		return eventNum;
 	}
@@ -70,19 +66,19 @@ public:
 	}
 
 	const char* getRawData() const{
-		return orignialData;
+		return etherFrame_;
 	}
 
 	const uint16_t getRawLength() const{
-		return length_;
+		return dataLength_;
 	}
 
 private:
 	int eventNum;
 	boost::mutex deletionMutex;
-	// The whole UDP packet
-	const char* orignialData;
-	uint16_t length_;
+	// The whole ethernet frame
+	const char* etherFrame_;
+	const uint16_t dataLength_;
 	// Pointers to the payload of the UDP packet
 	std::vector<LKREvent*> events;
 };

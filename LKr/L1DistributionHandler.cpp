@@ -156,7 +156,7 @@ void L1DistributionHandler::thread() {
 	/*
 	 * Counts how often threadNum run around. After each time we should send even if we did not collect MAX_TRIGGERS_PER_L1MRP yet
 	 */
-	int EBIterations = 0;
+	uint EBIterations = 0;
 
 	/*
 	 * We need all MRPs for each CREAM  but the multicastMRPQueues stores it in the opposite order (one MRP, several CREAMs).

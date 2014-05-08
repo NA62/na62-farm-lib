@@ -73,7 +73,7 @@ public:
 		return data_;
 	}
 
-	inline MEP* getMEP() {
+	inline MEP* getMep() {
 		return mep_;
 	}
 private:

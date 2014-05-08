@@ -11,9 +11,12 @@
 #include <sys/types.h>
 #include <string>
 
+namespace na62 {
 class DataDumper {
 public:
-	static void dumpToFile(const std::string fileName, const std::string storageDir, const char* data, const uint length);
+	static void dumpToFile(const std::string fileName,
+			const std::string storageDir, const char* data, const uint length);
 };
+}
 
 #endif /* DATADUMPER_H_ */

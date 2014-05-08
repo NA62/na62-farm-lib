@@ -9,16 +9,16 @@
 
 #include <boost/lexical_cast.hpp>
 #include <glog/logging.h>
+#include <sys/types.h>
 #include <iostream>
 #include <string>
 #include <utility>
 
 #include "../l0/MEPEvent.h"
+#include "../l0/MEP.h"
 #include "../l0/Subevent.h"
 #include "../LKr/LKRMEP.h"
 #include "../utils/DataDumper.h"
-
-//#include "../LKr/LKREvent.h"
 
 namespace na62 {
 
@@ -156,6 +156,20 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 				lkrEvent->getMep()->getRawData(),
 				lkrEvent->getMep()->getRawLength());
 
+		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+				sourceIDNum >= 0; sourceIDNum--) {
+			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceIDNum);
+
+			for (int partNum = subevent->getNumberOfParts() - 1; partNum >= 0;
+					partNum--) {
+				l0::MEPEvent* e = subevent->getPart(partNum);
+				fileName += "_L0_SOURCE-" + std::to_string(e->getSourceID())
+						+ "_" + std::to_string(partNum);
+				DataDumper::dumpToFile(fileName, "errorEventDump/",
+						e->getMep()->getRawData(), e->getMep()->getRawLength());
+			}
+		}
+
 		LOG(ERROR)<<
 		"Received LKR data with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
 		+ boost::lexical_cast<std::string>((int ) lkrEvent->getCrateID()) + " and CREAMID "
@@ -172,6 +186,20 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		DataDumper::dumpToFile(fileName, "errorEventDump/",
 				lkrEvent->getMep()->getRawData(),
 				lkrEvent->getMep()->getRawLength());
+
+		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+				sourceIDNum >= 0; sourceIDNum--) {
+			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceIDNum);
+
+			for (int partNum = subevent->getNumberOfParts() - 1; partNum >= 0;
+					partNum--) {
+				l0::MEPEvent* e = subevent->getPart(partNum);
+				fileName += "_L0_SOURCE-" + std::to_string(e->getSourceID())
+						+ "_" + std::to_string(partNum);
+				DataDumper::dumpToFile(fileName, "errorEventDump/",
+						e->getMep()->getRawData(), e->getMep()->getRawLength());
+			}
+		}
 
 		LOG(ERROR)<<
 		"Trying to add LKrevent with eventNumber " + boost::lexical_cast<std::string>(lkrEvent->getEventNumber())

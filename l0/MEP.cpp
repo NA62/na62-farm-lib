@@ -29,7 +29,7 @@ namespace l0 {
 MEP::MEP(const char *data, const uint16_t & dataLength,
 		const char *originalData) throw (BrokenPacketReceivedError,
 				UnknownSourceIDFound) :
-		orignialData(originalData), rawData((struct MEP_RAW_HDR*) (data)), checkSumsVarified_(
+		etherFrame_(originalData), rawData((struct MEP_RAW_HDR*) (data)), checkSumsVarified_(
 				false) {
 
 	events = new (std::nothrow) MEPEvent*[rawData->eventCount];
@@ -70,7 +70,7 @@ MEP::~MEP() {
 		throw NA62Error("Deleting non-empty MEP!!!");
 	}
 	delete[] events;
-	delete[] orignialData; // Here we free the most important buffer used for polling in Receiver.cpp
+	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
 void MEP::initializeMEPEvents(const char * data, const uint16_t& dataLength)

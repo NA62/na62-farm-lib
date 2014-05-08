@@ -15,8 +15,8 @@
 namespace na62 {
 namespace cream {
 
-LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength, const char* originalData) throw (BrokenPacketReceivedError, UnknownCREAMSourceIDFound) :
-		orignialData(originalData), length_(dataLength) {
+LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength, const char* etherFrame) throw (BrokenPacketReceivedError, UnknownCREAMSourceIDFound) :
+		etherFrame_(etherFrame), dataLength_(dataLength) {
 
 	/*
 	 * There is now special LKRMEP header! A MEP just contains of several LKREvents and we have to find out how many of those are written into this packet.
@@ -32,7 +32,7 @@ LKRMEP::~LKRMEP() {
 		throw NA62Error("Deleting non-empty LKRMEP!!!");
 	}
 
-	delete[] orignialData; // Here we free the most important buffer used for polling in Receiver.cpp
+	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
 void LKRMEP::initializeLKREvents(const char * data, const uint16_t& dataLength) throw (UnknownCREAMSourceIDFound, BrokenPacketReceivedError) {
