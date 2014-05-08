@@ -2,7 +2,7 @@
  * DataDumper.h
  *
  *  Created on: May 7, 2014
- *      Author: root
+ \*      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #ifndef DATADUMPER_H_

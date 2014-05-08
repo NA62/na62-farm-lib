@@ -2,7 +2,7 @@
  * Stopwatch.hpp
  *
  *  Created on: Apr 21, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "Stopwatch.h"
