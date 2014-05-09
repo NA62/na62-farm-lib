@@ -13,6 +13,8 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <fstream>
+#include <boost/thread/pthread/mutex.hpp>
 
 #include "../l0/MEPEvent.h"
 #include "../l0/MEP.h"
@@ -21,6 +23,7 @@
 #include "../utils/DataDumper.h"
 
 namespace na62 {
+boost::mutex unfinishedEventsIOMutex;
 
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMEvents_(
@@ -83,14 +86,13 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 		firstEventPartAddedTime_.start();
 	}
 #endif
-	// If the new event number does not equal the first one something went terribly wrong!
-	if (eventNumber_ != l0Event->getEventNumber()) {
-		LOG(ERROR)<<
-		"Trying to add MEPEvent with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
-		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the MEPEvent!";
-		delete l0Event;
-		return false;
-	}
+//	if (eventNumber_ != l0Event->getEventNumber()) {
+//		LOG(ERROR)<<
+//		"Trying to add MEPEvent with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
+//		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the MEPEvent!";
+//		delete l0Event;
+//		return false;
+//	}
 
 	if (numberOfL0Events_ == 0) {
 		lastEventOfBurst_ = l0Event->isLastEventOfBurst();
@@ -101,21 +103,55 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 			LOG(ERROR)<<"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
 			return addL0Event(l0Event, burstID);
 		}
+
+		if (burstID != getBurstID()) {
+			/*
+			 * Append the unfinished event information to a file for debugging
+			 */
+			boost::lock_guard<boost::mutex> lock(unfinishedEventsIOMutex);
+			std::ofstream myfile;
+			myfile.open("unfinishedEventNumbers",
+					std::ios::out | std::ios::app);
+
+			if (!myfile.good()) {
+				std::cerr << "Unable to write to file "
+						<< "unfinishedEventNumbers" << std::endl;
+			} else {
+				myfile << burstID << "\t" << getEventNumber() << "\t"
+						<< getTimestamp();
+
+				for (int localCreamID =
+						SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
+								- 1; localCreamID != -1; localCreamID--) {
+					if (getZSuppressedLKrEvent(localCreamID) == nullptr) {
+						auto crateAndCreamID =
+								SourceIDManager::getCrateAndCREAMIDByLocalID(
+										localCreamID);
+						myfile << "\t" << (int)crateAndCreamID.first << "\t"
+								<< (int)crateAndCreamID.second;
+					}
+				}
+
+				myfile << std::endl;
+			}
+			myfile.close();
+
+			/*
+			 * Event not build during last burst -> destroy it!
+			 */
+			LOG(ERROR)<<
+			"Overwriting unfinished event from Burst " + boost::lexical_cast<std::string>((int ) getBurstID()) + "! Eventnumber: "
+			+ boost::lexical_cast<std::string>((int ) getEventNumber());
+			destroy();
+			return addL0Event(l0Event, burstID);
+		}
 	}
 
+	/*
+	 * Store the global event timestamp if the source ID is the TS_SOURCEID
+	 */
 	if (l0Event->getSourceID() == SourceIDManager::TS_SOURCEID) {
 		timestamp_ = l0Event->getTimestamp();
-	}
-
-	if (burstID != getBurstID()) {
-		/*
-		 * Event not build during last burst -> destroy it!
-		 */
-		LOG(ERROR)<<
-		"Overwriting unfinished event from Burst " + boost::lexical_cast<std::string>((int ) getBurstID()) + "! Eventnumber: "
-		+ boost::lexical_cast<std::string>((int ) getEventNumber());
-		destroy();
-		return addL0Event(l0Event, burstID);
 	}
 
 	l0::Subevent* subevent = L0Subevents[l0Event->getSourceIDNum()];
@@ -143,7 +179,8 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	}
 	return false;
 #else
-	return numberOfL0Events_ == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+	return numberOfL0Events_
+			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 #endif
 }
 
@@ -155,20 +192,6 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		DataDumper::dumpToFile(fileName, "errorEventDump/",
 				lkrEvent->getMep()->getRawData(),
 				lkrEvent->getMep()->getRawLength());
-
-		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-				sourceIDNum >= 0; sourceIDNum--) {
-			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceIDNum);
-
-			for (int partNum = subevent->getNumberOfParts() - 1; partNum >= 0;
-					partNum--) {
-				l0::MEPEvent* e = subevent->getPart(partNum);
-				fileName += "_L0_SOURCE-" + std::to_string(e->getSourceID())
-						+ "_" + std::to_string(partNum);
-				DataDumper::dumpToFile(fileName, "errorEventDump/",
-						e->getMep()->getRawData(), e->getMep()->getRawLength());
-			}
-		}
 
 		LOG(ERROR)<<
 		"Received LKR data with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
@@ -187,19 +210,19 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 				lkrEvent->getMep()->getRawData(),
 				lkrEvent->getMep()->getRawLength());
 
-		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-				sourceIDNum >= 0; sourceIDNum--) {
-			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceIDNum);
-
-			for (int partNum = subevent->getNumberOfParts() - 1; partNum >= 0;
-					partNum--) {
-				l0::MEPEvent* e = subevent->getPart(partNum);
-				fileName += "_L0_SOURCE-" + std::to_string(e->getSourceID())
-						+ "_" + std::to_string(partNum);
-				DataDumper::dumpToFile(fileName, "errorEventDump/",
-						e->getMep()->getRawData(), e->getMep()->getRawLength());
-			}
-		}
+//		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+//				sourceIDNum >= 0; sourceIDNum--) {
+//			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceIDNum);
+//
+//			for (int partNum = subevent->getNumberOfParts() - 1; partNum >= 0;
+//					partNum--) {
+//				l0::MEPEvent* e = subevent->getPart(partNum);
+//				fileName += "_L0_SOURCE-" + std::to_string(e->getSourceID())
+//						+ "_" + std::to_string(partNum);
+//				DataDumper::dumpToFile(fileName, "errorEventDump/",
+//						e->getMep()->getRawData(), e->getMep()->getRawLength());
+//			}
+//		}
 
 		LOG(ERROR)<<
 		"Trying to add LKrevent with eventNumber " + boost::lexical_cast<std::string>(lkrEvent->getEventNumber())
