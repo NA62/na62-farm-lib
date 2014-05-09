@@ -2,7 +2,7 @@
  * EthernetHandler.cpp
  *
  *  Created on: Jan 11, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "EthernetUtils.h"

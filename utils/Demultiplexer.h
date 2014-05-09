@@ -6,7 +6,7 @@
  *
  * A thread safe consumer-producer queue. This means this queue is only thread safe if you have only one writer-thread and only one reader-thread.
  *  Created on: Jan 5, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once

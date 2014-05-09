@@ -2,7 +2,7 @@
  * SourceIDManager.h
  *
  *  Created on: Feb 27, 2014
- *      Author: root
+ \*      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 #pragma once
 #ifndef SOURCEIDMANAGER_H_

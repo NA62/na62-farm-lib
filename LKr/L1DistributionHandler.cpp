@@ -2,7 +2,7 @@
  * L1DistributionHandler.cpp
  *
  *  Created on: Mar 3, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "L1DistributionHandler.h"

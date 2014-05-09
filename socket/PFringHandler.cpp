@@ -2,7 +2,7 @@
  * PFringHandler.cpp
  *
  *  Created on: Jan 10, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "PFringHandler.h"

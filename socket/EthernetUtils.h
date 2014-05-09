@@ -2,7 +2,7 @@
  * EthernetHandler.h
  *
  *  Created on: Jan 11, 2012
- *      Author: Jonas Kunze
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
