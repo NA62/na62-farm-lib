@@ -17,6 +17,14 @@
 
 namespace po = boost::program_options;
 
+/*
+ * Compile time options
+ */
+#define MTU 9000
+
+/*
+ * Dynamic options
+ */
 #define OPTION_HELP (char*)"help"
 #define OPTION_CONFIG_FILE (char*)"configFile"
 #define OPTION_LOGTOSTDERR (char*)"logtostderr"
