@@ -45,9 +45,7 @@ void Options::PrintVM(po::variables_map vm) {
 		std::cout << std::endl;
 	}
 }
-/**
- * The constructor must be public but should not be called! Use Instance() as factory Method instead.
- */
+
 void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	desc.add_options()
@@ -56,10 +54,6 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	(OPTION_VERBOSITY, po::value<int>()->default_value(0),
 			"Verbosity mode:\n0: Error\n1: Warning\n2: Info")
-
-	(OPTION_CONFIG_FILE,
-			po::value<std::string>()->default_value("/etc/na62-farm.cfg"),
-			"Config file for these options")
 
 	(OPTION_LOGTOSTDERR, po::value<int>()->default_value(0),
 			"Show logs in stderr");
@@ -112,11 +106,22 @@ std::string Options::GetString(char* parameter) {
 	return str;
 }
 
+std::vector<std::string> Options::GetStringList(char* parameter) {
+	std::vector<std::string> list;
+
+	boost::split(list, vm[parameter].as<std::string>(), boost::is_any_of(","));
+	return list;
+}
+
 int Options::GetInt(char* parameter) {
 	if (GetOptionType(parameter) == typeid(int)) {
 		return vm[parameter].as<int>();
 	}
 	return Utils::ToUInt(vm[parameter].as<std::string>());
+}
+
+bool Options::GetBool(char* parameter) {
+	return vm[parameter].as<int>() > 0;
 }
 
 std::vector<int> Options::GetIntList(char* parameter) {

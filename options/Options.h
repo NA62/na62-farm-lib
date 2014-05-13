@@ -26,12 +26,36 @@ namespace na62 {
 class Options {
 public:
 	static void PrintVM(boost::program_options::variables_map vm);
+
+	/**
+	 * Loads all options from the config file stored in desc via OPTION_CONFIG_FILE. Then all options defined in argv will be taken to overwrite these otpions.
+	 *
+	 * You should call something like following once at the beginning of your code:
+	 *
+	 desc.add_options()
+	 (OPTION_CONFIG_FILE,
+	 po::value<std::string>()->default_value("/etc/na62-farm.cfg"),
+	 "Config file for the options shown here")
+	 // some more options here
+	 ;
+	 Options::Initialize(argc, argv, desc);
+	 */
 	static void Initialize(int argc, char* argv[],
 			po::options_description desc);
 
 	static bool Isset(char* parameter);
 	static std::string GetString(char* parameter);
+
+	/**
+	 * Takes the String GetString(parameter) and splits it at every ','
+	 */
+	static std::vector<std::string> GetStringList(char* parameter);
 	static int GetInt(char* parameter);
+	static bool GetBool(char* parameter);
+
+	/**
+	 * Returns a list of integers split by ',' within the value of the given parameter
+	 */
 	static std::vector<int> GetIntList(char* parameter);
 	static std::vector<double> GetDoubleList(char* parameter);
 
