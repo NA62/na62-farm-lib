@@ -188,8 +188,8 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (!L1Processed_) {
 		std::string fileName = "CREAM_NotRequested_EN-"
 				+ std::to_string(lkrEvent->getEventNumber()) + "_CRATE-"
-				+ std::to_string(lkrEvent->getCrateID())+"_SLOT-"
-				+ std::to_string(lkrEvent->getCREAMID());
+				+ std::to_string((int)lkrEvent->getCrateID())+"_SLOT-"
+				+ std::to_string((int)lkrEvent->getCREAMID());
 		DataDumper::dumpToFile(fileName, "errorEventDump/",
 				lkrEvent->getMep()->getRawData(),
 				lkrEvent->getMep()->getRawLength());
@@ -206,8 +206,8 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (eventNumber_ != lkrEvent->getEventNumber()) {
 		std::string fileName = "CREAM_Twice_EN-"
 				+ std::to_string(lkrEvent->getEventNumber()) + "_CRATE-"
-				+ std::to_string(lkrEvent->getCrateID())+"_SLOT-"
-				+ std::to_string(lkrEvent->getCREAMID());
+				+ std::to_string((int)lkrEvent->getCrateID())+"_SLOT-"
+				+ std::to_string((int)lkrEvent->getCREAMID());
 		DataDumper::dumpToFile(fileName, "errorEventDump/",
 				lkrEvent->getMep()->getRawData(),
 				lkrEvent->getMep()->getRawLength());
