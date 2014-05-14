@@ -20,10 +20,8 @@
 #include "../l0/MEP.h"
 #include "../l0/Subevent.h"
 #include "../LKr/LKRMEP.h"
-#include "../utils/DataDumper.h"
 
 namespace na62 {
-boost::mutex unfinishedEventsIOMutex;
 
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMEvents_(
@@ -106,37 +104,6 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 
 		if (burstID != getBurstID()) {
 			/*
-			 * Append the unfinished event information to a file for debugging
-			 */
-			boost::lock_guard<boost::mutex> lock(unfinishedEventsIOMutex);
-			std::ofstream myfile;
-			myfile.open("unfinishedEventNumbers",
-					std::ios::out | std::ios::app);
-
-			if (!myfile.good()) {
-				std::cerr << "Unable to write to file "
-						<< "unfinishedEventNumbers" << std::endl;
-			} else {
-				myfile << burstID << "\t" << getEventNumber() << "\t"
-						<< getTimestamp();
-
-				for (int localCreamID =
-						SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
-								- 1; localCreamID != -1; localCreamID--) {
-					if (getZSuppressedLKrEvent(localCreamID) == nullptr) {
-						auto crateAndCreamID =
-								SourceIDManager::getCrateAndCREAMIDByLocalID(
-										localCreamID);
-						myfile << "\t" << (int)crateAndCreamID.first << "\t"
-								<< (int)crateAndCreamID.second;
-					}
-				}
-
-				myfile << std::endl;
-			}
-			myfile.close();
-
-			/*
 			 * Event not build during last burst -> destroy it!
 			 */
 			LOG(ERROR)<<
@@ -186,14 +153,6 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 
 bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (!L1Processed_) {
-		std::string fileName = "CREAM_NotRequested_EN-"
-				+ std::to_string(lkrEvent->getEventNumber()) + "_CRATE-"
-				+ std::to_string(lkrEvent->getCrateID())+"_SLOT-"
-				+ std::to_string(lkrEvent->getCREAMID());
-		DataDumper::dumpToFile(fileName, "errorEventDump/",
-				lkrEvent->getMep()->getRawData(),
-				lkrEvent->getMep()->getRawLength());
-
 		LOG(ERROR)<<
 		"Received LKR data with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
 		+ boost::lexical_cast<std::string>((int ) lkrEvent->getCrateID()) + " and CREAMID "
@@ -204,28 +163,6 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	}
 
 	if (eventNumber_ != lkrEvent->getEventNumber()) {
-		std::string fileName = "CREAM_Twice_EN-"
-				+ std::to_string(lkrEvent->getEventNumber()) + "_CRATE-"
-				+ std::to_string(lkrEvent->getCrateID())+"_SLOT-"
-				+ std::to_string(lkrEvent->getCREAMID());
-		DataDumper::dumpToFile(fileName, "errorEventDump/",
-				lkrEvent->getMep()->getRawData(),
-				lkrEvent->getMep()->getRawLength());
-
-//		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-//				sourceIDNum >= 0; sourceIDNum--) {
-//			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceIDNum);
-//
-//			for (int partNum = subevent->getNumberOfParts() - 1; partNum >= 0;
-//					partNum--) {
-//				l0::MEPEvent* e = subevent->getPart(partNum);
-//				fileName += "_L0_SOURCE-" + std::to_string(e->getSourceID())
-//						+ "_" + std::to_string(partNum);
-//				DataDumper::dumpToFile(fileName, "errorEventDump/",
-//						e->getMep()->getRawData(), e->getMep()->getRawLength());
-//			}
-//		}
-
 		LOG(ERROR)<<
 		"Trying to add LKrevent with eventNumber " + boost::lexical_cast<std::string>(lkrEvent->getEventNumber())
 		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the LKrEvent!";
