@@ -191,8 +191,8 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 				+ std::to_string((int)lkrEvent->getCrateID())+"_SLOT-"
 				+ std::to_string((int)lkrEvent->getCREAMID());
 		DataDumper::dumpToFile(fileName, "errorEventDump/",
-				lkrEvent->getMep()->getRawData(),
-				lkrEvent->getMep()->getRawLength());
+				lkrEvent->getMep()->getEtherFrame(),
+				lkrEvent->getMep()->getEtherFrameSize());
 
 		LOG(ERROR)<<
 		"Received LKR data with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
@@ -209,8 +209,8 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 				+ std::to_string((int)lkrEvent->getCrateID())+"_SLOT-"
 				+ std::to_string((int)lkrEvent->getCREAMID());
 		DataDumper::dumpToFile(fileName, "errorEventDump/",
-				lkrEvent->getMep()->getRawData(),
-				lkrEvent->getMep()->getRawLength());
+				lkrEvent->getMep()->getEtherFrame(),
+				lkrEvent->getMep()->getEtherFrameSize());
 
 //		for (int sourceIDNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
 //				sourceIDNum >= 0; sourceIDNum--) {
