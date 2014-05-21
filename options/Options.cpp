@@ -20,6 +20,7 @@
 #include <map>
 #include <typeinfo>
 #include <utility>
+#include <glog/logging.h>
 
 #include "../exceptions/BadOption.h"
 #include "../utils/Utils.h"
@@ -89,6 +90,16 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	std::cout << "======= Running with following configuration:" << std::endl;
 	PrintVM(vm);
+
+
+
+	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
+		FLAGS_logtostderr = true;
+	}
+	FLAGS_minloglevel = 2 - Options::GetInt(OPTION_VERBOSITY);
+
+	FLAGS_log_dir = "/var/log/" + std::string(argv[0]);
+	google::InitGoogleLogging(argv[0]);
 }
 
 bool Options::Isset(char* parameter) {
