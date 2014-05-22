@@ -119,8 +119,13 @@ std::string Options::GetString(char* parameter) {
 
 std::vector<std::string> Options::GetStringList(char* parameter) {
 	std::vector<std::string> list;
+	std::string optionString = vm[parameter].as<std::string>();
 
-	boost::split(list, vm[parameter].as<std::string>(), boost::is_any_of(","));
+	if(optionString==""){
+		return list;
+	}
+
+	boost::split(list, optionString, boost::is_any_of(","));
 	return list;
 }
 
