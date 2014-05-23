@@ -2,7 +2,7 @@
  * MEPEvent.h
  *
  *  Created on: Nov 14, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
@@ -73,7 +73,7 @@ public:
 		return data_;
 	}
 
-	inline MEP* getMEP() {
+	inline MEP* getMep() {
 		return mep_;
 	}
 private:

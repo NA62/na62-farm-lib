@@ -2,7 +2,7 @@
  * CommandConnector.h
  *
  *  Created on: Jul 25, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once

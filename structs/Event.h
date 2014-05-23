@@ -2,7 +2,7 @@
  * Event.hpp
  *
  *  Created on: Mar 7, 2014
- *      Author: root
+ \*      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once

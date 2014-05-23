@@ -2,7 +2,7 @@
  * BrokenPacketReceivedError.h
  *
  *  Created on: Nov 15, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once

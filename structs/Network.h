@@ -2,7 +2,7 @@
  * Network.h
  *
  *  Created on: Feb 20, 2014
- *      Author: Jonas Kunze
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once

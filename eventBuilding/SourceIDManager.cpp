@@ -2,7 +2,7 @@
  * SourceIDManager.cpp
  *
  *  Created on: Feb 27, 2014
- *      Author: root
+ \*      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "SourceIDManager.h"
@@ -30,15 +30,16 @@ std::pair<uint16_t, uint16_t>* SourceIDManager::LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
 uint16_t SourceIDManager::TS_SOURCEID;
 
-void SourceIDManager::Initialize() {
-	TS_SOURCEID = Options::GetInt(OPTION_TS_SOURCEID);
+void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
+		std::vector<std::pair<int, int> > sourceIDs,
+		std::vector<std::pair<int, int> > creamCrates) {
+	TS_SOURCEID = timeStampSourceID;
 
 	/*
 	 * OPTION_DATA_SOURCE_IDS
 	 *
 	 */
-	auto SourceIDs = Options::GetIntPairList(OPTION_DATA_SOURCE_IDS);
-	NUMBER_OF_L0_DATA_SOURCES = SourceIDs.size();
+	NUMBER_OF_L0_DATA_SOURCES = sourceIDs.size();
 
 	L0_DATA_SOURCE_IDS = new uint8_t[NUMBER_OF_L0_DATA_SOURCES];
 	L0_DATA_SOURCE_NUM_TO_PACKNUM = new uint16_t[NUMBER_OF_L0_DATA_SOURCES];
@@ -46,7 +47,7 @@ void SourceIDManager::Initialize() {
 	bool LKrActive = false;
 
 	int pos = -1;
-	for (auto pair : SourceIDs) {
+	for (auto pair : sourceIDs) {
 		if (pair.first == SOURCE_ID_LKr) {
 			NUMBER_OF_L0_DATA_SOURCES--;
 			LKrActive = true;
@@ -63,18 +64,17 @@ void SourceIDManager::Initialize() {
 	 *
 	 */
 	if (LKrActive) {
-		auto pairs = Options::GetIntPairList(OPTION_CREAM_CRATES);
 
-		if (pairs.size() == 0) {
-			throw BadOption(OPTION_CREAM_CRATES, "Must not be empty!'");
+		if (creamCrates.size() == 0) {
+			throw NA62Error("Option defining CREAM IDsmust not be empty!'");
 		}
 
-		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = pairs.size();
+		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = creamCrates.size();
 		LOCAL_ID_TO_CRATE_AND_CREAM_IDS =
 				new std::pair<uint16_t, uint16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
 
 		int creamNum = -1;
-		for (auto pair : pairs) {
+		for (auto pair : creamCrates) {
 			uint8_t crateID = pair.first;
 			uint8_t CREAMID = pair.second;
 			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAMID] =
@@ -83,8 +83,7 @@ void SourceIDManager::Initialize() {
 					CREAMID);
 		}
 	} else {
-		LOG(INFO)<<"There is no LKr SourceID in --" << OPTION_DATA_SOURCE_IDS
-		<< "! Will ignore --" << OPTION_CREAM_CRATES;
+		LOG(INFO)<<"There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 

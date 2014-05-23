@@ -2,7 +2,7 @@
  * PFringHandler.cpp
  *
  *  Created on: Jan 10, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "PFringHandler.h"
@@ -14,7 +14,7 @@ ntop::PFring ** PFringHandler::queueRings_;
 uint16_t PFringHandler::numberOfQueues_;
 
 std::atomic<uint64_t> PFringHandler::bytesReceived_(0);
-std::atomic<uint64_t> PFringHandler::packetsReceived_(0);
+std::atomic<uint64_t> PFringHandler::framesReceived_(0);
 std::string PFringHandler::deviceName_ = "";
 boost::mutex PFringHandler::sendMutex_;
 
@@ -67,7 +67,7 @@ PFringHandler::PFringHandler(std::string deviceName) {
 	/*
 	 * Start gratuitous ARP request sending thread
 	 */
-	startThread();
+	startThread("ArpSender");
 }
 
 void PFringHandler::thread() {

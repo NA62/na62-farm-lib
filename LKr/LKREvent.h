@@ -2,7 +2,7 @@
  * LKREvent.h
  *
  *  Created on: Nov 14, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
@@ -136,6 +136,10 @@ public:
 #else
 		return (crateID<<8) | CREAMID;
 #endif
+	}
+
+	const LKRMEP* getMep() const {
+		return mep_;
 	}
 
 private:

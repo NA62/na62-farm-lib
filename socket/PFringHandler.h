@@ -2,7 +2,7 @@
  * PFringHandler.h
  *
  *  Created on: Jan 10, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
@@ -31,8 +31,8 @@ public:
 		int result = queueRings_[queueNumber]->get_next_packet(hdr, pkt,
 				pkt_len, wait_for_incoming_packet);
 		if (result == 1) {
-			bytesReceived_++;
-			packetsReceived_ += hdr->len;
+			bytesReceived_ += hdr->len;
+			framesReceived_++;
 		}
 
 		return result;
@@ -108,9 +108,8 @@ public:
 		return bytesReceived_;
 	}
 
-	static inline uint64_t GetPacksReceived() {
-		pfring_stat pfringStat = GetStats();
-		return pfringStat.recv;
+	static inline uint64_t GetFramesReceived() {
+		return framesReceived_;
 	}
 
 	static void PrintStats();
@@ -129,7 +128,7 @@ public:
 
 private:
 	static std::atomic<uint64_t> bytesReceived_;
-	static std::atomic<uint64_t> packetsReceived_;
+	static std::atomic<uint64_t> framesReceived_;
 	static boost::mutex sendMutex_;
 	static ntop::PFring ** queueRings_; // one ring per queue
 	static ntop::PFring * mainReceiverRing_; // ring which receives IP packets

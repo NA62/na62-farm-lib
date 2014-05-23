@@ -2,7 +2,7 @@
  * Utils.h
  *
  *  Created on: Apr 23, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include <stdint.h>

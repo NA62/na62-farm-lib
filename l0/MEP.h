@@ -2,7 +2,7 @@
  * Header.h
  *
  *  Created on: Sep 21, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
@@ -16,6 +16,7 @@
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
+#include "../structs/Network.h"
 
 namespace na62 {
 class BrokenPacketReceivedError;
@@ -48,7 +49,8 @@ public:
 	/**
 	 * Reads the data coming from L0 and initializes the corresponding fields
 	 */
-	MEP(const char *data, const uint16_t & dataLength, const char *originalData) throw (BrokenPacketReceivedError, UnknownSourceIDFound);
+	MEP(const char *data, const uint16_t & dataLength, const char *originalData)
+			throw (BrokenPacketReceivedError, UnknownSourceIDFound);
 
 	/**
 	 * Frees the data buffer (orignialData) that was created by the Receiver
@@ -57,7 +59,8 @@ public:
 	 */
 	virtual ~MEP();
 
-	void initializeMEPEvents(const char* data, const uint16_t& dataLength) throw (BrokenPacketReceivedError);
+	void initializeMEPEvents(const char* data, const uint16_t& dataLength)
+			throw (BrokenPacketReceivedError);
 
 	/**
 	 * Returns a pointer to the n'th event within this MEP where 0<=n<getFirstEventNum()
@@ -99,7 +102,7 @@ public:
 	}
 
 	inline const char* getUDPPack() const {
-		return orignialData;
+		return etherFrame_;
 	}
 
 	/**
@@ -116,12 +119,20 @@ public:
 		return --rawData->eventCount == 0;
 	}
 
+	const char* getRawData() const {
+		return etherFrame_;
+	}
+
+	const uint16_t getRawLength() const {
+		return getLength() + sizeof(UDP_HDR);
+	}
+
 	bool verifyChecksums();
 
 private:
 	boost::mutex deletionMutex;
-	// The whole UDP packet
-	const char* orignialData;
+	// The whole Ethernet frame
+	const char* etherFrame_;
 	// Pointer to the Payload of the UDP packet
 	struct MEP_RAW_HDR * rawData;
 	MEPEvent **events;
