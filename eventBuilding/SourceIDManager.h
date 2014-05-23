@@ -2,11 +2,16 @@
  * SourceIDManager.h
  *
  *  Created on: Feb 27, 2014
- *      Author: root
+ \*      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 #pragma once
 #ifndef SOURCEIDMANAGER_H_
 #define SOURCEIDMANAGER_H_
+
+#include <vector>
+#include <cstdint>
+#include <map>
+#include <utility>
 
 #define SOURCE_ID_CEDAR 0x04
 #define SOURCE_ID_GTK 0x08
@@ -21,9 +26,6 @@
 #define SOURCE_ID_SAC 0x2C
 #define SOURCE_ID_L0TP 0x40
 
-#include <cstdint>
-#include <map>
-#include <utility>
 
 namespace na62 {
 
@@ -54,7 +56,7 @@ public:
 	static std::map<uint16_t, uint16_t> CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 	static std::pair<uint16_t, uint16_t>* LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
-	static void Initialize();
+	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates);
 
 	static inline uint16_t getExpectedPacksByEventNum(
 			const uint8_t sourceNum) throw () {

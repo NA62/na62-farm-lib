@@ -2,11 +2,12 @@
  * Options.h
  *
  *  Created on: Feb 20, 2014
- *      Author: Jonas Kunze
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
-#ifndef OPTIONS_H_
-#define OPTIONS_H_
+#pragma once
+#ifndef Options_H_
+#define Options_H_
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -19,65 +20,50 @@ namespace po = boost::program_options;
 /*
  * Compile time options
  */
-#define MTU 1500
+#define MTU 9000
 
 /*
- * Dynamic Options
+ * Dynamic options
  */
 #define OPTION_HELP (char*)"help"
-#define OPTION_VERBOSITY (char*)"verbosity"
 #define OPTION_CONFIG_FILE (char*)"configFile"
 #define OPTION_LOGTOSTDERR (char*)"logtostderr"
-
-/*
- * Listening Ports
- */
-#define OPTION_L0_RECEIVER_PORT (char*)"L0Port"
-#define OPTION_CREAM_RECEIVER_PORT (char*)"CREAMPort"
-#define OPTION_EOB_BROADCAST_IP (char*)"EOBBroadcastIP"
-#define OPTION_EOB_BROADCAST_PORT (char*)"EOBBroadcastPort"
-
-/*
- * Event Building
- */
-#define OPTION_NUMBER_OF_EBS (char*)"numberOfEB"
-#define OPTION_DATA_SOURCE_IDS (char*)"L0DataSourceIDs"
-
-#define OPTION_TS_SOURCEID (char*)"timestampSourceID"
-
-#define OPTION_CREAM_CRATES (char*)"CREAMCrates"
-
-#define OPTION_FIRST_BURST_ID (char*)"firstBurstID"
-
-#define OPTION_CREAM_MULTICAST_GROUP (char*)"creamMulticastIP"
-#define OPTION_CREAM_MULTICAST_PORT (char*)"creamMulticastPort"
-#define OPTION_MAX_TRIGGERS_PER_L1MRP (char*)"maxTriggerPerL1MRP"
-
-#define OPTION_MAX_NUMBER_OF_EVENTS_PER_BURST (char*)"maxEventsPerBurst"
-
-/*
- * Triggering
- */
-#define OPTION_L1_DOWNSCALE_FACTOR  (char*)"L1DownscaleFactor"
-#define OPTION_L2_DOWNSCALE_FACTOR  (char*)"L2DownscaleFactor"
-
-#define OPTION_MIN_USEC_BETWEEN_L1_REQUESTS (char*)"minUsecsBetweenL1Requests"
-
-/*
- * Merger
- */
-#define OPTION_MERGER_HOST_NAME (char*)"mergerHostName"
-#define OPTION_MERGER_PORT (char*)"mergerPort"
+#define OPTION_VERBOSITY (char*)"verbosity"
 
 namespace na62 {
 class Options {
 public:
 	static void PrintVM(boost::program_options::variables_map vm);
-	static void Initialize(int argc, char* argv[]);
+
+	/**
+	 * Loads all options from the config file stored in desc via OPTION_CONFIG_FILE. Then all options defined in argv will be taken to overwrite these otpions.
+	 *
+	 * You should call something like following once at the beginning of your code:
+	 *
+	 desc.add_options()
+	 (OPTION_CONFIG_FILE,
+	 po::value<std::string>()->default_value("/etc/na62-farm.cfg"),
+	 "Config file for the options shown here")
+	 // some more options here
+	 ;
+	 Options::Initialize(argc, argv, desc);
+	 */
+	static void Initialize(int argc, char* argv[],
+			po::options_description desc);
 
 	static bool Isset(char* parameter);
 	static std::string GetString(char* parameter);
+
+	/**
+	 * Takes the String GetString(parameter) and splits it at every ','
+	 */
+	static std::vector<std::string> GetStringList(char* parameter);
 	static int GetInt(char* parameter);
+	static bool GetBool(char* parameter);
+
+	/**
+	 * Returns a list of integers split by ',' within the value of the given parameter
+	 */
 	static std::vector<int> GetIntList(char* parameter);
 	static std::vector<double> GetDoubleList(char* parameter);
 

@@ -2,13 +2,14 @@
  * IPCHandler.h
  *
  *  Created on: Nov 26, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
 #ifndef IPCHANDLER_H_
 #define IPCHANDLER_H_
 
+#include <boost/interprocess/ipc/message_queue.hpp>
 #include <boost/interprocess/interprocess_fwd.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <string>

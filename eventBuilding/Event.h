@@ -2,7 +2,7 @@
  * Event.h
  *
  *  Created on: Jan 18, 2012
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
@@ -16,6 +16,8 @@
 
 #include "../LKr/LKREvent.h"
 #include "SourceIDManager.h"
+
+//#define MEASURE_TIME
 
 namespace na62 {
 namespace cream {
@@ -133,8 +135,10 @@ public:
 	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
 	 */
 	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
+#ifdef MEASURE_TIME
 		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-				- l0BuildingTime_;
+		- l0BuildingTime_;
+#endif
 
 		triggerTypeWord_ = L0L1TriggerTypeWord;
 		L1Processed_ = true;
@@ -146,8 +150,10 @@ public:
 	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
 	 */
 	void setL2Processed(const uint8_t L2TriggerTypeWord) {
+#ifdef MEASURE_TIME
 		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-				- l0BuildingTime_;
+		- l0BuildingTime_;
+#endif
 
 		L2Accepted_ = L2TriggerTypeWord > 0;
 		// Move the L2 trigger type word to the third byte of triggerTypeWord_
@@ -260,6 +266,7 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+#ifdef MEASURE_TIME
 	/*
 	 * Returns the number of wall microseconds since the first event part has been added to this event
 	 */
@@ -294,6 +301,7 @@ public:
 	u_int32_t getL2ProcessingTime() const {
 		return l2ProcessingTime_;
 	}
+#endif
 
 private:
 	void setBurstID(const uint32_t L0ID) {
@@ -334,7 +342,9 @@ private:
 
 	bool lastEventOfBurst_;
 
+#ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
+
 	/*
 	 * Times in microseconds
 	 */
@@ -342,6 +352,7 @@ private:
 	u_int32_t l1ProcessingTime_;
 	u_int32_t l1BuildingTime_;
 	u_int32_t l2ProcessingTime_;
+#endif
 };
 
 } /* namespace na62 */

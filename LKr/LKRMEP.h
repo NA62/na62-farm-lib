@@ -2,7 +2,7 @@
  * Header.h
  *
  *  Created on: Sep 21, 2011
- *      Author: Jonas Kunze (kunzej@cern.ch)
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
@@ -47,10 +47,6 @@ public:
 		return events[n];
 	}
 
-	inline uint16_t getLength() const {
-		return length_;
-	}
-
 	inline uint16_t getNumberOfEvents() const {
 		return eventNum;
 	}
@@ -69,12 +65,20 @@ public:
 		return --eventNum == 0;
 	}
 
+	const char* getEtherFrame() const{
+		return etherFrame_;
+	}
+
+	const uint16_t getEtherFrameSize() const{
+		return etherFrameSize_;
+	}
+
 private:
 	int eventNum;
 	boost::mutex deletionMutex;
-	// The whole UDP packet
-	const char* orignialData;
-	uint16_t length_;
+	// The whole ethernet frame
+	const char* etherFrame_;
+	const uint16_t etherFrameSize_;
 	// Pointers to the payload of the UDP packet
 	std::vector<LKREvent*> events;
 };
