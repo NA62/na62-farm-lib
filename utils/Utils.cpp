@@ -12,9 +12,6 @@
 
 namespace na62 {
 
-Utils::Utils() {
-}
-
 std::string Utils::FormatSize(long int size) {
 	int kB = 1000; // Kilobyte
 	int MB = 1000 * kB; // Megabyte

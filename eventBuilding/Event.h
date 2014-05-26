@@ -12,7 +12,9 @@
 #include <algorithm>
 #include <cstdint>
 #include <map>
+#ifdef MEASURE_TIME
 #include <boost/timer/timer.hpp>
+#endif
 
 #include "../LKr/LKREvent.h"
 #include "SourceIDManager.h"

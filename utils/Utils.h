@@ -16,7 +16,6 @@ namespace na62 {
 
 class Utils {
 public:
-	Utils();
 	static std::string FormatSize(long int size);
 	static double Average(std::vector<double> data);
 	static double StandardDevation(std::vector<double> data);
