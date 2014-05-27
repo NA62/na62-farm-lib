@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "EthernetUtils.h"
-#include "../utils/Utils.h"
 #include "../utils/ThreadsafeQueue.h"
 #include "../utils/Stopwatch.h"
 #include "../utils/AExecutable.h"

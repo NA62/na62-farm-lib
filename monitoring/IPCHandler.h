@@ -9,6 +9,7 @@
 #ifndef IPCHANDLER_H_
 #define IPCHANDLER_H_
 
+#include <boost/interprocess/ipc/message_queue.hpp>
 #include <boost/interprocess/interprocess_fwd.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <string>

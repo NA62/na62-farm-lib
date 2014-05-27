@@ -11,12 +11,13 @@
 #include <string>
 
 #include "../exceptions/BrokenPacketReceivedError.h"
+#include "../structs/Network.h"
 
 namespace na62 {
 namespace cream {
 
 LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength, const char* etherFrame) throw (BrokenPacketReceivedError, UnknownCREAMSourceIDFound) :
-		etherFrame_(etherFrame), dataLength_(dataLength) {
+		etherFrame_(etherFrame), etherFrameSize_(dataLength+sizeof(UDP_HDR)) {
 
 	/*
 	 * There is now special LKRMEP header! A MEP just contains of several LKREvents and we have to find out how many of those are written into this packet.
