@@ -21,42 +21,34 @@ boost::mutex PFringHandler::sendMutex_;
 PFringHandler::PFringHandler(std::string deviceName) {
 	deviceName_ = deviceName;
 	u_int32_t flags = 0;
-	//flags |= PF_RING_REENTRANT;
 	flags |= PF_RING_LONG_HEADER;
 	flags |= PF_RING_PROMISC;
 	flags |= PF_RING_DNA_SYMMETRIC_RSS; /* Note that symmetric RSS is ignored by non-DNA drivers */
 
 	const int snaplen = 128;
 
-	ntop::PFring* tmpRing = new ntop::PFring((char*) deviceName.data(), snaplen,
-			flags);
-	numberOfQueues_ = tmpRing->get_num_rx_channels();
-	queueRings_ = new ntop::PFring *[numberOfQueues_];
+	pfring** rings = new pfring*[MAX_NUM_RX_CHANNELS];
+	numberOfQueues_ = pfring_open_multichannel((char*) deviceName.data(),
+			snaplen, flags, rings);
 
-	if (numberOfQueues_ > 1) {
-//		flags |= PF_RING_REENTRANT;
-		delete tmpRing;
-		tmpRing = new ntop::PFring((char*) deviceName.data(), snaplen, flags);
-	}
+	queueRings_ = new ntop::PFring *[numberOfQueues_];
 
 	for (uint8_t i = 0; i < numberOfQueues_; i++) {
 		std::string queDeviceName = deviceName;
-		if (i > 0) {
-			queDeviceName = deviceName + "@"
-					+ boost::lexical_cast<std::string>((int) i);
-			tmpRing = new ntop::PFring((char*) queDeviceName.data(), snaplen,
-					flags);
-		}
 
+		queDeviceName = deviceName + "@"
+				+ boost::lexical_cast<std::string>((int) i);
 		/*
-		 * If numberOfSendqueues is >1 tmpRing is the pfRing object for queue 0 -> put into queueRings_[0]
+		 * http://www.ntop.org/pfring_api/pfring_8h.html#a397061c37a91876b6b68584e2cb99da5
 		 */
-		queueRings_[i] = tmpRing;
+		pfring_set_poll_watermark(rings[i], 128);
 
-		if (tmpRing->enable_ring() >= 0) {
+		queueRings_[i] = new ntop::PFring(rings[i], (char*) queDeviceName.data(), snaplen,
+				flags);
+
+		if (queueRings_[i]->enable_ring() >= 0) {
 			LOG(INFO)<< "Successfully opened device "
-			<< tmpRing->get_device_name() << " with "
-			<< (int) tmpRing->get_num_rx_channels() << " rx queues";
+			<< queueRings_[i]->get_device_name();
 		} else {
 			LOG(ERROR) << "Unable to open device " << queDeviceName
 			<< "! Is pf_ring not loaded or do you use quick mode and have already a socket bound to this device?!";
@@ -90,11 +82,6 @@ void PFringHandler::PrintStats() {
 		queueRings_[i]->get_stats(&stats);
 		LOG(INFO)<<i << " \t" << stats.recv << "\t" << stats.drop;
 	}
-
-//
-//	LOG(INFO) <<"Absolute Stats: [" << pfringStat.recv<< " pkts rcvd][" << pfringStat.drop << " pkts dropped]";
-//	LOG(INFO) <<
-//			"Total Pkts=" << (unsigned int) (pfringStat.recv+pfringStat.drop) << "/Dropped=" << (pfringStat.recv== 0 ? 0 : (float) (pfringStat.drop * 100) / (float) (pfringStat.recv + pfringStat.drop));
 }
 }
 /* namespace na62 */
