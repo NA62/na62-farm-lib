@@ -38,7 +38,7 @@ private:
 	char *device_name;
 
 public:
-	PFring(char* _device_name, u_int32_t _snaplen, u_int32_t flags);
+	PFring(pfring* _ring, char* _device_name, u_int32_t _snaplen, u_int32_t flags);
 	~PFring();
 
 	/* Cluster */
