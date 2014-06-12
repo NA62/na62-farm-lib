@@ -30,15 +30,9 @@ namespace ntop {
 
 /* *********************************************** */
 
-PFring::PFring(char* _device_name, u_int32_t _snaplen, u_int32_t flags) {
-	snaplen = _snaplen, device_name = NULL;
-
-	if (_device_name == NULL)
-		ring = NULL;
-	else {
-		if ((ring = pfring_open(_device_name, _snaplen, flags)) != NULL)
-			device_name = strdup(_device_name);
-	}
+PFring::PFring(pfring* _ring, char* _device_name, u_int32_t _snaplen,
+		u_int32_t flags): ring(_ring), snaplen(_snaplen) {
+	device_name = strdup(_device_name);
 }
 
 /* *********************************************** */
@@ -63,19 +57,23 @@ int PFring::add_bpf_filter(char *the_filter) {
 
 /* *********************************************** */
 
-int PFring::get_next_packet(struct pfring_pkthdr *hdr, char** pkt, u_int pkt_len, u_int8_t wait_for_incoming_packet) {
+int PFring::get_next_packet(struct pfring_pkthdr *hdr, char** pkt,
+		u_int pkt_len, u_int8_t wait_for_incoming_packet) {
 	if ((!ring) || (!hdr))
 		return (-1);
-	return (pfring_recv(ring, (u_char**) pkt, pkt_len, hdr, wait_for_incoming_packet));
+	return (pfring_recv(ring, (u_char**) pkt, pkt_len, hdr,
+			wait_for_incoming_packet));
 }
 
 /* *********************************************** */
 int PFring::start_loop(pfringProcesssPacket looper) {
-	return pfring_loop(ring, looper, (u_char*) NULL, 1 /* wait_for_incoming_packet */);
+	return pfring_loop(ring, looper, (u_char*) NULL,
+			1 /* wait_for_incoming_packet */);
 }
 
 /* *********************************************** */
-int PFring::send_packet(char *pkt, u_int pkt_len, bool flush, bool active_poll) {
+int PFring::send_packet(char *pkt, u_int pkt_len, bool flush,
+		bool active_poll) {
 	if (ring == NULL)
 		return (-1);
 
