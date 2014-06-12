@@ -325,7 +325,7 @@ void L1DistributionHandler::Async_SendMRP(
 	dataHDRToBeSent->udp.ip.check = EthernetUtils::GenerateChecksum(
 			(const char*) (&dataHDRToBeSent->udp.ip), sizeof(struct iphdr));
 	dataHDRToBeSent->udp.udp.check = EthernetUtils::GenerateUDPChecksum(
-			&dataHDRToBeSent->udp, dataHDRToBeSent->MRP_HDR.MRPLength);
+			&dataHDRToBeSent->udp, dataHDRToBeSent->MRP_HDR.getSize());
 
 	memcpy(buff, dataHDRToBeSent, offset);
 
