@@ -137,8 +137,6 @@ public:
 	static inline uint16_t GenerateChecksumUnwrapped(const char* data, int len,
 			uint64_t sum = 0) {
 		int steps = len >> 2;
-		std::cout << len;
-		std::cout << "\t" << steps  << "!!!!!!!!!!!!!!!!" << std::endl;
 		while (steps > 0) {
 			sum += ntohl(*((uint32_t *) data));
 			data += sizeof(uint32_t);
