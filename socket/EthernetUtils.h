@@ -21,6 +21,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "../structs/Network.h"
 

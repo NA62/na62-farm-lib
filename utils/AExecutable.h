@@ -43,21 +43,21 @@ public:
 	}
 
 	void startThread(unsigned short threadNum, const std::string threadName,
-			unsigned short CPUMask = -1, unsigned threadPrio = 15) {
+			unsigned short CPUMask = -1, unsigned short threadPrio = 15) {
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
 				boost::bind(&AExecutable::runThread, this));
 
-//		SetThreadAffinity(thread_, 15, CPUMask, Options::Instance()->SCHEDULER);
+		SetThreadAffinity(thread_, 15, CPUMask, 1);
 		threadName_ = threadName;
 //		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
-	static void SetThreadAffinity(boost::thread& daThread,
+	static void SetThreadAffinity(boost::thread* daThread,
 			unsigned short threadPriority, short unsigned CPUToBind,
 			int scheduler);
 
-	static void SetThreadAffinity(boost::thread& daThread,
+	static void SetThreadAffinity(boost::thread* daThread,
 			unsigned short threadPriority,
 			std::vector<unsigned short> CPUsToBind, int scheduler);
 

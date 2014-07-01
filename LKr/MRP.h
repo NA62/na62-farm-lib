@@ -58,6 +58,10 @@ struct MRP_RAW_HDR {
 				+ triggerNum * sizeof(struct TRIGGER_RAW_HDR);
 		MRPLength = htons(length);
 	}
+
+	uint16_t getSize(){
+		return ntohs(MRPLength);
+	}
 }__attribute__ ((__packed__));
 
 struct MRP_FRAME_HDR {

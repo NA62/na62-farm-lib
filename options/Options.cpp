@@ -232,7 +232,7 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 				int min = Utils::ToUInt(minMax[0]);
 				int max = Utils::ToUInt(minMax[1]);
 
-				for (int i = min; i <= max + 1; i++) {
+				for (int i = min; i <= max; i++) {
 					values.push_back(
 							std::make_pair(Utils::ToUInt(pair.first), i));
 				}
