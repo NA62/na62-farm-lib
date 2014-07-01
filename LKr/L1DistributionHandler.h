@@ -33,8 +33,9 @@ public:
 
 	static void Async_RequestLKRDataMulticast(const uint16_t threadNum,
 			Event *event, bool zSuppressed);
-	static void Async_RequestLKRDataUnicast(const Event *event,
-			bool zSuppressed, const std::vector<uint16_t> crateCREAMIDs);
+	static void Async_RequestLKRDataUnicast(const uint16_t threadNum,
+			const Event *event, bool zSuppressed,
+			const std::vector<uint16_t> crateCREAMIDs);
 
 	static inline uint64_t GetL1TriggersSent() {
 		return L1DistributionHandler::L1TriggersSent;
