@@ -73,6 +73,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		LOCAL_ID_TO_CRATE_AND_CREAM_IDS =
 				new std::pair<uint16_t, uint16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
 
+		std::cout << "List of activated CREAMs: \ncrateID\tSlot\n";
 		int creamNum = -1;
 		for (auto pair : creamCrates) {
 			uint8_t crateID = pair.first;
@@ -81,6 +82,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 					++creamNum;
 			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[creamNum] = std::make_pair(crateID,
 					CREAMID);
+			std::cout << (int)crateID << "\t" << (int)CREAMID << std::endl;
 		}
 	} else {
 		LOG(INFO)<<"There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
