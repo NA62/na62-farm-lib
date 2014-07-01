@@ -49,7 +49,7 @@ uint L1DistributionHandler::MIN_USEC_BETWEEN_L1_REQUESTS = 0;
 bool L1DistributionHandler::paused = false;
 
 std::queue<DataContainer> L1DistributionHandler::MRPQueues;
-boost::mutex L1DistributionHandler::sendMutex_;
+std::mutex L1DistributionHandler::sendMutex_;
 
 boost::timer::cpu_timer L1DistributionHandler::MRPSendTimer_;
 
@@ -240,8 +240,7 @@ void L1DistributionHandler::thread() {
 }
 
 bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
-	boost::mutex::scoped_lock lock(sendMutex_);
-	if (lock) {
+	if (sendMutex_.try_lock()) {
 		if (!MRPQueues.empty()) {
 			if (MRPSendTimer_.elapsed().wall / 1000
 					> MIN_USEC_BETWEEN_L1_REQUESTS) {
@@ -250,7 +249,7 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 				MRPQueues.pop();
 
 //				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+//				Debug printout
 //				struct cream::MRP_FRAME_HDR* hdr =
 //						(struct cream::MRP_FRAME_HDR*) container.data;
 //
@@ -277,9 +276,11 @@ bool L1DistributionHandler::DoSendMRP(const uint16_t threadNum) {
 
 				MRPSendTimer_.start();
 
+				sendMutex_.unlock();
 				return true;
 			}
 		}
+		sendMutex_.unlock();
 	}
 	return false;
 }
@@ -329,7 +330,7 @@ void L1DistributionHandler::Async_SendMRP(
 
 	memcpy(buff, dataHDRToBeSent, offset);
 
-	boost::lock_guard<boost::mutex> lock(sendMutex_); // Will lock mutex until return
+	std::lock_guard<std::mutex> lock(sendMutex_);
 	MRPQueues.push( { buff, offset });
 
 	L1TriggersSent += numberOfTriggers;

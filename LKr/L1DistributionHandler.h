@@ -16,6 +16,7 @@
 #include <queue>
 #include <boost/thread.hpp>
 #include <boost/timer/timer.hpp>
+#include <mutex>
 
 #include "../socket/EthernetUtils.h"
 #include "../utils/ThreadsafeQueue.h"
@@ -96,7 +97,7 @@ private:
 
 	static std::queue<DataContainer> MRPQueues;
 
-	static boost::mutex sendMutex_;
+	static std::mutex sendMutex_;
 
 	static boost::timer::cpu_timer MRPSendTimer_;
 
