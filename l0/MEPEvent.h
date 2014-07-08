@@ -18,9 +18,11 @@ class MEP;
 
 /**
  * Defines the structure of a L0 event header within a MEP as defined in table 2 in NA62-11-02.
+ * The data is over-allocated so you can access the actual payload by something like
+ * char* data = mepeventHdr_ptr+sizeof(MEPEVENT_HDR);
  */
-struct MEPEVENT_RAW_HDR {
-	uint16_t eventLength_;
+struct MEPEVENT_HDR {
+	uint16_t eventLength_; // Number of bytes of the following event data,	including this header.
 	uint8_t eventNumberLSB_;
 	uint8_t reserved_ :7;
 	uint8_t lastEventOfBurst_ :1; // don't take bool as it will allocate 8 bits!
@@ -29,10 +31,13 @@ struct MEPEVENT_RAW_HDR {
 
 class MEPEvent {
 public:
-	MEPEvent(MEP* mep, const char * data, uint32_t& expectedEventNum);
+	MEPEvent(MEP* mep, const MEPEVENT_HDR * data, uint32_t& expectedEventNum);
 	virtual ~MEPEvent();
 
-	inline const uint16_t getEventLength() const {
+	/**
+	 * Number of Bytes of the data including the header (sizeof MEPEVENT_HDR)
+	 */
+	inline const uint16_t getDataLength() const {
 		return rawData->eventLength_;
 	}
 
@@ -58,30 +63,21 @@ public:
 	const uint8_t getSourceIDNum() const;
 
 	/**
-	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (excluding header!).
-	 * From there on you should read only getEventLength()-sizeof(struct MEPEVENT_RAW_HDR) bytes!
-	 */
-	inline const char* getData() const {
-		return data_ + sizeof(struct MEPEVENT_RAW_HDR);
-	}
-
-	/**
-	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including header!).
+	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including the header!).
 	 * From there on you should read only getEventLength() bytes!
 	 */
-	inline const char* getDataWithHeader() const {
-		return data_;
+	inline const MEPEVENT_HDR* getData() const {
+		return rawData;
 	}
 
-	inline MEP* getMep() {
+	inline const MEP* getMep() {
 		return mep_;
 	}
 private:
 	MEP* mep_;
-	const struct MEPEVENT_RAW_HDR * rawData;
+	const struct MEPEVENT_HDR * rawData;
 
 	const uint32_t eventNumber_;
-	const char* data_;
 };
 
 } /* namespace l0 */

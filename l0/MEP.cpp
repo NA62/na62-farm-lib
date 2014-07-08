@@ -85,21 +85,21 @@ void MEP::initializeMEPEvents(const char * data, const uint16_t& dataLength)
 		/*
 		 *  Throws exception if the event number LSB has an unexpected value
 		 */
-		newMepEvent = new (std::nothrow) MEPEvent(this, data + offset,
+		newMepEvent = new (std::nothrow) MEPEvent(this, (MEPEVENT_HDR*)data + offset,
 				expectedEventNum);
 
 		expectedEventNum++;
 		events[i] = newMepEvent;
-		if (newMepEvent->getEventLength() + offset > dataLength) {
+		if (newMepEvent->getDataLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEPEvent! Received only "
 							+ boost::lexical_cast<std::string>(dataLength)
 							+ " of "
 							+ boost::lexical_cast<std::string>(
-									offset + newMepEvent->getEventLength())
+									offset + newMepEvent->getDataLength())
 							+ " bytes");
 		}
-		offset += newMepEvent->getEventLength();
+		offset += newMepEvent->getDataLength();
 	}
 
 	// Check if too many bytes have been transmitted

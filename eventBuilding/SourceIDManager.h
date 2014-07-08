@@ -56,6 +56,11 @@ public:
 	static std::map<uint16_t, uint16_t> CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 	static std::pair<uint16_t, uint16_t>* LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
+	/**
+	 * @param timeStampSourceID The sourceID of the subdetector that should define the timestamp of every event
+	 * @param sourceIDs A list of pairs of available sourceIDs and the number of frames coming from each sourceID
+	 * 	@param creamCrates A list of pairs with a crateID and a CREAM ID
+	 */
 	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates);
 
 	static inline uint16_t getExpectedPacksByEventNum(
