@@ -11,8 +11,6 @@
 
 #include <cstdint>
 
-#include "Network.h"
-
 namespace na62 {
 /*
  * UDP/IP complete header
@@ -51,13 +49,6 @@ struct L0_BLOCK_HDR {
 
 struct EVENT_TRAILER {
 	uint32_t eventNum :24;
-	uint8_t reserved;
-}__attribute__ ((__packed__));
-
-struct EOB_FULL_FRAME {
-	struct UDP_HDR udp;
-	uint32_t finishedBurstID;
-	uint32_t lastEventNum :24;
 	uint8_t reserved;
 }__attribute__ ((__packed__));
 

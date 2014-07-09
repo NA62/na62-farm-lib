@@ -13,13 +13,9 @@
 #include <iostream>
 #include <string>
 #include <utility>
-#include <fstream>
-#include <boost/thread/pthread/mutex.hpp>
 
 #include "../l0/MEPEvent.h"
-#include "../l0/MEP.h"
 #include "../l0/Subevent.h"
-#include "../LKr/LKRMEP.h"
 
 namespace na62 {
 
@@ -46,7 +42,7 @@ Event::Event(uint32_t eventNumber) :
 		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
 		 */
 		L0Subevents[i] = new l0::Subevent(
-				SourceIDManager::getExpectedPacksByEventNum(i));
+				SourceIDManager::getExpectedPacksBySourceNum(i));
 	}
 
 	zSuppressedLKrEventsByCrateCREAMID =
@@ -104,11 +100,25 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 
 		if (burstID != getBurstID()) {
 			/*
+			 * Find the missing sourceIDs
+			 */
+			std::stringstream missingIDs;
+			for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0;
+					i--) {
+				if (SourceIDManager::getExpectedPacksBySourceNum(i)
+						!= getL0SubeventBySourceIDNum(i)->getNumberOfParts()) {
+					missingIDs << (int) SourceIDManager::SourceNumToID(i)
+							<< ", ";
+				}
+			}
+
+			/*
 			 * Event not build during last burst -> destroy it!
 			 */
 			LOG(ERROR)<<
-			"Overwriting unfinished event from Burst " + boost::lexical_cast<std::string>((int ) getBurstID()) + "! Eventnumber: "
-			+ boost::lexical_cast<std::string>((int ) getEventNumber());
+			"Overwriting unfinished event from Burst " << (int ) getBurstID() << "! Eventnumber "
+			<< (int) getEventNumber() << " misses data from sourceIDs "<<missingIDs.str();
+
 			destroy();
 			return addL0Event(l0Event, burstID);
 		}
@@ -124,7 +134,7 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	l0::Subevent* subevent = L0Subevents[l0Event->getSourceIDNum()];
 
 	if (subevent->getNumberOfParts()
-			>= SourceIDManager::getExpectedPacksByEventID(
+			>= SourceIDManager::getExpectedPacksBySourceID(
 					l0Event->getSourceID())) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
@@ -176,11 +186,11 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		 * We were waiting for non zero suppressed data
 		 */
 		std::map<uint16_t, cream::LKREvent*>::iterator lb =
-				nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
+		nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
 
 		if (lb != nonSuppressedLKrEventsByCrateCREAMID.end()
 				&& !(nonSuppressedLKrEventsByCrateCREAMID.key_comp()(
-						crateCREAMID, lb->first))) {
+								crateCREAMID, lb->first))) {
 			LOG(ERROR)<<
 			"Non zero suppressed LKr event with EventNumber " << (int ) lkrEvent->getEventNumber()
 			<< ", crateID " << (int ) lkrEvent->getCrateID() << " and CREAMID " << (int ) lkrEvent->getCREAMID() << " received twice! Will delete the whole event!";
@@ -195,7 +205,7 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 			nonSuppressedLKrEventsByCrateCREAMID.insert(lb, std::map<uint16_t, cream::LKREvent*>::value_type(crateCREAMID, lkrEvent));
 		}
 		return nonSuppressedLKrEventsByCrateCREAMID.size()
-				== nonZSuppressedDataRequestedNum;
+		== nonZSuppressedDataRequestedNum;
 	} else {
 		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(
 				lkrEvent->getCrateID(), lkrEvent->getCREAMID());
@@ -203,7 +213,7 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		 * This must be a zero suppressed event
 		 */
 		cream::LKREvent* oldEvent =
-				zSuppressedLKrEventsByCrateCREAMID[localCreamID];
+		zSuppressedLKrEventsByCrateCREAMID[localCreamID];
 
 		if (oldEvent != NULL) {
 			LOG(ERROR)<<
@@ -226,7 +236,7 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		return false;
 #else
 		return numberOfCREAMEvents_
-				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}
 }

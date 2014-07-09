@@ -19,8 +19,6 @@
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
 #include "../options/Options.h"
-#include "../socket/EthernetUtils.h"
-#include "../structs/Network.h"
 #include "MEPEvent.h"
 
 namespace na62 {
@@ -112,27 +110,27 @@ void MEP::initializeMEPEvents(const char * data, const uint16_t& dataLength)
 	}
 }
 
-bool MEP::verifyChecksums() {
-	if (checkSumsVarified_) {
-		return true;
-	}
-	checkSumsVarified_ = true;
-
-	struct UDP_HDR* hdr = (struct UDP_HDR*) getUDPPack();
-	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
-		LOG(ERROR)<< "Packet with broken IP-checksum received";
-		return false;
-	}
-
-	if (!EthernetUtils::CheckUDP(hdr,
-			(const char *) (&hdr->udp) + sizeof(struct udphdr),
-			ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
-		LOG(ERROR)<< "Packet with broken UDP-checksum received";
-		return false;
-	}
-	checkSumsVarified_ = true;
-	return true;
-}
+//bool MEP::verifyChecksums() {
+//	if (checkSumsVarified_) {
+//		return true;
+//	}
+//	checkSumsVarified_ = true;
+//
+//	struct UDP_HDR* hdr = (struct UDP_HDR*) getUDPPack();
+//	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
+//		LOG(ERROR)<< "Packet with broken IP-checksum received";
+//		return false;
+//	}
+//
+//	if (!EthernetUtils::CheckUDP(hdr,
+//			(const char *) (&hdr->udp) + sizeof(struct udphdr),
+//			ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
+//		LOG(ERROR)<< "Packet with broken UDP-checksum received";
+//		return false;
+//	}
+//	checkSumsVarified_ = true;
+//	return true;
+//}
 
 } /* namespace l2 */
 } /* namespace na62 */

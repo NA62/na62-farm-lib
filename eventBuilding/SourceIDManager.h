@@ -63,12 +63,12 @@ public:
 	 */
 	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates);
 
-	static inline uint16_t getExpectedPacksByEventNum(
+	static inline uint16_t getExpectedPacksBySourceNum(
 			const uint8_t sourceNum) throw () {
 		return L0_DATA_SOURCE_NUM_TO_PACKNUM[sourceNum];
 	}
 
-	static inline uint16_t getExpectedPacksByEventID(
+	static inline uint16_t getExpectedPacksBySourceID(
 			const uint8_t sourceID) throw () {
 		return L0_DATA_SOURCE_ID_TO_PACKNUM[sourceID];
 	}

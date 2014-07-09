@@ -69,16 +69,11 @@ public:
 		return etherFrame_;
 	}
 
-	const uint16_t getEtherFrameSize() const{
-		return etherFrameSize_;
-	}
-
 private:
 	int eventNum;
 	boost::mutex deletionMutex;
 	// The whole ethernet frame
 	const char* etherFrame_;
-	const uint16_t etherFrameSize_;
 	// Pointers to the payload of the UDP packet
 	std::vector<LKREvent*> events;
 };

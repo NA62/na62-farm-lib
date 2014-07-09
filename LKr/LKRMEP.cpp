@@ -11,13 +11,14 @@
 #include <string>
 
 #include "../exceptions/BrokenPacketReceivedError.h"
-#include "../structs/Network.h"
 
 namespace na62 {
 namespace cream {
 
-LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength, const char* etherFrame) throw (BrokenPacketReceivedError, UnknownCREAMSourceIDFound) :
-		etherFrame_(etherFrame), etherFrameSize_(dataLength+sizeof(UDP_HDR)) {
+LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength,
+		const char* etherFrame) throw (BrokenPacketReceivedError,
+				UnknownCREAMSourceIDFound) :
+		etherFrame_(etherFrame) {
 
 	/*
 	 * There is now special LKRMEP header! A MEP just contains of several LKREvents and we have to find out how many of those are written into this packet.
@@ -36,7 +37,8 @@ LKRMEP::~LKRMEP() {
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
-void LKRMEP::initializeLKREvents(const char * data, const uint16_t& dataLength) throw (UnknownCREAMSourceIDFound, BrokenPacketReceivedError) {
+void LKRMEP::initializeLKREvents(const char * data, const uint16_t& dataLength)
+		throw (UnknownCREAMSourceIDFound, BrokenPacketReceivedError) {
 	uint16_t offset = 0;
 
 	LKREvent* newEvent;
@@ -47,8 +49,12 @@ void LKRMEP::initializeLKREvents(const char * data, const uint16_t& dataLength) 
 
 		if (newEvent->getEventLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
-					"Incomplete LKREvent! Received only " + boost::lexical_cast<std::string>(dataLength) + " instead of "
-							+ boost::lexical_cast<std::string>(offset + newEvent->getEventLength()) + " bytes");
+					"Incomplete LKREvent! Received only "
+							+ boost::lexical_cast<std::string>(dataLength)
+							+ " instead of "
+							+ boost::lexical_cast<std::string>(
+									offset + newEvent->getEventLength())
+							+ " bytes");
 		}
 		offset += newEvent->getEventLength();
 	}

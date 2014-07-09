@@ -16,7 +16,6 @@
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
-#include "../structs/Network.h"
 
 namespace na62 {
 class BrokenPacketReceivedError;
@@ -123,11 +122,7 @@ public:
 		return etherFrame_;
 	}
 
-	const uint16_t getRawLength() const {
-		return getLength() + sizeof(UDP_HDR);
-	}
-
-	bool verifyChecksums();
+//	bool verifyChecksums();
 
 private:
 	boost::mutex deletionMutex;
