@@ -23,7 +23,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1021636035." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1558744108" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.146107942" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/na62-farm-lib}/Debug" enableAutoBuild="true" id="cdt.managedbuild.target.gnu.builder.lib.debug.1466380688" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
+							<builder buildPath="${workspace_loc:/na62-farm-lib}/Debug" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.lib.debug.1466380688" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.933521143" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.952519847" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 								<option id="gnu.cpp.compiler.lib.debug.option.optimization.level.683119255" name="Optimization Level" superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>

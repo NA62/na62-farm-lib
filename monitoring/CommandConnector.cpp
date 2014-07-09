@@ -15,7 +15,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/system/error_code.hpp>
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 #include <algorithm>
 #include <cctype>
 #include <cstdbool>
@@ -30,20 +32,23 @@ namespace na62 {
 using namespace boost::interprocess;
 
 CommandConnector::CommandConnector() {
-	LOG(INFO)<< "Starting CommandConnector";
+#ifdef USE_GLOG
+	LOG(INFO) << "Starting CommandConnector";
+#endif
 	try {
 		// Erase previous message queue
 		message_queue::remove("command");
 		// Open a message queue.
-		commandQueue_.reset(new boost::interprocess::message_queue(create_only//only create
-						, "command"//name
-						, 100// max message number
-						, 1024 * 64//max message size
-				));
+		commandQueue_.reset(new boost::interprocess::message_queue(create_only //only create
+				, "command" //name
+				, 100 // max message number
+				, 1024 * 64 //max message size
+						));
 	} catch (interprocess_exception &ex) {
 		message_queue::remove("command");
-		LOG(ERROR) << "Unable to create command message queue: " << ex.what();
-		boost::system::error_code noError;
+#ifdef USE_GLOG
+		LOG(INFO) << "Unable to create command message queue: " << ex.what();
+#endif
 	}
 }
 
@@ -66,19 +71,25 @@ void CommandConnector::thread() {
 				priority);
 		message.resize(recvd_size);
 
-		LOG(INFO)<<"Received command: " << message;
+#ifdef USE_GLOG
+		LOG(INFO) << "Received command: " << message;
+#endif
 		std::transform(message.begin(), message.end(), message.begin(),
 				::tolower);
 
 		std::vector<std::string> strings;
 		boost::split(strings, message, boost::is_any_of(":"));
 		if (strings.size() != 2) {
-			LOG(ERROR)<<"Unknown command: " << message;
+#ifdef USE_GLOG
+			LOG(INFO) << "Unknown command: " << message;
+#endif
 		} else {
 			std::string command = strings[0];
 			if (command == "updateburstid") {
 				uint32_t burst = boost::lexical_cast<int>(strings[1]);
+#ifdef USE_GLOG
 				LOG(INFO) << "Updating burst to " << burst;
+#endif
 //				EventBuilder::SetNextBurstID(burst);
 			}
 		}

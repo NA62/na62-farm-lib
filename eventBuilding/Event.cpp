@@ -8,7 +8,9 @@
 #include "Event.h"
 
 #include <boost/lexical_cast.hpp>
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 #include <sys/types.h>
 #include <iostream>
 #include <string>
@@ -81,8 +83,13 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	}
 #endif
 //	if (eventNumber_ != l0Event->getEventNumber()) {
-//		LOG(ERROR)<<
-//		"Trying to add MEPEvent with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
+//		#ifdef USE_GLOG
+//			#ifdef USE_GLOG
+//		LOG(INFO)
+//#else
+//			std::cerr
+//#endif
+//		<<"Trying to add MEPEvent with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
 //		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the MEPEvent!";
 //		delete l0Event;
 //		return false;
@@ -94,7 +101,13 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 	} else {
 		if (l0Event->isLastEventOfBurst() != lastEventOfBurst_) {
 			destroy();
-			LOG(ERROR)<<"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+
+					<< "MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
 			return addL0Event(l0Event, burstID);
 		}
 
@@ -115,9 +128,14 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 			/*
 			 * Event not build during last burst -> destroy it!
 			 */
-			LOG(ERROR)<<
-			"Overwriting unfinished event from Burst " << (int ) getBurstID() << "! Eventnumber "
-			<< (int) getEventNumber() << " misses data from sourceIDs "<<missingIDs.str();
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+			<< "Overwriting unfinished event from Burst " << (int) getBurstID()
+					<< "! Eventnumber " << (int) getEventNumber()
+					<< " misses data from sourceIDs " << missingIDs.str();
 
 			destroy();
 			return addL0Event(l0Event, burstID);
@@ -139,7 +157,12 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
-		LOG(ERROR)<<"Event number " << l0Event->getEventNumber() << " already received from source " << ((int) l0Event->getSourceID());
+#ifdef USE_GLOG
+		LOG(ERROR)
+		<< "Event number " << l0Event->getEventNumber()
+		<< " already received from source "
+		<< ((int) l0Event->getSourceID());
+#endif
 		destroy();
 		return addL0Event(l0Event, burstID);
 	}
@@ -163,19 +186,30 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 
 bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (!L1Processed_) {
-		LOG(ERROR)<<
-		"Received LKR data with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
-		+ boost::lexical_cast<std::string>((int ) lkrEvent->getCrateID()) + " and CREAMID "
-		+ boost::lexical_cast<std::string>((int ) lkrEvent->getCREAMID())
+#ifdef USE_GLOG
+		LOG(ERROR)
+		<< "Received LKR data with EventNumber "
+		+ boost::lexical_cast<std::string>(
+				(int) lkrEvent->getEventNumber()) + ", crateID "
+		+ boost::lexical_cast<std::string>(
+				(int) lkrEvent->getCrateID()) + " and CREAMID "
+		+ boost::lexical_cast<std::string>(
+				(int) lkrEvent->getCREAMID())
 		+ " before requesting it. Will ignore it as it seems to come from last burst.";
+#endif
 		delete lkrEvent;
 		return false;
 	}
 
 	if (eventNumber_ != lkrEvent->getEventNumber()) {
-		LOG(ERROR)<<
-		"Trying to add LKrevent with eventNumber " + boost::lexical_cast<std::string>(lkrEvent->getEventNumber())
-		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the LKrEvent!";
+#ifdef USE_GLOG
+		LOG(ERROR) << "Trying to add LKrevent with eventNumber "
+		+ boost::lexical_cast<std::string>(
+				lkrEvent->getEventNumber())
+		+ " to an Event with eventNumber "
+		+ boost::lexical_cast<std::string>(eventNumber_)
+		+ ". Will ignore the LKrEvent!";
+#endif
 		delete lkrEvent;
 		return false;
 	}
@@ -186,14 +220,22 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		 * We were waiting for non zero suppressed data
 		 */
 		std::map<uint16_t, cream::LKREvent*>::iterator lb =
-		nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
+				nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
 
 		if (lb != nonSuppressedLKrEventsByCrateCREAMID.end()
 				&& !(nonSuppressedLKrEventsByCrateCREAMID.key_comp()(
-								crateCREAMID, lb->first))) {
-			LOG(ERROR)<<
-			"Non zero suppressed LKr event with EventNumber " << (int ) lkrEvent->getEventNumber()
-			<< ", crateID " << (int ) lkrEvent->getCrateID() << " and CREAMID " << (int ) lkrEvent->getCREAMID() << " received twice! Will delete the whole event!";
+						crateCREAMID, lb->first))) {
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+
+			<< "Non zero suppressed LKr event with EventNumber "
+					<< (int) lkrEvent->getEventNumber() << ", crateID "
+					<< (int) lkrEvent->getCrateID() << " and CREAMID "
+					<< (int) lkrEvent->getCREAMID()
+					<< " received twice! Will delete the whole event!";
 
 			destroy();
 			delete lkrEvent;
@@ -202,10 +244,12 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 			/*
 			 * Event does not yet exist -> add it to the map
 			 */
-			nonSuppressedLKrEventsByCrateCREAMID.insert(lb, std::map<uint16_t, cream::LKREvent*>::value_type(crateCREAMID, lkrEvent));
+			nonSuppressedLKrEventsByCrateCREAMID.insert(lb,
+					std::map<uint16_t, cream::LKREvent*>::value_type(
+							crateCREAMID, lkrEvent));
 		}
 		return nonSuppressedLKrEventsByCrateCREAMID.size()
-		== nonZSuppressedDataRequestedNum;
+				== nonZSuppressedDataRequestedNum;
 	} else {
 		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(
 				lkrEvent->getCrateID(), lkrEvent->getCREAMID());
@@ -213,13 +257,25 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		 * This must be a zero suppressed event
 		 */
 		cream::LKREvent* oldEvent =
-		zSuppressedLKrEventsByCrateCREAMID[localCreamID];
+				zSuppressedLKrEventsByCrateCREAMID[localCreamID];
 
 		if (oldEvent != NULL) {
-			LOG(ERROR)<<
-			"LKr event with EventNumber " + boost::lexical_cast<std::string>((int ) lkrEvent->getEventNumber()) + ", crateID "
-			+ boost::lexical_cast<std::string>((int ) lkrEvent->getCrateID()) + " and CREAMID "
-			+ boost::lexical_cast<std::string>((int ) lkrEvent->getCREAMID()) + " received twice! Will delete the whole event!";
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+
+					<< "LKr event with EventNumber "
+							+ boost::lexical_cast<std::string>(
+									(int) lkrEvent->getEventNumber())
+							+ ", crateID "
+							+ boost::lexical_cast<std::string>(
+									(int) lkrEvent->getCrateID())
+							+ " and CREAMID "
+							+ boost::lexical_cast<std::string>(
+									(int) lkrEvent->getCREAMID())
+							+ " received twice! Will delete the whole event!";
 			destroy();
 			delete lkrEvent;
 			return false;
@@ -236,7 +292,7 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		return false;
 #else
 		return numberOfCREAMEvents_
-		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}
 }

@@ -7,7 +7,11 @@
 
 #include "SourceIDManager.h"
 
+#include "../exceptions/NA62Error.h"
+
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 #include <iostream>
 #include <vector>
 
@@ -82,10 +86,11 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 					++creamNum;
 			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[creamNum] = std::make_pair(crateID,
 					CREAMID);
-			std::cout << (int)crateID << "\t" << (int)CREAMID << std::endl;
+			std::cout << (int) crateID << "\t" << (int) CREAMID << std::endl;
 		}
 	} else {
-		LOG(INFO)<<"There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
+		std::cout
+				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 

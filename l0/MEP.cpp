@@ -8,7 +8,9 @@
 #include "MEP.h"
 
 #include <boost/lexical_cast.hpp>
-#include <glog/logging.h>
+#ifdef USE_GLOG
+	#include <glog/logging.h>
+#endif
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
@@ -118,14 +120,24 @@ void MEP::initializeMEPEvents(const char * data, const uint16_t& dataLength)
 //
 //	struct UDP_HDR* hdr = (struct UDP_HDR*) getUDPPack();
 //	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
-//		LOG(ERROR)<< "Packet with broken IP-checksum received";
+//#ifdef USE_GLOG
+//		LOG(INFO)
+//#else
+//		std::cerr
+//#endif
+//		<< "Packet with broken IP-checksum received";
 //		return false;
 //	}
 //
 //	if (!EthernetUtils::CheckUDP(hdr,
 //			(const char *) (&hdr->udp) + sizeof(struct udphdr),
 //			ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
-//		LOG(ERROR)<< "Packet with broken UDP-checksum received";
+//#ifdef USE_GLOG
+//		LOG(INFO)
+//#else
+//		std::cerr
+//#endif
+//		<< "Packet with broken UDP-checksum received";
 //		return false;
 //	}
 //	checkSumsVarified_ = true;

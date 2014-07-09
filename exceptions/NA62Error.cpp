@@ -7,12 +7,16 @@
 
 #include "NA62Error.h"
 
-#include <glog/logging.h>
+#include <iostream>
+#include <string>
+
 namespace na62 {
 
 NA62Error::NA62Error(const std::string& message) :
 		std::runtime_error(message) {
-	LOG(ERROR)<<message;
+#ifdef USE_GLOG
+	LOG(INFO) << message;
+#endif
 }
 
 }

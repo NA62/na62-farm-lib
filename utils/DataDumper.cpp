@@ -14,13 +14,16 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 
 namespace na62 {
 void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 		const char* data, const uint length) {
 	std::string filePath = storageDir + "/" + fileName;
-	LOG(INFO)<< "Writing file " << filePath << std::endl;
+
+	std::cout << "Writing file " << filePath << std::endl;
 
 	if (boost::filesystem::exists(filePath)) {
 		std::cerr << "File already exists: " << filePath << std::endl;
