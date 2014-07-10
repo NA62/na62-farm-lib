@@ -29,7 +29,7 @@ namespace l0 {
 MEP::MEP(const char *data, const uint16_t & dataLength,
 		const char *originalData) throw (BrokenPacketReceivedError,
 				UnknownSourceIDFound) :
-		etherFrame_(originalData), rawData((struct MEP_RAW_HDR*) (data)), checkSumsVarified_(
+		etherFrame_(originalData), rawData((struct MEP_HDR*) (data)), checkSumsVarified_(
 				false) {
 
 	events = new MEPFragment*[rawData->eventCount];
@@ -76,7 +76,7 @@ MEP::~MEP() {
 void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 		throw (BrokenPacketReceivedError) {
 	// The first subevent starts directly after the header -> offset is 12
-	uint16_t offset = sizeof(MEP_RAW_HDR);
+	uint16_t offset = sizeof(MEP_HDR);
 
 	MEPFragment* newMEPFragment;
 	uint32_t expectedEventNum = getFirstEventNum();

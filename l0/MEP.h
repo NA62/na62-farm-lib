@@ -34,7 +34,7 @@ namespace l0 {
 /**
  * Defines the structure of a L0 MEP header as defined in table 2 in NA62-11-02.
  */
-struct MEP_RAW_HDR {
+struct MEP_HDR {
 	// Number of L0 triggers since start of burst
 	uint32_t firstEventNum :24;
 	uint8_t sourceID;
@@ -129,7 +129,7 @@ private:
 	// The whole Ethernet frame
 	const char* etherFrame_;
 	// Pointer to the Payload of the UDP packet
-	struct MEP_RAW_HDR * rawData;
+	struct MEP_HDR * rawData;
 	MEPFragment **events;
 
 	bool checkSumsVarified_;
