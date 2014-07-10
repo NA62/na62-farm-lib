@@ -9,7 +9,7 @@
 
 #include <boost/lexical_cast.hpp>
 #ifdef USE_GLOG
-	#include <glog/logging.h>
+#include <glog/logging.h>
 #endif
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -21,7 +21,7 @@
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
 #include "../options/Options.h"
-#include "MEPEvent.h"
+#include "MEPFragment.h"
 
 namespace na62 {
 namespace l0 {
@@ -32,7 +32,7 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 		etherFrame_(originalData), rawData((struct MEP_RAW_HDR*) (data)), checkSumsVarified_(
 				false) {
 
-	events = new (std::nothrow) MEPEvent*[rawData->eventCount];
+	events = new MEPFragment*[rawData->eventCount];
 	if (getLength() != dataLength) {
 		if (getLength() > dataLength) {
 			throw BrokenPacketReceivedError(
@@ -59,7 +59,7 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 	if (!SourceIDManager::CheckL0SourceID(getSourceID())) {
 		throw UnknownSourceIDFound(getSourceID());
 	}
-	initializeMEPEvents(data, dataLength);
+	initializeMEPFragments(data, dataLength);
 }
 
 MEP::~MEP() {
@@ -73,33 +73,33 @@ MEP::~MEP() {
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
-void MEP::initializeMEPEvents(const char * data, const uint16_t& dataLength)
+void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 		throw (BrokenPacketReceivedError) {
 	// The first subevent starts directly after the header -> offset is 12
 	uint16_t offset = sizeof(MEP_RAW_HDR);
 
-	MEPEvent* newMepEvent;
+	MEPFragment* newMEPFragment;
 	uint32_t expectedEventNum = getFirstEventNum();
 
 	for (uint16_t i = 0; i < getNumberOfEvents(); i++) {
 		/*
 		 *  Throws exception if the event number LSB has an unexpected value
 		 */
-		newMepEvent = new (std::nothrow) MEPEvent(this, (MEPEVENT_HDR*)data + offset,
-				expectedEventNum);
+		newMEPFragment = new  MEPFragment(this,
+				(MEPFragment_HDR*) (data + offset), expectedEventNum);
 
 		expectedEventNum++;
-		events[i] = newMepEvent;
-		if (newMepEvent->getDataLength() + offset > dataLength) {
+		events[i] = newMEPFragment;
+		if (newMEPFragment->getDataLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
-					"Incomplete MEPEvent! Received only "
+					"Incomplete MEPFragment! Received only "
 							+ boost::lexical_cast<std::string>(dataLength)
 							+ " of "
 							+ boost::lexical_cast<std::string>(
-									offset + newMepEvent->getDataLength())
+									offset + newMEPFragment->getDataLength())
 							+ " bytes");
 		}
-		offset += newMepEvent->getDataLength();
+		offset += newMEPFragment->getDataLength();
 	}
 
 	// Check if too many bytes have been transmitted

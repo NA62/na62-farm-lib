@@ -14,7 +14,7 @@
 
 namespace na62 {
 namespace l0 {
-class MEPEvent;
+class MEPFragment;
 } /* namespace l0 */
 } /* namespace na62 */
 
@@ -27,15 +27,15 @@ public:
 	virtual ~Subevent();
 
 	void destroy();
-	void inline addEventPart(MEPEvent* eventPart) throw () {
+	void inline addEventPart(MEPFragment* eventPart) throw () {
 		eventParts[eventPartCounter++] = eventPart;
 	}
 
-	MEPEvent ** getEventParts() throw () {
+	MEPFragment ** getEventParts() throw () {
 		return eventParts;
 	}
 
-	MEPEvent* getPart(uint16_t eventPartNumber) throw () {
+	MEPFragment* getPart(uint16_t eventPartNumber) throw () {
 		return eventParts[eventPartNumber];
 	}
 
@@ -45,7 +45,7 @@ public:
 
 private:
 	uint16_t ExpectedPacketsNum;
-	MEPEvent ** eventParts;
+	MEPFragment ** eventParts;
 	uint16_t eventPartCounter;
 };
 

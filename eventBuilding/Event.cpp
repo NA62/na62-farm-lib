@@ -16,7 +16,7 @@
 #include <string>
 #include <utility>
 
-#include "../l0/MEPEvent.h"
+#include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
 
 namespace na62 {
@@ -76,7 +76,7 @@ Event::~Event() {
 	delete[] zSuppressedLKrEventsByCrateCREAMID;
 }
 
-bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
+bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
 		firstEventPartAddedTime_.start();
@@ -89,8 +89,8 @@ bool Event::addL0Event(l0::MEPEvent* l0Event, uint32_t burstID) {
 //#else
 //			std::cerr
 //#endif
-//		<<"Trying to add MEPEvent with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
-//		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the MEPEvent!";
+//		<<"Trying to add MEPFragment with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
+//		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the MEPFragment!";
 //		delete l0Event;
 //		return false;
 //	}

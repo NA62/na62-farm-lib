@@ -31,7 +31,7 @@ public:
 	/**
 	 * Frees the data buffer (orignialData) that was created by the Receiver
 	 *
-	 * Should only be called by ~LKRMEPEvent() as a LKRMEP may not be deleted until every LKRMEPEvent is processed and deleted.
+	 * Should only be called by ~LKRMEPFragment() as a LKRMEP may not be deleted until every LKRMEPFragment is processed and deleted.
 	 */
 	virtual ~LKRMEP();
 

@@ -28,7 +28,7 @@ class LKREvent;
 } /* namespace cream */
 namespace l0 {
 
-class MEPEvent;
+class MEPFragment;
 
 class Subevent;
 } /* namespace l0 */
@@ -47,7 +47,7 @@ public:
 	 *
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
-	bool addL0Event(l0::MEPEvent* e, uint32_t burstID);
+	bool addL0Event(l0::MEPFragment* e, uint32_t burstID);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS

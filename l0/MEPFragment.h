@@ -1,13 +1,13 @@
 /*
- * MEPEvent.h
+ * MEPFragment.h
  *
  *  Created on: Nov 14, 2011
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
-#ifndef MEPEVENT_H_
-#define MEPEVENT_H_
+#ifndef MEPFragment_H_
+#define MEPFragment_H_
 
 #include <stdint.h>
 
@@ -19,9 +19,9 @@ class MEP;
 /**
  * Defines the structure of a L0 event header within a MEP as defined in table 2 in NA62-11-02.
  * The data is over-allocated so you can access the actual payload by something like
- * char* data = mepeventHdr_ptr+sizeof(MEPEVENT_HDR);
+ * char* data = MEPFragmentHdr_ptr+sizeof(MEPFragment_HDR);
  */
-struct MEPEVENT_HDR {
+struct MEPFragment_HDR {
 	uint16_t eventLength_; // Number of bytes of the following event data,	including this header.
 	uint8_t eventNumberLSB_;
 	uint8_t reserved_ :7;
@@ -29,13 +29,13 @@ struct MEPEVENT_HDR {
 	uint32_t timestamp_;
 }__attribute__ ((__packed__));
 
-class MEPEvent {
+class MEPFragment {
 public:
-	MEPEvent(MEP* mep, const MEPEVENT_HDR * data, uint32_t& expectedEventNum);
-	virtual ~MEPEvent();
+	MEPFragment(MEP* mep, const MEPFragment_HDR * data, uint32_t& expectedEventNum);
+	virtual ~MEPFragment();
 
 	/**
-	 * Number of Bytes of the data including the header (sizeof MEPEVENT_HDR)
+	 * Number of Bytes of the data including the header (sizeof MEPFragment_HDR)
 	 */
 	inline const uint16_t getDataLength() const {
 		return rawData->eventLength_;
@@ -66,7 +66,7 @@ public:
 	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including the header!).
 	 * From there on you should read only getEventLength() bytes!
 	 */
-	inline const MEPEVENT_HDR* getData() const {
+	inline const MEPFragment_HDR* getData() const {
 		return rawData;
 	}
 
@@ -75,11 +75,11 @@ public:
 	}
 private:
 	MEP* mep_;
-	const struct MEPEVENT_HDR * rawData;
+	const struct MEPFragment_HDR * rawData;
 
 	const uint32_t eventNumber_;
 };
 
 } /* namespace l0 */
 } /* namespace na62 */
-#endif /* MEPEVENT_H_ */
+#endif /* MEPFragment_H_ */

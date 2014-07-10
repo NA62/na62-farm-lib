@@ -9,13 +9,13 @@
 
 #include <new>
 
-#include "MEPEvent.h"
+#include "MEPFragment.h"
 
 namespace na62 {
 namespace l0 {
 
 Subevent::Subevent(const uint16_t expectedPacketsNum) :
-		ExpectedPacketsNum(expectedPacketsNum), eventParts(new (std::nothrow) MEPEvent*[expectedPacketsNum]), eventPartCounter(0) {
+		ExpectedPacketsNum(expectedPacketsNum), eventParts(new (std::nothrow) MEPFragment*[expectedPacketsNum]), eventPartCounter(0) {
 }
 
 Subevent::~Subevent() {
