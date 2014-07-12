@@ -1,11 +1,11 @@
 /*
- * MEPEvent.cpp
+ * MEPFragment.cpp
  *
  *  Created on: Nov 14, 2011
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
-#include "MEPEvent.h"
+#include "MEPFragment.h"
 
 #include <boost/lexical_cast.hpp>
 #include <string>
@@ -17,8 +17,10 @@ using namespace na62;
 namespace na62 {
 namespace l0 {
 
-MEPEvent::MEPEvent(MEP* mep, const char *data, uint32_t& expectedEventNum) :
-		mep_(mep), rawData((const struct MEPEVENT_RAW_HDR*) data), eventNumber_(expectedEventNum), data_(data) {
+MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
+		uint32_t& expectedEventNum) :
+		mep_(mep), rawData((const struct MEPFragment_HDR*) data), eventNumber_(
+				expectedEventNum) {
 	/*
 	 * Cite from NA62-11-02:
 	 * Event number LSB: the least significant 16 bits of the event number, as defined inside the
@@ -31,12 +33,16 @@ MEPEvent::MEPEvent(MEP* mep, const char *data, uint32_t& expectedEventNum) :
 	 */
 	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)) {
 		throw BrokenPacketReceivedError(
-				"MEPEvent with bad event number LSB received: received " + boost::lexical_cast<std::string>((int) rawData->eventNumberLSB_)
-						+ " but expected LSB is " + boost::lexical_cast<std::string>(expectedEventNum & 0xFF000000));
+				"MEPFragment with bad event number LSB received: received "
+						+ boost::lexical_cast<std::string>(
+								(int) rawData->eventNumberLSB_)
+						+ " but expected LSB is "
+						+ boost::lexical_cast<std::string>(
+								expectedEventNum & 0xFF000000));
 	}
 }
 
-MEPEvent::~MEPEvent() {
+MEPFragment::~MEPFragment() {
 	if (mep_->deleteEvent()) {
 		delete mep_;
 	}
@@ -45,21 +51,21 @@ MEPEvent::~MEPEvent() {
 /*
  * The sourceID in the header of this MEP event
  */
-const uint8_t MEPEvent::getSourceID() const {
+const uint8_t MEPFragment::getSourceID() const {
 	return mep_->getSourceID();
 }
 
 /*
  * The sourceSubID in the header of this MEP event
  */
-const uint8_t MEPEvent::getSourceSubID() const {
+const uint8_t MEPFragment::getSourceSubID() const {
 	return mep_->getSourceSubID();
 }
 
 /*
  * The internally used number corresponding to the sourceID of this MEP event
  */
-const uint8_t MEPEvent::getSourceIDNum() const {
+const uint8_t MEPFragment::getSourceIDNum() const {
 	return mep_->getSourceIDNum();
 }
 

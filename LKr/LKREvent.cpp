@@ -1,5 +1,5 @@
 /*
- * MEPEvent.cpp
+ * MEPFragment.cpp
  *
  *  Created on: Nov 14, 2011
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)

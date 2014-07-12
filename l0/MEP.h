@@ -16,7 +16,6 @@
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
-#include "../structs/Network.h"
 
 namespace na62 {
 class BrokenPacketReceivedError;
@@ -25,7 +24,7 @@ class UnknownSourceIDFound;
 
 namespace na62 {
 namespace l0 {
-class MEPEvent;
+class MEPFragment;
 } /* namespace l0 */
 } /* namespace na62 */
 
@@ -35,7 +34,7 @@ namespace l0 {
 /**
  * Defines the structure of a L0 MEP header as defined in table 2 in NA62-11-02.
  */
-struct MEP_RAW_HDR {
+struct MEP_HDR {
 	// Number of L0 triggers since start of burst
 	uint32_t firstEventNum :24;
 	uint8_t sourceID;
@@ -55,17 +54,17 @@ public:
 	/**
 	 * Frees the data buffer (orignialData) that was created by the Receiver
 	 *
-	 * Should only be called by ~MEPEvent() as a MEP may not be deleted until every MEPEvent is processed and deleted.
+	 * Should only be called by ~MEPFragment() as a MEP may not be deleted until every MEPFragment is processed and deleted.
 	 */
 	virtual ~MEP();
 
-	void initializeMEPEvents(const char* data, const uint16_t& dataLength)
+	void initializeMEPFragments(const char* data, const uint16_t& dataLength)
 			throw (BrokenPacketReceivedError);
 
 	/**
 	 * Returns a pointer to the n'th event within this MEP where 0<=n<getFirstEventNum()
 	 */
-	inline MEPEvent* getEvent(const uint16_t n) {
+	inline MEPFragment* getEvent(const uint16_t n) {
 		/*
 		 * n may be bigger than <getNumberOfEvents()> as <deleteEvent()> could have been invoked already
 		 */
@@ -123,19 +122,15 @@ public:
 		return etherFrame_;
 	}
 
-	const uint16_t getRawLength() const {
-		return getLength() + sizeof(UDP_HDR);
-	}
-
-	bool verifyChecksums();
+//	bool verifyChecksums();
 
 private:
 	boost::mutex deletionMutex;
 	// The whole Ethernet frame
 	const char* etherFrame_;
 	// Pointer to the Payload of the UDP packet
-	struct MEP_RAW_HDR * rawData;
-	MEPEvent **events;
+	struct MEP_HDR * rawData;
+	MEPFragment **events;
 
 	bool checkSumsVarified_;
 };

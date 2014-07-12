@@ -9,10 +9,11 @@
 
 #include <boost/interprocess/creation_tags.hpp>
 #include <boost/interprocess/exceptions.hpp>
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 #include <unistd.h>
 #include <iostream>
-
 
 namespace na62 {
 
@@ -36,8 +37,13 @@ void IPCHandler::connectToDIMInterface() {
 		} catch (interprocess_exception &ex) {
 			stateQueue_.reset();
 			statisticsQueue_.reset();
-			LOG(ERROR)<< "Unable to connect to DIM interface program: "
-			<< ex.what();
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+
+			<< "Unable to connect to DIM interface program: " << ex.what();
 			sleep(5);
 		}
 	}
@@ -51,12 +57,21 @@ void IPCHandler::updateState(STATE newState) {
 	}
 	try {
 		if (!stateQueue_->try_send(&currentState, sizeof(STATE), 0)) {
-			LOG(ERROR)<< "Unable to send message to DIM interface program!";
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+			<< "Unable to send message to DIM interface program!";
 			sleep(5);
 		}
 	} catch (interprocess_exception &ex) {
-		LOG(ERROR) << "Unable to send message to DIM interface program: "
-		<< ex.what();
+#ifdef USE_GLOG
+		LOG(INFO)
+#else
+		std::cerr
+#endif
+		<< "Unable to send message to DIM interface program: " << ex.what();
 		stateQueue_.reset();
 	}
 }
@@ -79,12 +94,21 @@ void IPCHandler::sendStatistics(std::string name, std::string values) {
 	try {
 		if (!statisticsQueue_->try_send(message.data(), message.length(), 0)) {
 			statisticsQueue_.reset();
-			LOG(ERROR)<< "Unable to send statistics to dim-service!";
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+			<< "Unable to send statistics to dim-service!";
 			sleep(5);
 		}
 	} catch (interprocess_exception &ex) {
-		LOG(ERROR)<<"Unable to send message to DIM interface program: "
-		<< ex.what();
+#ifdef USE_GLOG
+		LOG(INFO)
+#else
+		std::cerr
+#endif
+		<< "Unable to send message to DIM interface program: " << ex.what();
 		stateQueue_.reset();
 	}
 }

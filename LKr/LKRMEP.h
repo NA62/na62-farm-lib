@@ -31,7 +31,7 @@ public:
 	/**
 	 * Frees the data buffer (orignialData) that was created by the Receiver
 	 *
-	 * Should only be called by ~LKRMEPEvent() as a LKRMEP may not be deleted until every LKRMEPEvent is processed and deleted.
+	 * Should only be called by ~LKRMEPFragment() as a LKRMEP may not be deleted until every LKRMEPFragment is processed and deleted.
 	 */
 	virtual ~LKRMEP();
 
@@ -69,16 +69,11 @@ public:
 		return etherFrame_;
 	}
 
-	const uint16_t getEtherFrameSize() const{
-		return etherFrameSize_;
-	}
-
 private:
 	int eventNum;
 	boost::mutex deletionMutex;
 	// The whole ethernet frame
 	const char* etherFrame_;
-	const uint16_t etherFrameSize_;
 	// Pointers to the payload of the UDP packet
 	std::vector<LKREvent*> events;
 };

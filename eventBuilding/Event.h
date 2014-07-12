@@ -28,7 +28,7 @@ class LKREvent;
 } /* namespace cream */
 namespace l0 {
 
-class MEPEvent;
+class MEPFragment;
 
 class Subevent;
 } /* namespace l0 */
@@ -47,7 +47,7 @@ public:
 	 *
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
-	bool addL0Event(l0::MEPEvent* e, uint32_t burstID);
+	bool addL0Event(l0::MEPFragment* e, uint32_t burstID);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -176,37 +176,37 @@ public:
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	l0::Subevent* getL0SubeventBySourceID(const uint8_t&& sourceID) const {
+	inline l0::Subevent* getL0SubeventBySourceID(const uint8_t&& sourceID) const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
 	}
-	l0::Subevent* getCEDARSubevent() const {
+	inline l0::Subevent* getCEDARSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CEDAR)];
 	}
-	l0::Subevent* getGTKSubevent() const {
+	inline l0::Subevent* getGTKSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_GTK)];
 	}
-	l0::Subevent* getCHANTISubevent() const {
+	inline l0::Subevent* getCHANTISubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CHANTI)];
 	}
-	l0::Subevent* getLAVSubevent() const {
+	inline l0::Subevent* getLAVSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_LAV)];
 	}
-	l0::Subevent* getSTRAWSubevent() const {
+	inline l0::Subevent* getSTRAWSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_STRAW)];
 	}
-	l0::Subevent* getCHODSubevent() const {
+	inline l0::Subevent* getCHODSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CHOD)];
 	}
-	l0::Subevent* getIRCSubevent() const {
+	inline l0::Subevent* getIRCSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_IRC)];
 	}
-	l0::Subevent* getMUVSubevent() const {
+	inline l0::Subevent* getMUVSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_MUV)];
 	}
-	l0::Subevent* getSACSubevent() const {
+	inline l0::Subevent* getSACSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_SAC)];
 	}
-	l0::Subevent* getL0TPSubevent() const {
+	inline l0::Subevent* getL0TPSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_L0TP)];
 	}
 

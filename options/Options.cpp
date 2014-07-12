@@ -20,7 +20,9 @@
 #include <map>
 #include <typeinfo>
 #include <utility>
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 
 #include "../exceptions/BadOption.h"
 #include "../utils/Utils.h"
@@ -91,8 +93,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	std::cout << "======= Running with following configuration:" << std::endl;
 	PrintVM(vm);
 
-
-
+#ifdef USE_GLOG
 	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
 		FLAGS_logtostderr = true;
 	}
@@ -100,6 +101,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	FLAGS_log_dir = "/var/log/" + std::string(argv[0]);
 	google::InitGoogleLogging(argv[0]);
+#endif
 }
 
 bool Options::Isset(char* parameter) {
@@ -121,7 +123,7 @@ std::vector<std::string> Options::GetStringList(char* parameter) {
 	std::vector<std::string> list;
 	std::string optionString = vm[parameter].as<std::string>();
 
-	if(optionString==""){
+	if (optionString == "") {
 		return list;
 	}
 
@@ -232,7 +234,7 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 				int min = Utils::ToUInt(minMax[0]);
 				int max = Utils::ToUInt(minMax[1]);
 
-				for (int i = min; i <= max + 1; i++) {
+				for (int i = min; i <= max; i++) {
 					values.push_back(
 							std::make_pair(Utils::ToUInt(pair.first), i));
 				}

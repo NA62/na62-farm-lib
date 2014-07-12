@@ -23,22 +23,40 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.1021636035." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.lib.debug.1558744108" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.lib.debug.146107942" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/na62-farm-lib}/Debug" enableAutoBuild="true" id="cdt.managedbuild.target.gnu.builder.lib.debug.1466380688" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
+							<builder buildPath="${workspace_loc:/na62-farm-lib}/Debug" enableAutoBuild="false" id="cdt.managedbuild.target.gnu.builder.lib.debug.1466380688" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.lib.debug.933521143" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.952519847" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 								<option id="gnu.cpp.compiler.lib.debug.option.optimization.level.683119255" name="Optimization Level" superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.lib.debug.option.debugging.level.1531956541" name="Debug Level" superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.other.other.955322006" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.include.paths.1895940514" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/ipp/include"/>
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/mkl/include"/>
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/tbb/include"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.558931811" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="USE_GLOG"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.355919957" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.debug.693797920" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.lib.debug.option.optimization.level.2103578669" name="Optimization Level" superClass="gnu.c.compiler.lib.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.lib.debug.option.debugging.level.993428324" name="Debug Level" superClass="gnu.c.compiler.lib.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.include.paths.1272263453" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/ipp/include"/>
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/mkl/include"/>
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/tbb/include"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1757153772" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.37371645" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.2093935578" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.lib.debug.766314781" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.lib.debug">
+								<option id="gnu.both.asm.option.include.paths.310423671" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/ipp/include"/>
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/mkl/include"/>
+									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/tbb/include"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1235554435" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>

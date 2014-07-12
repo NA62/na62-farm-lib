@@ -25,15 +25,15 @@ AExecutable::~AExecutable() {
 	delete thread_;
 }
 
-void AExecutable::SetThreadAffinity(boost::thread& daThread, unsigned short threadPriority, short unsigned CPUToBind, int scheduler) {
+void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, unsigned short CPUToBind, int scheduler) {
 	std::vector<unsigned short> CPUsToBind;
 	CPUsToBind.push_back(CPUToBind);
 	SetThreadAffinity(daThread, threadPriority, CPUsToBind, scheduler);
 }
 
-void AExecutable::SetThreadAffinity(boost::thread& daThread, unsigned short threadPriority, std::vector<unsigned short> CPUsToBind, int scheduler) {
+void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, std::vector<unsigned short> CPUsToBind, int scheduler) {
 	int policy;
-	pthread_t threadID = (pthread_t) (daThread.native_handle());
+	pthread_t threadID = (pthread_t) (daThread->native_handle());
 	if (scheduler > 0) {
 
 		struct sched_param param;
