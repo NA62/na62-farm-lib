@@ -101,11 +101,11 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 	} else {
 		if (l0Event->isLastEventOfBurst() != lastEventOfBurst_) {
 			destroy();
-#ifdef USE_GLOG
+			#ifdef USE_GLOG
 			LOG(INFO)
-#else
+			#else
 			std::cerr
-#endif
+			#endif
 
 					<< "MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
 			return addL0Event(l0Event, burstID);
@@ -128,11 +128,11 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			/*
 			 * Event not build during last burst -> destroy it!
 			 */
-#ifdef USE_GLOG
+			#ifdef USE_GLOG
 			LOG(INFO)
-#else
+			#else
 			std::cerr
-#endif
+			#endif
 			<< "Overwriting unfinished event from Burst " << (int) getBurstID()
 					<< "! Eventnumber " << (int) getEventNumber()
 					<< " misses data from sourceIDs " << missingIDs.str();
@@ -157,12 +157,19 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
-#ifdef USE_GLOG
+		#ifdef USE_GLOG
 		LOG(ERROR)
+		#else
+		std::cerr
+		#endif
 		<< "Event number " << l0Event->getEventNumber()
 		<< " already received from source "
-		<< ((int) l0Event->getSourceID());
-#endif
+		<< ((int) l0Event->getSourceID())
+		#ifndef USE_GLOG
+		<<std::endl
+		#endif
+		;
+
 		destroy();
 		return addL0Event(l0Event, burstID);
 	}
