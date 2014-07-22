@@ -154,7 +154,7 @@ std::vector<int> Options::GetIntList(char* parameter) {
 		boost::trim(str);
 		try {
 			if (str.size() > 0) {
-				values.push_back(boost::lexical_cast<int>(str));
+				values.push_back(Utils::ToUInt(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
 			std::cerr

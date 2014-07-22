@@ -38,7 +38,7 @@ struct MEP_HDR {
 	// Number of L0 triggers since start of burst
 	uint32_t firstEventNum :24;
 	uint8_t sourceID;
-	uint16_t mepLength;
+	uint16_t mepLength; //  Total length of the MEP in bytes including the header
 	uint8_t eventCount;
 	uint8_t sourceSubID;
 }__attribute__ ((__packed__));
@@ -92,6 +92,9 @@ public:
 		return rawData->eventCount;
 	}
 
+	/**
+	 * Total length of the MEP in bytes including the header
+	 */
 	inline const uint16_t getLength() const {
 		return rawData->mepLength;
 	}
