@@ -61,7 +61,7 @@ public:
 	 * @param sourceIDs A list of pairs of available sourceIDs and the number of frames coming from each sourceID
 	 * 	@param creamCrates A list of pairs with a crateID and a CREAM ID
 	 */
-	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates);
+	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates, std::vector<std::pair<int, int> > inactiveCreams);
 
 	static inline uint16_t getExpectedPacksBySourceNum(
 			const uint8_t sourceNum) throw () {
