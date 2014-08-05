@@ -203,6 +203,14 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 	std::vector<std::pair<std::string, std::string> > values;
 
 	std::string comaSeparatedList = vm[parameter].as<std::string>();
+
+	/*
+	 * Check if the parameter is empty
+	 */
+	if(comaSeparatedList.size()==0){
+		return values;
+	}
+
 	std::vector<std::string> pairStrings;
 	boost::split(pairStrings, comaSeparatedList, boost::is_any_of(","));
 
