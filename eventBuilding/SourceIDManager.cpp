@@ -81,9 +81,8 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			uint8_t crateID = inactivePair.first;
 			uint8_t CREAMID = inactivePair.second;
 			for (auto pair : creamCrates) {
-
-				if (crateID == inactivePair.first
-						&& CREAMID == inactivePair.second) {
+				if (crateID == pair.first
+						&& CREAMID == pair.second) {
 					continue;
 				}
 			}
