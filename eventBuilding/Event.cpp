@@ -331,7 +331,7 @@ void Event::destroy() {
 			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 			ID++) {
 		cream::LKREvent* event = zSuppressedLKrEventsByCrateCREAMID[ID];
-		if (event != NULL) {
+		if (event != nullptr) {
 			delete event;
 		}
 		zSuppressedLKrEventsByCrateCREAMID[ID] = NULL;
