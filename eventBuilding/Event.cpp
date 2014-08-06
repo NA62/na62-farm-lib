@@ -354,9 +354,20 @@ std::string Event::getMissingSourceIDs() {
 	for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
 		if (SourceIDManager::getExpectedPacksBySourceNum(i)
 				!= getL0SubeventBySourceIDNum(i)->getNumberOfParts()) {
-			missingIDs << (int) SourceIDManager::SourceNumToID(i) << ", ";
+			missingIDs << (int) SourceIDManager::SourceNumToID(i) << "; ";
 		}
 	}
+	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
+			- 1; i >= 0; i--) {
+		if (zSuppressedLKrEventsByLocalCREAMID[i] == nullptr) {
+			std::pair<uint8_t, uint8_t> crateAndCream =
+					SourceIDManager::getCrateAndCREAMIDByLocalID(i);
+
+			missingIDs << "crate " << (int) crateAndCream.first << "/cream "
+					<< (int) crateAndCream.second << "; ";
+		}
+	}
+
 	return missingIDs.str();
 }
 

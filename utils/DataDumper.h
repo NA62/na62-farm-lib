@@ -14,7 +14,11 @@
 namespace na62 {
 class DataDumper {
 public:
-	static void dumpToFile(const std::string fileName,
+	/**
+	 * Dumps the given data into the file [fileName] in the directory [storageDir]. If [fileName]
+	 * already exists _XXX will be concatenated to [fileName]
+	 */
+	static void dumpToFile(std::string fileName,
 			const std::string storageDir, const char* data, const uint length);
 };
 }
