@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <map>
+#include <atomic>
 #ifdef MEASURE_TIME
 #include <boost/timer/timer.hpp>
 #endif
@@ -176,7 +177,8 @@ public:
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline l0::Subevent* getL0SubeventBySourceID(const uint8_t&& sourceID) const {
+	inline l0::Subevent* getL0SubeventBySourceID(
+			const uint8_t&& sourceID) const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
@@ -215,7 +217,7 @@ public:
 	 */
 	cream::LKREvent* getZSuppressedLKrEvent(const uint8_t crateID,
 			const uint8_t CREAMID) const {
-		return zSuppressedLKrEventsByCrateCREAMID[SourceIDManager::getLocalCREAMID(
+		return zSuppressedLKrEventsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
 				crateID, CREAMID)];
 	}
 
@@ -223,7 +225,7 @@ public:
 	 * You may access this method only within any TriggerProcessor instance
 	 */
 	cream::LKREvent* getZSuppressedLKrEvent(const uint16_t localCreamID) const {
-		return zSuppressedLKrEventsByCrateCREAMID[localCreamID];
+		return zSuppressedLKrEventsByLocalCREAMID[localCreamID];
 	}
 
 	uint16_t getNumberOfZSuppressedLKrEvents() const {
@@ -310,14 +312,19 @@ private:
 		burstID_ = L0ID;
 	}
 
+	/*
+	 * Find the missing sourceIDs
+	 */
+	std::string getMissingSourceIDs();
+
 	void reset();
 
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
 	uint32_t eventNumber_;
-	uint8_t numberOfL0Events_;
-	uint16_t numberOfCREAMEvents_;
+	std::atomic<uint8_t> numberOfL0Events_;
+	std::atomic<uint16_t> numberOfCREAMEvents_;
 
 	/*
 	 * To be added within L1 trigger process
@@ -336,11 +343,10 @@ private:
 	/*
 	 * lkrEventsByCreamIDByCrate[crate][cream] is the Event coming from CREAM number <cream> within the crate number <crate>
 	 */
-	cream::LKREvent** zSuppressedLKrEventsByCrateCREAMID;
+	cream::LKREvent** zSuppressedLKrEventsByLocalCREAMID;
 	std::map<uint16_t, cream::LKREvent*> nonSuppressedLKrEventsByCrateCREAMID;
 
-	bool L1Processed_;
-	bool L2Accepted_;
+	bool L1Processed_;bool L2Accepted_;
 
 	bool lastEventOfBurst_;
 
