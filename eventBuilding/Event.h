@@ -341,7 +341,8 @@ private:
 	uint16_t nonZSuppressedDataRequestedNum;
 
 	/*
-	 * lkrEventsByCreamIDByCrate[crate][cream] is the Event coming from CREAM number <cream> within the crate number <crate>
+	 * zSuppressedLKrEventsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
+	 * corresponding cream/create
 	 */
 	cream::LKREvent** zSuppressedLKrEventsByLocalCREAMID;
 	std::map<uint16_t, cream::LKREvent*> nonSuppressedLKrEventsByCrateCREAMID;
