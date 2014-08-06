@@ -337,7 +337,7 @@ void Event::destroy() {
 		zSuppressedLKrEventsByCrateCREAMID[ID] = NULL;
 	}
 
-	for (auto pair : nonSuppressedLKrEventsByCrateCREAMID) {
+	for (auto& pair : nonSuppressedLKrEventsByCrateCREAMID) {
 		delete pair.second;
 	}
 	nonSuppressedLKrEventsByCrateCREAMID.clear();
