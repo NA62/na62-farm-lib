@@ -16,6 +16,7 @@
 #include <string>
 #include <utility>
 
+#include "../utils/DataDumper.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
 
@@ -52,7 +53,7 @@ Event::Event(uint32_t eventNumber) :
 
 	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
 			- 1; i >= 0; i--) {
-		zSuppressedLKrEventsByLocalCREAMID[i] = NULL;
+		zSuppressedLKrEventsByLocalCREAMID[i] = nullptr;
 	}
 }
 
@@ -329,7 +330,7 @@ void Event::destroy() {
 		if (event != nullptr) {
 			delete event;
 		}
-		zSuppressedLKrEventsByLocalCREAMID[ID] = NULL;
+		zSuppressedLKrEventsByLocalCREAMID[ID] = nullptr;
 	}
 
 	for (auto& pair : nonSuppressedLKrEventsByCrateCREAMID) {
@@ -367,6 +368,11 @@ std::string Event::getMissingSourceIDs() {
 					<< (int) crateAndCream.second << "; ";
 		}
 	}
+
+	std::stringstream dump;
+	dump << "Event\t"<<getEventNumber()<<"\tTS\t"<<getTimestamp()<<":\t";
+	dump << missingIDs.str();
+	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
 
 	return missingIDs.str();
 }
