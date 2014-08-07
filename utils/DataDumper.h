@@ -20,6 +20,9 @@ public:
 	 */
 	static void dumpToFile(std::string fileName,
 			const std::string storageDir, const char* data, const uint length);
+
+	static void printToFile(std::string fileName,
+			const std::string storageDir, const std::string message);
 };
 }
 
