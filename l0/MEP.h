@@ -9,8 +9,7 @@
 #ifndef MEPHEADER_H_
 #define MEPHEADER_H_
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/pthread/mutex.hpp>
+#include <atomic>
 #include <cstdint>
 
 #include "../eventBuilding/SourceIDManager.h"
@@ -117,8 +116,7 @@ public:
 		 */
 
 		// TODO: Do we need to lock here? Probably not locking is that much faster that it's worth implementing a garbage collector?!
-		boost::lock_guard<boost::mutex> lock(deletionMutex); // Will lock deletionMutex until return
-		return --rawData->eventCount == 0;
+		return --eventCount_ == 0;
 	}
 
 	const char* getRawData() const {
@@ -128,7 +126,7 @@ public:
 //	bool verifyChecksums();
 
 private:
-	boost::mutex deletionMutex;
+	std::atomic<int> eventCount_;
 	// The whole Ethernet frame
 	const char* etherFrame_;
 	// Pointer to the Payload of the UDP packet
