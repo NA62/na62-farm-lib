@@ -15,7 +15,7 @@ namespace na62 {
 namespace l0 {
 
 Subevent::Subevent(const uint16_t expectedPacketsNum) :
-		ExpectedPacketsNum(expectedPacketsNum), eventParts(new (std::nothrow) MEPFragment*[expectedPacketsNum]), eventPartCounter(0) {
+		ExpectedPacketsNum(expectedPacketsNum), eventFragments(new (std::nothrow) MEPFragment*[expectedPacketsNum]), eventPartCounter(0) {
 }
 
 Subevent::~Subevent() {
@@ -25,7 +25,7 @@ Subevent::~Subevent() {
 
 void Subevent::destroy() {
 	for (int i = eventPartCounter - 1; i >= 0; i--) {
-		delete eventParts[i];
+		delete eventFragments[i];
 	}
 	eventPartCounter = 0;
 }

@@ -119,7 +119,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0;
 					i--) {
 				if (SourceIDManager::getExpectedPacksBySourceNum(i)
-						!= getL0SubeventBySourceIDNum(i)->getNumberOfParts()) {
+						!= getL0SubeventBySourceIDNum(i)->getNumberOfFragments()) {
 					missingIDs << (int) SourceIDManager::SourceNumToID(i)
 							<< ", ";
 				}
@@ -151,7 +151,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 
 	l0::Subevent* subevent = L0Subevents[l0Event->getSourceIDNum()];
 
-	if (subevent->getNumberOfParts()
+	if (subevent->getNumberOfFragments()
 			>= SourceIDManager::getExpectedPacksBySourceID(
 					l0Event->getSourceID())) {
 		/*

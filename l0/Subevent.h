@@ -27,25 +27,42 @@ public:
 	virtual ~Subevent();
 
 	void destroy();
-	void inline addEventPart(MEPFragment* eventPart) throw () {
-		eventParts[eventPartCounter++] = eventPart;
+	inline void addEventPart(MEPFragment* eventPart) throw () {
+		eventFragments[eventPartCounter++] = eventPart;
 	}
 
-	MEPFragment ** getEventParts() throw () {
-		return eventParts;
+	/**
+	 * Returns all fragments of this Subevent
+	 * @return A pointer to an array of all received MEPFragment pointers
+	 */
+	inline MEPFragment ** getEventFragments() throw () {
+		return eventFragments;
 	}
 
-	MEPFragment* getPart(uint16_t eventPartNumber) throw () {
-		return eventParts[eventPartNumber];
+	/**
+	 * Returns the Nth event fragment that has been received
+	 *
+	 * @param eventPartNumber
+	 * 						The number of the requested fragment (N). N must be smaller
+	 * 						than  getNumberOfParts()
+	 * @return The Nth fragment received
+	 */
+	inline MEPFragment* getFragment(uint16_t eventPartNumber) throw () {
+		return eventFragments[eventPartNumber];
 	}
 
-	uint16_t inline getNumberOfParts() {
+	/**
+	 * Returns the number of received subevent fragments
+	 *
+	 * @return The number of subevent fragments received
+	 */
+	inline uint16_t getNumberOfFragments() throw () {
 		return eventPartCounter;
 	}
 
 private:
 	uint16_t ExpectedPacketsNum;
-	MEPFragment ** eventParts;
+	MEPFragment ** eventFragments;
 	uint16_t eventPartCounter;
 };
 
