@@ -63,7 +63,7 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 }
 
 MEP::~MEP() {
-	if (this->getNumberOfEvents() > 0) {
+	if (eventCount_ > 0) {
 		/*
 		 * TODO: Just for testing. Should be deleted later to boost performance!
 		 */
@@ -110,6 +110,7 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 						+ " instead of "
 						+ boost::lexical_cast<std::string>(dataLength));
 	}
+	eventCount_ = rawData->eventCount;
 }
 
 //bool MEP::verifyChecksums() {

@@ -189,28 +189,40 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (!L1Processed_) {
 #ifdef USE_GLOG
 		LOG(ERROR)
-		<< "Received LKR data with EventNumber "
-		+ boost::lexical_cast<std::string>(
-				(int) lkrEvent->getEventNumber()) + ", crateID "
-		+ boost::lexical_cast<std::string>(
-				(int) lkrEvent->getCrateID()) + " and CREAMID "
-		+ boost::lexical_cast<std::string>(
-				(int) lkrEvent->getCREAMID())
-		+ " before requesting it. Will ignore it as it seems to come from last burst.";
+#else
+		std::cerr
 #endif
+		<< "Received LKR data with EventNumber "
+				<< (int) lkrEvent->getEventNumber() + ", crateID "
+				<< (int) lkrEvent->getCrateID() + " and CREAMID "
+				<< (int) lkrEvent->getCREAMID()
+				<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
+				<< getBurstID() << ")"
+#ifndef USE_GLOG
+				<< std::endl
+#endif
+				;
+
 		delete lkrEvent;
 		return false;
 	}
 
 	if (eventNumber_ != lkrEvent->getEventNumber()) {
 #ifdef USE_GLOG
-		LOG(ERROR) << "Trying to add LKrevent with eventNumber "
-		+ boost::lexical_cast<std::string>(
-				lkrEvent->getEventNumber())
-		+ " to an Event with eventNumber "
-		+ boost::lexical_cast<std::string>(eventNumber_)
-		+ ". Will ignore the LKrEvent!";
+		LOG(ERROR)
+#else
+		std::cerr
 #endif
+				<< "Trying to add LKrevent with eventNumber "
+						+ boost::lexical_cast<std::string>(
+								lkrEvent->getEventNumber())
+						+ " to an Event with eventNumber "
+						+ boost::lexical_cast<std::string>(eventNumber_)
+						+ ". Will ignore the LKrEvent!"
+#ifndef USE_GLOG
+				<< std::endl
+#endif
+				;
 		delete lkrEvent;
 		return false;
 	}
@@ -370,7 +382,8 @@ std::string Event::getMissingSourceIDs() {
 	}
 
 	std::stringstream dump;
-	dump << "Event\t"<<getEventNumber()<<"\tTS\t"<<getTimestamp()<<":\t";
+	dump << "Burst:\t" << getBurstID() << "\tEvent:\t" << getEventNumber()
+			<< "\tTS:\t" << getTimestamp() << "\tMissing:\t";
 	dump << missingIDs.str();
 	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
 
