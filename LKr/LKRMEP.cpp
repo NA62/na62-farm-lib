@@ -21,13 +21,14 @@ LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength,
 		etherFrame_(etherFrame) {
 
 	/*
-	 * There is now special LKRMEP header! A MEP just contains of several LKREvents and we have to find out how many of those are written into this packet.
+	 * There is now special LKRMEP header! A MEP just consists of several LKREvents and we have to
+	 * find out how many of those are written into this packet.
 	 */
 	initializeLKREvents(data, dataLength);
 }
 
 LKRMEP::~LKRMEP() {
-	if (eventNum > 0) {
+	if (eventNum != 0) {
 		/*
 		 * TODO: Just for testing. Should be deleted later to boost performance!
 		 */
