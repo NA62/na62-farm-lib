@@ -8,6 +8,12 @@
 #include "Event.h"
 
 #include <boost/lexical_cast.hpp>
+#include <cstdbool>
+#include <sstream>
+
+#include "../exceptions/NA62Error.h"
+#include "EventPool.h"
+
 #ifdef USE_GLOG
 #include <glog/logging.h>
 #endif
@@ -58,23 +64,23 @@ Event::Event(uint32_t eventNumber) :
 }
 
 Event::~Event() {
-//	throw NA62Error("An Event-Object should not be deleted! Use Event::destroy instead so that it can be reused by the EventBuilder!");
+	throw NA62Error("An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
 
-	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
-//		L0Subevents[i]->destroy();
-		delete L0Subevents[i];
-	}
-	delete[] L0Subevents;
-
-	for (int ID = 0;
-			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-			ID++) {
-		cream::LKREvent* event = zSuppressedLKrEventsByLocalCREAMID[ID];
-		if (event != NULL) {
-			delete event;
-		}
-	}
-	delete[] zSuppressedLKrEventsByLocalCREAMID;
+//	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+////		L0Subevents[i]->destroy();
+//		delete L0Subevents[i];
+//	}
+//	delete[] L0Subevents;
+//
+//	for (int ID = 0;
+//			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+//			ID++) {
+//		cream::LKREvent* event = zSuppressedLKrEventsByLocalCREAMID[ID];
+//		if (event != NULL) {
+//			delete event;
+//		}
+//	}
+//	delete[] zSuppressedLKrEventsByLocalCREAMID;
 }
 
 bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
@@ -101,7 +107,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		setBurstID(burstID);
 	} else {
 		if (l0Event->isLastEventOfBurst() != lastEventOfBurst_) {
-			destroy();
+			EventPool::FreeEvent(this);
 #ifdef USE_GLOG
 			LOG(INFO)
 #else
@@ -129,7 +135,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #endif
 					;
 
-			destroy();
+			EventPool::FreeEvent(this);
 			return addL0Event(l0Event, burstID);
 		}
 	}
@@ -164,7 +170,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #endif
 				;
 
-		destroy();
+		EventPool::FreeEvent(this);
 		return addL0Event(l0Event, burstID);
 	}
 
@@ -228,6 +234,10 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	}
 
 	if (nonZSuppressedDataRequestedNum != 0) {
+		/*
+		 * The received lkrEvent should be nonZSuppressed data
+		 */
+
 		const uint16_t crateCREAMID = lkrEvent->getCrateCREAMID();
 		/*
 		 * We were waiting for non zero suppressed data
@@ -250,7 +260,7 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 					<< (int) lkrEvent->getCREAMID()
 					<< " received twice! Will delete the whole event!";
 
-			destroy();
+			EventPool::FreeEvent(this);
 			delete lkrEvent;
 			return false;
 		} else {
@@ -265,6 +275,9 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		return nonSuppressedLKrEventsByCrateCREAMID.size()
 				== nonZSuppressedDataRequestedNum;
 	} else {
+		/*
+		 * ZSuppressed data received
+		 */
 		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(
 				lkrEvent->getCrateID(), lkrEvent->getCREAMID());
 		/*
@@ -290,7 +303,7 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 							+ boost::lexical_cast<std::string>(
 									(int) lkrEvent->getCREAMID())
 							+ " received twice! Will delete the whole event!";
-			destroy();
+			EventPool::FreeEvent(this);
 			delete lkrEvent;
 			return false;
 		}
@@ -304,8 +317,8 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 		}
 		return false;
 #else
-		int currentValue = numberOfCREAMEvents_.fetch_add(1,
-				std::memory_order_relaxed) + 1;
+		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
+				std::memory_order_relaxed*/) + 1;
 		return currentValue
 				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
@@ -355,7 +368,7 @@ void Event::destroy() {
 
 void Event::clear() {
 	if (numberOfL0Events_ > 0 || numberOfCREAMEvents_ > 0) {
-		destroy();
+		EventPool::FreeEvent(this);
 	}
 }
 
