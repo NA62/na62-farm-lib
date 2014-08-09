@@ -366,7 +366,7 @@ std::string Event::getMissingSourceIDs() {
 	std::stringstream missingIDs;
 	for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
 		if (SourceIDManager::getExpectedPacksBySourceNum(i)
-				!= getL0SubeventBySourceIDNum(i)->getNumberOfParts()) {
+				!= getL0SubeventBySourceIDNum(i)->getNumberOfFragments()) {
 			missingIDs << (int) SourceIDManager::SourceNumToID(i) << "; ";
 		}
 	}
