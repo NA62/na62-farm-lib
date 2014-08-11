@@ -39,6 +39,7 @@ namespace na62 {
 
 class Event {
 public:
+
 	Event(uint32_t eventNumber_);
 	virtual ~Event();
 	/**
@@ -63,11 +64,6 @@ public:
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
-	void clear();
-
-	/*
-	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
-	 */
 	bool isL1Processed() const {
 		return L1Processed_;
 	}
@@ -79,9 +75,48 @@ public:
 		return L2Accepted_;
 	}
 
+	/*
+	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 */
 	void setEventNumber(uint32_t eventNumber) {
 		eventNumber_ = eventNumber;
 	}
+
+	/**
+	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 *
+	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
+	 *
+	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
+	 */
+	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
+#ifdef MEASURE_TIME
+		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+		- l0BuildingTime_;
+#endif
+
+		triggerTypeWord_ = L0L1TriggerTypeWord;
+		L1Processed_ = true;
+	}
+
+	/**
+	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 *
+	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
+	 *
+	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
+	 */
+	void setL2Processed(const uint8_t L2TriggerTypeWord) {
+#ifdef MEASURE_TIME
+		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+		- l0BuildingTime_;
+#endif
+
+		L2Accepted_ = L2TriggerTypeWord > 0;
+		// Move the L2 trigger type word to the third byte of triggerTypeWord_
+		triggerTypeWord_ |= L2TriggerTypeWord << 16;
+	}
+
 
 	uint32_t getEventNumber() const {
 		return eventNumber_;
@@ -130,37 +165,6 @@ public:
 	 */
 	uint32_t getBurstID() const {
 		return burstID_;
-	}
-
-	/**
-	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
-	 *
-	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
-	 */
-	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
-#ifdef MEASURE_TIME
-		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- l0BuildingTime_;
-#endif
-
-		triggerTypeWord_ = L0L1TriggerTypeWord;
-		L1Processed_ = true;
-	}
-
-	/**
-	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
-	 *
-	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
-	 */
-	void setL2Processed(const uint8_t L2TriggerTypeWord) {
-#ifdef MEASURE_TIME
-		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- l0BuildingTime_;
-#endif
-
-		L2Accepted_ = L2TriggerTypeWord > 0;
-		// Move the L2 trigger type word to the third byte of triggerTypeWord_
-		triggerTypeWord_ |= L2TriggerTypeWord << 16;
 	}
 
 	/*
@@ -213,7 +217,7 @@ public:
 	}
 
 	/*
-	 * You may access this method only within any TriggerProcessor instance
+	 * Returns a  zero suppressed event fragment sent by the CREAM with the id [CREAMID] in the crate [crateID
 	 */
 	cream::LKREvent* getZSuppressedLKrEvent(const uint8_t crateID,
 			const uint8_t CREAMID) const {
@@ -222,7 +226,7 @@ public:
 	}
 
 	/*
-	 * You may access this method only within any TriggerProcessor instance
+	 * Returns a zero suppressed event fragment sent by the CREAM identified by the given local CREAM ID
 	 */
 	cream::LKREvent* getZSuppressedLKrEvent(const uint16_t localCreamID) const {
 		return zSuppressedLKrEventsByLocalCREAMID[localCreamID];

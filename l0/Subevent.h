@@ -27,7 +27,7 @@ public:
 	virtual ~Subevent();
 
 	void destroy();
-	inline void addEventPart(MEPFragment* eventPart) throw () {
+	inline void addFragment(MEPFragment* eventPart) throw () {
 		eventFragments[eventPartCounter++] = eventPart;
 	}
 

@@ -64,7 +64,8 @@ Event::Event(uint32_t eventNumber) :
 }
 
 Event::~Event() {
-	throw NA62Error("An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
+	throw NA62Error(
+			"An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
 
 //	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 ////		L0Subevents[i]->destroy();
@@ -83,6 +84,9 @@ Event::~Event() {
 //	delete[] zSuppressedLKrEventsByLocalCREAMID;
 }
 
+/**
+ * Process data coming from the TEL boards
+ */
 bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
@@ -174,11 +178,13 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		return addL0Event(l0Event, burstID);
 	}
 
-	subevent->addEventPart(l0Event);
-	numberOfL0Events_++;
+	subevent->addFragment(l0Event);
+
+	int currentValue = numberOfL0Events_.fetch_add(1/*,
+	 std::memory_order_relaxed*/) + 1;
 
 #ifdef MEASURE_TIME
-	if (numberOfL0Events_
+	if (currentValue
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
 
@@ -186,11 +192,14 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 	}
 	return false;
 #else
-	return numberOfL0Events_
+	return currentValue
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 #endif
 }
 
+/**
+ * Process data coming from the CREAMs
+ */
 bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 	if (!L1Processed_) {
 #ifdef USE_GLOG
@@ -310,15 +319,18 @@ bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
 
 		zSuppressedLKrEventsByLocalCREAMID[localCreamID] = lkrEvent;
 
+
+		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
+		 std::memory_order_relaxed*/) + 1;
+
 #ifdef MEASURE_TIME
-		if (numberOfCREAMEvents_ == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+		if (currentValue == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-l1ProcessingTime_;
 			return true;
 		}
 		return false;
 #else
-		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
-				std::memory_order_relaxed*/) + 1;
+
 		return currentValue
 				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
@@ -354,8 +366,8 @@ void Event::destroy() {
 		cream::LKREvent* event = zSuppressedLKrEventsByLocalCREAMID[ID];
 		if (event != nullptr) {
 			delete event;
+			zSuppressedLKrEventsByLocalCREAMID[ID] = nullptr;
 		}
-		zSuppressedLKrEventsByLocalCREAMID[ID] = nullptr;
 	}
 
 	for (auto& pair : nonSuppressedLKrEventsByCrateCREAMID) {
@@ -364,12 +376,6 @@ void Event::destroy() {
 	nonSuppressedLKrEventsByCrateCREAMID.clear();
 
 	reset();
-}
-
-void Event::clear() {
-	if (numberOfL0Events_ > 0 || numberOfCREAMEvents_ > 0) {
-		EventPool::FreeEvent(this);
-	}
 }
 
 std::string Event::getMissingSourceIDs() {
