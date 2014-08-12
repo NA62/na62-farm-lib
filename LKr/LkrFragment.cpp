@@ -5,7 +5,7 @@
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
-#include "LKREvent.h"
+#include "LkrFragment.h"
 
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
@@ -16,7 +16,7 @@ using namespace na62;
 namespace na62 {
 namespace cream {
 
-LKREvent::LKREvent(LKRMEP* mep, const char *data, const uint16_t& dataLength) throw (NA62Error) :
+LkrFragment::LkrFragment(LKRMEP* mep, const char *data, const uint16_t& dataLength) throw (NA62Error) :
 		mep_(mep), rawData((const struct LKR_EVENT_RAW_HDR*) data), data_(data) {
 	if (rawData->LKRsourceID != 0x24) {
 		throw BrokenPacketReceivedError("LKR Event with a non 0x24 source field received!");
@@ -26,7 +26,7 @@ LKREvent::LKREvent(LKRMEP* mep, const char *data, const uint16_t& dataLength) th
 	}
 }
 
-LKREvent::~LKREvent() {
+LkrFragment::~LkrFragment() {
 	if (mep_->deleteEvent()) {
 		delete mep_;
 	}

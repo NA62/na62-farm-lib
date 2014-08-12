@@ -15,7 +15,7 @@
 
 #include "../exceptions/UnknownCREAMSourceIDFound.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
-#include "LKREvent.h"
+#include "LkrFragment.h"
 
 namespace na62 {
 namespace cream {
@@ -36,13 +36,13 @@ public:
 	 */
 	virtual ~LKRMEP();
 
-	void initializeLKREvents(const char* data, const uint16_t& dataLength)
+	void initializeLkrFragments(const char* data, const uint16_t& dataLength)
 			throw (UnknownCREAMSourceIDFound, BrokenPacketReceivedError);
 
 	/**
 	 * Returns a pointer to the n'th event within this LKRMEP where 0<=n<getFirstEventNum()
 	 */
-	inline LKREvent* getEvent(const uint16_t n) {
+	inline LkrFragment* getEvent(const uint16_t n) {
 		/*
 		 * n may be bigger than <getNumberOfEvents()> as <deleteEvent()> could have been invoked already
 		 */
@@ -75,7 +75,7 @@ private:
 	// The whole ethernet frame
 	const char* etherFrame_;
 	// Pointers to the payload of the UDP packet
-	std::vector<LKREvent*> events;
+	std::vector<LkrFragment*> events;
 };
 
 } /* namespace cream */

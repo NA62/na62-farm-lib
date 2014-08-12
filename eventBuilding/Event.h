@@ -17,14 +17,16 @@
 #include <boost/timer/timer.hpp>
 #endif
 
-#include "../LKr/LKREvent.h"
+#include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
+
+#include <mutex>
 
 //#define MEASURE_TIME
 
 namespace na62 {
 namespace cream {
-class LKREvent;
+class LkrFragment;
 
 } /* namespace cream */
 namespace l0 {
@@ -39,7 +41,6 @@ namespace na62 {
 
 class Event {
 public:
-
 	Event(uint32_t eventNumber_);
 	virtual ~Event();
 	/**
@@ -53,8 +54,10 @@ public:
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 *
+	 * @return [true] if the given LKr event fragment was the last one to complete the event
 	 */
-	bool addLKREvent(cream::LKREvent* e);
+	bool addLkrFragment(cream::LkrFragment* fragment);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -116,7 +119,6 @@ public:
 		// Move the L2 trigger type word to the third byte of triggerTypeWord_
 		triggerTypeWord_ |= L2TriggerTypeWord << 16;
 	}
-
 
 	uint32_t getEventNumber() const {
 		return eventNumber_;
@@ -219,43 +221,43 @@ public:
 	/*
 	 * Returns a  zero suppressed event fragment sent by the CREAM with the id [CREAMID] in the crate [crateID
 	 */
-	cream::LKREvent* getZSuppressedLKrEvent(const uint8_t crateID,
+	cream::LkrFragment* getZSuppressedLkrFragment(const uint8_t crateID,
 			const uint8_t CREAMID) const {
-		return zSuppressedLKrEventsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
+		return zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
 				crateID, CREAMID)];
 	}
 
 	/*
 	 * Returns a zero suppressed event fragment sent by the CREAM identified by the given local CREAM ID
 	 */
-	cream::LKREvent* getZSuppressedLKrEvent(const uint16_t localCreamID) const {
-		return zSuppressedLKrEventsByLocalCREAMID[localCreamID];
+	cream::LkrFragment* getZSuppressedLkrFragment(const uint16_t localCreamID) const {
+		return zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
 	}
 
-	uint16_t getNumberOfZSuppressedLKrEvents() const {
+	uint16_t getNumberOfZSuppressedLkrFragments() const {
 		return SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 	}
 
-	cream::LKREvent* getNonZSuppressedLKrEvent(const uint16_t crateID,
+	cream::LkrFragment* getNonZSuppressedLkrFragment(const uint16_t crateID,
 			const uint8_t CREAMID) const {
-		return nonSuppressedLKrEventsByCrateCREAMID.at(
-				cream::LKREvent::generateCrateCREAMID(crateID, CREAMID));
+		return nonSuppressedLkrFragmentsByCrateCREAMID.at(
+				cream::LkrFragment::generateCrateCREAMID(crateID, CREAMID));
 	}
 
 	/**
-	 * Get the received non zero suppressed LKr Event by the crateCREMID (qsee LKREvent::generateCrateCREAMID)
+	 * Get the received non zero suppressed LKr Event by the crateCREMID (qsee LkrFragment::generateCrateCREAMID)
 	 */
-	cream::LKREvent* getNonZSuppressedLKrEvent(
+	cream::LkrFragment* getNonZSuppressedLkrFragment(
 			const uint16_t crateCREAMID) const {
-		return nonSuppressedLKrEventsByCrateCREAMID.at(crateCREAMID);
+		return nonSuppressedLkrFragmentsByCrateCREAMID.at(crateCREAMID);
 	}
 
 	/**
 	 * Returns the map containing all received non zero suppressed LKR Events.
 	 * The keys are the 24-bit crate-ID and CREAM-ID concatenations (@see LKR_EVENT_RAW_HDR::generateCrateCREAMID)
 	 */
-	std::map<uint16_t, cream::LKREvent*> getNonSuppressedLKrEvents() const {
-		return nonSuppressedLKrEventsByCrateCREAMID;
+	std::map<uint16_t, cream::LkrFragment*> getNonSuppressedLkrFragments() const {
+		return nonSuppressedLkrFragmentsByCrateCREAMID;
 	}
 
 	/*
@@ -323,6 +325,8 @@ private:
 
 	void reset();
 
+	bool storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment);
+
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
@@ -345,11 +349,11 @@ private:
 	uint16_t nonZSuppressedDataRequestedNum;
 
 	/*
-	 * zSuppressedLKrEventsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
+	 * zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
 	 * corresponding cream/create
 	 */
-	cream::LKREvent** zSuppressedLKrEventsByLocalCREAMID;
-	std::map<uint16_t, cream::LKREvent*> nonSuppressedLKrEventsByCrateCREAMID;
+	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
+	std::map<uint16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
 	bool L1Processed_;bool L2Accepted_;
 

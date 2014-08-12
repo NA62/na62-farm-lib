@@ -54,12 +54,12 @@ Event::Event(uint32_t eventNumber) :
 				SourceIDManager::getExpectedPacksBySourceNum(i));
 	}
 
-	zSuppressedLKrEventsByLocalCREAMID =
-			new cream::LKREvent*[SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
+	zSuppressedLkrFragmentsByLocalCREAMID =
+			new cream::LkrFragment*[SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
 
 	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
 			- 1; i >= 0; i--) {
-		zSuppressedLKrEventsByLocalCREAMID[i] = nullptr;
+		zSuppressedLkrFragmentsByLocalCREAMID[i] = nullptr;
 	}
 }
 
@@ -76,12 +76,12 @@ Event::~Event() {
 //	for (int ID = 0;
 //			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 //			ID++) {
-//		cream::LKREvent* event = zSuppressedLKrEventsByLocalCREAMID[ID];
+//		cream::LkrFragment* event = zSuppressedLkrFragmentsByLocalCREAMID[ID];
 //		if (event != NULL) {
 //			delete event;
 //		}
 //	}
-//	delete[] zSuppressedLKrEventsByLocalCREAMID;
+//	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
 }
 
 /**
@@ -197,128 +197,131 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #endif
 }
 
+bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
+	/*
+	 * The received LkrFragment should be nonZSuppressed data
+	 */
+
+	const uint16_t crateCREAMID = fragment->getCrateCREAMID();
+	/*
+	 * We were waiting for non zero suppressed data
+	 */
+	std::map<uint16_t, cream::LkrFragment*>::iterator lb =
+			nonSuppressedLkrFragmentsByCrateCREAMID.lower_bound(crateCREAMID);
+
+	if (lb != nonSuppressedLkrFragmentsByCrateCREAMID.end()
+			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(crateCREAMID,
+					lb->first))) {
+#ifdef USE_GLOG
+		LOG(INFO)
+#else
+		std::cerr
+#endif
+
+		<< "Non zero suppressed LKr event with EventNumber "
+				<< (int) fragment->getEventNumber() << ", crateID "
+				<< (int) fragment->getCrateID() << " and CREAMID "
+				<< (int) fragment->getCREAMID()
+				<< " received twice! Will delete the whole event!";
+
+		EventPool::FreeEvent(this);
+		delete fragment;
+		return false;
+	} else {
+		/*
+		 * Event does not yet exist -> add it to the map
+		 */
+		nonSuppressedLkrFragmentsByCrateCREAMID.insert(lb,
+				std::map<uint16_t, cream::LkrFragment*>::value_type(crateCREAMID,
+						fragment));
+	}
+	// TODO: this must be synchronized
+	return nonSuppressedLkrFragmentsByCrateCREAMID.size()
+			== nonZSuppressedDataRequestedNum;
+}
+
 /**
  * Process data coming from the CREAMs
  */
-bool Event::addLKREvent(cream::LKREvent* lkrEvent) {
-	if (!L1Processed_) {
-#ifdef USE_GLOG
-		LOG(ERROR)
-#else
-		std::cerr
-#endif
-		<< "Received LKR data with EventNumber "
-				<< (int) lkrEvent->getEventNumber() + ", crateID "
-				<< (int) lkrEvent->getCrateID() + " and CREAMID "
-				<< (int) lkrEvent->getCREAMID()
-				<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
-				<< getBurstID() << ")"
-#ifndef USE_GLOG
-				<< std::endl
-#endif
-				;
-
-		delete lkrEvent;
-		return false;
-	}
-
-	if (eventNumber_ != lkrEvent->getEventNumber()) {
-#ifdef USE_GLOG
-		LOG(ERROR)
-#else
-		std::cerr
-#endif
-				<< "Trying to add LKrevent with eventNumber "
-						+ boost::lexical_cast<std::string>(
-								lkrEvent->getEventNumber())
-						+ " to an Event with eventNumber "
-						+ boost::lexical_cast<std::string>(eventNumber_)
-						+ ". Will ignore the LKrEvent!"
-#ifndef USE_GLOG
-				<< std::endl
-#endif
-				;
-		delete lkrEvent;
-		return false;
-	}
+bool Event::addLkrFragment(cream::LkrFragment* fragment) {
+//	if (!L1Processed_) {
+//#ifdef USE_GLOG
+//		LOG(ERROR)
+//#else
+//		std::cerr
+//#endif
+//		<< "Received LKR data with EventNumber "
+//				<< (int) fragment->getEventNumber() + ", crateID "
+//				<< (int) fragment->getCrateID() + " and CREAMID "
+//				<< (int) fragment->getCREAMID()
+//				<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
+//				<< getBurstID() << ")"
+//#ifndef USE_GLOG
+//				<< std::endl
+//#endif
+//				;
+//
+//		delete fragment;
+//		return false;
+//	}
+//
+//	if (eventNumber_ != fragment->getEventNumber()) {
+//#ifdef USE_GLOG
+//		LOG(ERROR)
+//#else
+//		std::cerr
+//#endif
+//				<< "Trying to add LkrFragment with eventNumber "
+//						+ boost::lexical_cast<std::string>(
+//								fragment->getEventNumber())
+//						+ " to an Event with eventNumber "
+//						+ boost::lexical_cast<std::string>(eventNumber_)
+//						+ ". Will ignore the LkrFragment!"
+//#ifndef USE_GLOG
+//				<< std::endl
+//#endif
+//				;
+//		delete fragment;
+//		return false;
+//	}
 
 	if (nonZSuppressedDataRequestedNum != 0) {
-		/*
-		 * The received lkrEvent should be nonZSuppressed data
-		 */
-
-		const uint16_t crateCREAMID = lkrEvent->getCrateCREAMID();
-		/*
-		 * We were waiting for non zero suppressed data
-		 */
-		std::map<uint16_t, cream::LKREvent*>::iterator lb =
-				nonSuppressedLKrEventsByCrateCREAMID.lower_bound(crateCREAMID);
-
-		if (lb != nonSuppressedLKrEventsByCrateCREAMID.end()
-				&& !(nonSuppressedLKrEventsByCrateCREAMID.key_comp()(
-						crateCREAMID, lb->first))) {
-#ifdef USE_GLOG
-			LOG(INFO)
-#else
-			std::cerr
-#endif
-
-			<< "Non zero suppressed LKr event with EventNumber "
-					<< (int) lkrEvent->getEventNumber() << ", crateID "
-					<< (int) lkrEvent->getCrateID() << " and CREAMID "
-					<< (int) lkrEvent->getCREAMID()
-					<< " received twice! Will delete the whole event!";
-
-			EventPool::FreeEvent(this);
-			delete lkrEvent;
-			return false;
-		} else {
-			/*
-			 * Event does not yet exist -> add it to the map
-			 */
-			nonSuppressedLKrEventsByCrateCREAMID.insert(lb,
-					std::map<uint16_t, cream::LKREvent*>::value_type(
-							crateCREAMID, lkrEvent));
-		}
-		// TODO: this must be synchronized
-		return nonSuppressedLKrEventsByCrateCREAMID.size()
-				== nonZSuppressedDataRequestedNum;
+		return storeNonZSuppressedLkrFragemnt(fragment);
 	} else {
 		/*
 		 * ZSuppressed data received
 		 */
 		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(
-				lkrEvent->getCrateID(), lkrEvent->getCREAMID());
+				fragment->getCrateID(), fragment->getCREAMID());
 		/*
 		 * This must be a zero suppressed event
 		 */
-		cream::LKREvent* oldEvent =
-				zSuppressedLKrEventsByLocalCREAMID[localCreamID];
+//		cream::LkrFragment* oldEvent =
+//				zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
+//
+//		if (oldEvent != NULL) {
+//#ifdef USE_GLOG
+//			LOG(INFO)
+//#else
+//			std::cerr
+//#endif
+//
+//					<< "LKr event with EventNumber "
+//							+ boost::lexical_cast<std::string>(
+//									(int) fragment->getEventNumber())
+//							+ ", crateID "
+//							+ boost::lexical_cast<std::string>(
+//									(int) fragment->getCrateID())
+//							+ " and CREAMID "
+//							+ boost::lexical_cast<std::string>(
+//									(int) fragment->getCREAMID())
+//							+ " received twice! Will delete the whole event!";
+//			EventPool::FreeEvent(this);
+//			delete fragment;
+//			return false;
+//		}
 
-		if (oldEvent != NULL) {
-#ifdef USE_GLOG
-			LOG(INFO)
-#else
-			std::cerr
-#endif
-
-					<< "LKr event with EventNumber "
-							+ boost::lexical_cast<std::string>(
-									(int) lkrEvent->getEventNumber())
-							+ ", crateID "
-							+ boost::lexical_cast<std::string>(
-									(int) lkrEvent->getCrateID())
-							+ " and CREAMID "
-							+ boost::lexical_cast<std::string>(
-									(int) lkrEvent->getCREAMID())
-							+ " received twice! Will delete the whole event!";
-			EventPool::FreeEvent(this);
-			delete lkrEvent;
-			return false;
-		}
-
-		zSuppressedLKrEventsByLocalCREAMID[localCreamID] = lkrEvent;
-
+		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
 		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
 		 std::memory_order_relaxed*/) + 1;
@@ -363,17 +366,17 @@ void Event::destroy() {
 	for (int ID = 0;
 			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 			ID++) {
-		cream::LKREvent* event = zSuppressedLKrEventsByLocalCREAMID[ID];
-		if (event != nullptr) {
-			delete event;
-			zSuppressedLKrEventsByLocalCREAMID[ID] = nullptr;
+		cream::LkrFragment* fragment = zSuppressedLkrFragmentsByLocalCREAMID[ID];
+		if (fragment != nullptr) {
+			delete fragment;
+			zSuppressedLkrFragmentsByLocalCREAMID[ID] = nullptr;
 		}
 	}
 
-	for (auto& pair : nonSuppressedLKrEventsByCrateCREAMID) {
+	for (auto& pair : nonSuppressedLkrFragmentsByCrateCREAMID) {
 		delete pair.second;
 	}
-	nonSuppressedLKrEventsByCrateCREAMID.clear();
+	nonSuppressedLkrFragmentsByCrateCREAMID.clear();
 
 	reset();
 }
@@ -391,7 +394,7 @@ std::string Event::getMissingSourceIDs() {
 	}
 	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
 			- 1; i >= 0; i--) {
-		if (zSuppressedLKrEventsByLocalCREAMID[i] == nullptr) {
+		if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
 			std::pair<uint8_t, uint8_t> crateAndCream =
 					SourceIDManager::getCrateAndCREAMIDByLocalID(i);
 
