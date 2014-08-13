@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <boost/noncopyable.hpp>
 
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
@@ -42,7 +43,7 @@ struct MEP_HDR {
 	uint8_t sourceSubID;
 }__attribute__ ((__packed__));
 
-class MEP {
+class MEP: private boost::noncopyable  {
 public:
 	/**
 	 * Reads the data coming from L0 and initializes the corresponding fields

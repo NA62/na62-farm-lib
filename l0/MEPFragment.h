@@ -10,6 +10,7 @@
 #define MEPFragment_H_
 
 #include <stdint.h>
+#include <boost/noncopyable.hpp>
 
 namespace na62 {
 namespace l0 {
@@ -29,7 +30,7 @@ struct MEPFragment_HDR {
 	uint32_t timestamp_;
 }__attribute__ ((__packed__));
 
-class MEPFragment {
+class MEPFragment: private boost::noncopyable  {
 public:
 	MEPFragment(MEP* mep, const MEPFragment_HDR * data, uint32_t& expectedEventNum);
 	virtual ~MEPFragment();

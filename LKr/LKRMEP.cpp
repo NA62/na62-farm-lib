@@ -46,7 +46,6 @@ void LKRMEP::initializeLkrFragments(const char * data, const uint16_t& dataLengt
 
 	while (offset < dataLength) {
 		newEvent = new LkrFragment(this, data + offset, dataLength);
-		events.push_back(newEvent);
 
 		if (newEvent->getEventLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
@@ -58,6 +57,7 @@ void LKRMEP::initializeLkrFragments(const char * data, const uint16_t& dataLengt
 							+ " bytes");
 		}
 		offset += newEvent->getEventLength();
+		events.push_back(std::move(newEvent));
 	}
 	eventNum = events.size();
 }

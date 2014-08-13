@@ -138,7 +138,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 
 }
 
-bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) throw () {
+bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID)  {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}

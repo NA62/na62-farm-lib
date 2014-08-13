@@ -9,6 +9,7 @@
 #ifndef LkrFragment_H_
 #define LkrFragment_H_
 
+#include <boost/noncopyable.hpp>
 #include <netinet/in.h>
 #include <cstdint>
 #include "../exceptions/NA62Error.h"
@@ -50,7 +51,7 @@ struct LKR_EVENT_RAW_HDR {
 }__attribute__ ((__packed__));
 #endif
 
-class LkrFragment {
+class LkrFragment: boost::noncopyable {
 public:
 	LkrFragment(LKRMEP* mep, const char * data, const uint16_t& dataLength) throw (NA62Error);
 	virtual ~LkrFragment();

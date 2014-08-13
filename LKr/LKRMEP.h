@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <vector>
 #include <atomic>
+#include <boost/noncopyable.hpp>
 
 #include "../exceptions/UnknownCREAMSourceIDFound.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
@@ -20,7 +21,7 @@
 namespace na62 {
 namespace cream {
 
-class LKRMEP {
+class LKRMEP: private boost::noncopyable  {
 public:
 	/**
 	 * Reads the data coming from L0 and initializes the corresponding fields

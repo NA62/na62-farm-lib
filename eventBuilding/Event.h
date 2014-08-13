@@ -16,6 +16,7 @@
 #ifdef MEASURE_TIME
 #include <boost/timer/timer.hpp>
 #endif
+#include <boost/noncopyable.hpp>
 
 #include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
@@ -39,7 +40,7 @@ class Subevent;
 
 namespace na62 {
 
-class Event {
+class Event:   boost::noncopyable{
 public:
 	Event(uint32_t eventNumber_);
 	virtual ~Event();
