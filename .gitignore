@@ -1,2 +1,5 @@
 /Debug
 /Release
+/GLOG_RELEASE/
+/GLOG-DEBUG/
+/GLOG_DEBUG/

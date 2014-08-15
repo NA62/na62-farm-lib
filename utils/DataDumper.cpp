@@ -59,4 +59,30 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 
 	myfile.close();
 }
+
+void DataDumper::printToFile(std::string fileName, const std::string storageDir,
+		const std::string message) {
+	std::string filePath = storageDir + "/" + fileName;
+
+	if (!boost::filesystem::exists(storageDir)) {
+		if (!boost::filesystem::create_directory(storageDir)) {
+			std::cerr << "Unable to write to file " << filePath << std::endl;
+			return;
+		}
+	}
+
+	std::ofstream myfile;
+	myfile.open(filePath.data(), std::ios::out | std::ios::app);
+
+	if (!myfile.good()) {
+		std::cerr << "Unable to write to file " << filePath << std::endl;
+		// carry on to free the memory. myfile.write will not throw!
+	} else {
+		myfile.write(message.c_str(), message.length());
+		myfile.write("\n", 1);
+	}
+
+	myfile.close();
+}
+
 }

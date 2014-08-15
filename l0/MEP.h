@@ -9,9 +9,9 @@
 #ifndef MEPHEADER_H_
 #define MEPHEADER_H_
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/pthread/mutex.hpp>
+#include <atomic>
 #include <cstdint>
+#include <boost/noncopyable.hpp>
 
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
@@ -43,7 +43,7 @@ struct MEP_HDR {
 	uint8_t sourceSubID;
 }__attribute__ ((__packed__));
 
-class MEP {
+class MEP: private boost::noncopyable  {
 public:
 	/**
 	 * Reads the data coming from L0 and initializes the corresponding fields
@@ -117,8 +117,7 @@ public:
 		 */
 
 		// TODO: Do we need to lock here? Probably not locking is that much faster that it's worth implementing a garbage collector?!
-		boost::lock_guard<boost::mutex> lock(deletionMutex); // Will lock deletionMutex until return
-		return --rawData->eventCount == 0;
+		return --eventCount_ == 0;
 	}
 
 	const char* getRawData() const {
@@ -128,7 +127,7 @@ public:
 //	bool verifyChecksums();
 
 private:
-	boost::mutex deletionMutex;
+	std::atomic<int> eventCount_;
 	// The whole Ethernet frame
 	const char* etherFrame_;
 	// Pointer to the Payload of the UDP packet

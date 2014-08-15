@@ -12,18 +12,22 @@
 #include <algorithm>
 #include <cstdint>
 #include <map>
+#include <atomic>
 #ifdef MEASURE_TIME
 #include <boost/timer/timer.hpp>
 #endif
+#include <boost/noncopyable.hpp>
 
-#include "../LKr/LKREvent.h"
+#include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
+
+#include <mutex>
 
 //#define MEASURE_TIME
 
 namespace na62 {
 namespace cream {
-class LKREvent;
+class LkrFragment;
 
 } /* namespace cream */
 namespace l0 {
@@ -36,7 +40,7 @@ class Subevent;
 
 namespace na62 {
 
-class Event {
+class Event:   boost::noncopyable{
 public:
 	Event(uint32_t eventNumber_);
 	virtual ~Event();
@@ -51,18 +55,15 @@ public:
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 *
+	 * @return [true] if the given LKr event fragment was the last one to complete the event
 	 */
-	bool addLKREvent(cream::LKREvent* e);
+	bool addLkrFragment(cream::LkrFragment* fragment);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
 	void destroy();
-
-	/*
-	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
-	 */
-	void clear();
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -78,8 +79,46 @@ public:
 		return L2Accepted_;
 	}
 
+	/*
+	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 */
 	void setEventNumber(uint32_t eventNumber) {
 		eventNumber_ = eventNumber;
+	}
+
+	/**
+	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 *
+	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
+	 *
+	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
+	 */
+	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
+#ifdef MEASURE_TIME
+		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+		- l0BuildingTime_;
+#endif
+
+		triggerTypeWord_ = L0L1TriggerTypeWord;
+		L1Processed_ = true;
+	}
+
+	/**
+	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
+	 *
+	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
+	 *
+	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
+	 */
+	void setL2Processed(const uint8_t L2TriggerTypeWord) {
+#ifdef MEASURE_TIME
+		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+		- l0BuildingTime_;
+#endif
+
+		L2Accepted_ = L2TriggerTypeWord > 0;
+		// Move the L2 trigger type word to the third byte of triggerTypeWord_
+		triggerTypeWord_ |= L2TriggerTypeWord << 16;
 	}
 
 	uint32_t getEventNumber() const {
@@ -131,37 +170,6 @@ public:
 		return burstID_;
 	}
 
-	/**
-	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
-	 *
-	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
-	 */
-	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
-#ifdef MEASURE_TIME
-		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- l0BuildingTime_;
-#endif
-
-		triggerTypeWord_ = L0L1TriggerTypeWord;
-		L1Processed_ = true;
-	}
-
-	/**
-	 * Set the trigger type word. If this is 0 the event will be destroyed (after sending the 0x00 tirrger type word to the creams)
-	 *
-	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
-	 */
-	void setL2Processed(const uint8_t L2TriggerTypeWord) {
-#ifdef MEASURE_TIME
-		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- l0BuildingTime_;
-#endif
-
-		L2Accepted_ = L2TriggerTypeWord > 0;
-		// Move the L2 trigger type word to the third byte of triggerTypeWord_
-		triggerTypeWord_ |= L2TriggerTypeWord << 16;
-	}
-
 	/*
 	 * Can be used for itaration over all subevents like following:
 	 * for (int i = Options::Instance()->NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
@@ -176,7 +184,8 @@ public:
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline l0::Subevent* getL0SubeventBySourceID(const uint8_t&& sourceID) const {
+	inline l0::Subevent* getL0SubeventBySourceID(
+			const uint8_t&& sourceID) const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
@@ -211,45 +220,45 @@ public:
 	}
 
 	/*
-	 * You may access this method only within any TriggerProcessor instance
+	 * Returns a  zero suppressed event fragment sent by the CREAM with the id [CREAMID] in the crate [crateID
 	 */
-	cream::LKREvent* getZSuppressedLKrEvent(const uint8_t crateID,
+	cream::LkrFragment* getZSuppressedLkrFragment(const uint8_t crateID,
 			const uint8_t CREAMID) const {
-		return zSuppressedLKrEventsByCrateCREAMID[SourceIDManager::getLocalCREAMID(
+		return zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
 				crateID, CREAMID)];
 	}
 
 	/*
-	 * You may access this method only within any TriggerProcessor instance
+	 * Returns a zero suppressed event fragment sent by the CREAM identified by the given local CREAM ID
 	 */
-	cream::LKREvent* getZSuppressedLKrEvent(const uint16_t localCreamID) const {
-		return zSuppressedLKrEventsByCrateCREAMID[localCreamID];
+	cream::LkrFragment* getZSuppressedLkrFragment(const uint16_t localCreamID) const {
+		return zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
 	}
 
-	uint16_t getNumberOfZSuppressedLKrEvents() const {
+	uint16_t getNumberOfZSuppressedLkrFragments() const {
 		return SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 	}
 
-	cream::LKREvent* getNonZSuppressedLKrEvent(const uint16_t crateID,
+	cream::LkrFragment* getNonZSuppressedLkrFragment(const uint16_t crateID,
 			const uint8_t CREAMID) const {
-		return nonSuppressedLKrEventsByCrateCREAMID.at(
-				cream::LKREvent::generateCrateCREAMID(crateID, CREAMID));
+		return nonSuppressedLkrFragmentsByCrateCREAMID.at(
+				cream::LkrFragment::generateCrateCREAMID(crateID, CREAMID));
 	}
 
 	/**
-	 * Get the received non zero suppressed LKr Event by the crateCREMID (qsee LKREvent::generateCrateCREAMID)
+	 * Get the received non zero suppressed LKr Event by the crateCREMID (qsee LkrFragment::generateCrateCREAMID)
 	 */
-	cream::LKREvent* getNonZSuppressedLKrEvent(
+	cream::LkrFragment* getNonZSuppressedLkrFragment(
 			const uint16_t crateCREAMID) const {
-		return nonSuppressedLKrEventsByCrateCREAMID.at(crateCREAMID);
+		return nonSuppressedLkrFragmentsByCrateCREAMID.at(crateCREAMID);
 	}
 
 	/**
 	 * Returns the map containing all received non zero suppressed LKR Events.
 	 * The keys are the 24-bit crate-ID and CREAM-ID concatenations (@see LKR_EVENT_RAW_HDR::generateCrateCREAMID)
 	 */
-	std::map<uint16_t, cream::LKREvent*> getNonSuppressedLKrEvents() const {
-		return nonSuppressedLKrEventsByCrateCREAMID;
+	std::map<uint16_t, cream::LkrFragment*> getNonSuppressedLkrFragments() const {
+		return nonSuppressedLkrFragmentsByCrateCREAMID;
 	}
 
 	/*
@@ -310,14 +319,21 @@ private:
 		burstID_ = L0ID;
 	}
 
+	/*
+	 * Find the missing sourceIDs
+	 */
+	std::string getMissingSourceIDs();
+
 	void reset();
+
+	bool storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment);
 
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
 	uint32_t eventNumber_;
-	uint8_t numberOfL0Events_;
-	uint16_t numberOfCREAMEvents_;
+	std::atomic<uint8_t> numberOfL0Events_;
+	std::atomic<uint16_t> numberOfCREAMEvents_;
 
 	/*
 	 * To be added within L1 trigger process
@@ -334,13 +350,13 @@ private:
 	uint16_t nonZSuppressedDataRequestedNum;
 
 	/*
-	 * lkrEventsByCreamIDByCrate[crate][cream] is the Event coming from CREAM number <cream> within the crate number <crate>
+	 * zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
+	 * corresponding cream/create
 	 */
-	cream::LKREvent** zSuppressedLKrEventsByCrateCREAMID;
-	std::map<uint16_t, cream::LKREvent*> nonSuppressedLKrEventsByCrateCREAMID;
+	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
+	std::map<uint16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	bool L1Processed_;
-	bool L2Accepted_;
+	bool L1Processed_;bool L2Accepted_;
 
 	bool lastEventOfBurst_;
 

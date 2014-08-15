@@ -36,7 +36,8 @@ uint16_t SourceIDManager::TS_SOURCEID;
 
 void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		std::vector<std::pair<int, int> > sourceIDs,
-		std::vector<std::pair<int, int> > creamCrates) {
+		std::vector<std::pair<int, int> > creamCrates,
+		std::vector<std::pair<int, int> > inactiveCreams) {
 	TS_SOURCEID = timeStampSourceID;
 
 	/*
@@ -51,7 +52,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 	bool LKrActive = false;
 
 	int pos = -1;
-	for (auto pair : sourceIDs) {
+	for (auto& pair : sourceIDs) {
 		if (pair.first == SOURCE_ID_LKr) {
 			NUMBER_OF_L0_DATA_SOURCES--;
 			LKrActive = true;
@@ -73,15 +74,40 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			throw NA62Error("Option defining CREAM IDsmust not be empty!'");
 		}
 
-		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = creamCrates.size();
+		/*
+		 * Check if all inactive CREAMs are listed in the normal cream create list
+		 */
+		for (auto& inactivePair : inactiveCreams) {
+			uint8_t crateID = inactivePair.first;
+			uint8_t CREAMID = inactivePair.second;
+			for (auto& pair : creamCrates) {
+				if (crateID == pair.first
+						&& CREAMID == pair.second) {
+					continue;
+				}
+			}
+			throw NA62Error(
+					"The CREAM " + std::to_string(CREAMID) + " in crate "
+							+ std::to_string(crateID)
+							+ " appears in the list of inactive CREAMs but not in the list of available CREAMs");
+		}
+
+		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = creamCrates.size()
+				- inactiveCreams.size();
 		LOCAL_ID_TO_CRATE_AND_CREAM_IDS =
 				new std::pair<uint16_t, uint16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
 
-		std::cout << "List of activated CREAMs: \ncrateID\tSlot\n";
+		std::cout << "List of activated CREAMs (" << creamCrates.size() << " total): \ncrateID\tSlot\n";
 		int creamNum = -1;
-		for (auto pair : creamCrates) {
+		for (auto& pair : creamCrates) {
 			uint8_t crateID = pair.first;
 			uint8_t CREAMID = pair.second;
+			for (auto& inactivePair : inactiveCreams) {
+				if (crateID == inactivePair.first
+						&& CREAMID == inactivePair.second) {
+					continue;
+				}
+			}
 			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAMID] =
 					++creamNum;
 			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[creamNum] = std::make_pair(crateID,
@@ -112,7 +138,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 
 }
 
-bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) throw () {
+bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID)  {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}

@@ -61,15 +61,15 @@ public:
 	 * @param sourceIDs A list of pairs of available sourceIDs and the number of frames coming from each sourceID
 	 * 	@param creamCrates A list of pairs with a crateID and a CREAM ID
 	 */
-	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates);
+	static void Initialize(const uint16_t timeStampSourceID, std::vector<std::pair<int, int> > sourceIDs, std::vector<std::pair<int, int> > creamCrates, std::vector<std::pair<int, int> > inactiveCreams);
 
 	static inline uint16_t getExpectedPacksBySourceNum(
-			const uint8_t sourceNum) throw () {
+			const uint8_t sourceNum)  {
 		return L0_DATA_SOURCE_NUM_TO_PACKNUM[sourceNum];
 	}
 
 	static inline uint16_t getExpectedPacksBySourceID(
-			const uint8_t sourceID) throw () {
+			const uint8_t sourceID)  {
 		return L0_DATA_SOURCE_ID_TO_PACKNUM[sourceID];
 	}
 
@@ -77,21 +77,21 @@ public:
 	 * sourceID must be a valid SourceID! So use checkSourceID if you are not sure!
 	 * 0 <= sourceID < L1_LARGEST_DATA_SOURCE_ID
 	 */
-	static inline uint8_t SourceIDToNum(const uint8_t sourceID) throw () {
+	static inline uint8_t SourceIDToNum(const uint8_t sourceID)  {
 		return L0_DATA_SOURCE_ID_TO_NUM[sourceID];
 	}
 
 	/*
 	 * 0 <= sourceNum < L1_NUMBER_OF_DATA_SOURCES
 	 */
-	static inline uint8_t SourceNumToID(const uint8_t sourceNum) throw () {
+	static inline uint8_t SourceNumToID(const uint8_t sourceNum)  {
 		return L0_DATA_SOURCE_IDS[sourceNum];
 	}
 
 	/*
 	 * @return bool <true> if the sourceID is correct, <false> else
 	 */
-	static bool CheckL0SourceID(const uint8_t sourceID) throw ();
+	static bool CheckL0SourceID(const uint8_t sourceID) ;
 
 	/**
 	 * Returns the local CREAMID corresponding to the given crateID and CREAM_ID
@@ -100,7 +100,7 @@ public:
 	 * @see Options::getCrateAndCREAMIDByLocalID
 	 */
 	static inline uint16_t getLocalCREAMID(const uint8_t crateID,
-			const uint8_t CREAM_ID) throw () {
+			const uint8_t CREAM_ID)  {
 		return CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAM_ID];
 	}
 
@@ -108,12 +108,12 @@ public:
 	 * Returns a pair containing the crate ID as first and CREAM id as second corresponding to the given localID
 	 */
 	static inline std::pair<uint8_t, uint8_t> getCrateAndCREAMIDByLocalID(
-			const uint16_t localID) throw () {
+			const uint16_t localID)  {
 		return LOCAL_ID_TO_CRATE_AND_CREAM_IDS[localID];
 	}
 
 	static inline bool CheckCREAMID(const uint8_t crateID,
-			const uint8_t CREAM_ID) throw () {
+			const uint8_t CREAM_ID)  {
 		std::map<uint16_t, uint16_t>* cratesMap =
 				&CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 		if (cratesMap->find((crateID << 8) | CREAM_ID) == cratesMap->end()) {
