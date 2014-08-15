@@ -21,10 +21,10 @@ LKRMEP::LKRMEP(const char * data, const uint16_t& dataLength,
 		etherFrame_(etherFrame) {
 
 	/*
-	 * There is now special LKRMEP header! A MEP just consists of several LKREvents and we have to
+	 * There is now special LKRMEP header! A MEP just consists of several LkrFragments and we have to
 	 * find out how many of those are written into this packet.
 	 */
-	initializeLKREvents(data, dataLength);
+	initializeLkrFragments(data, dataLength);
 }
 
 LKRMEP::~LKRMEP() {
@@ -38,19 +38,18 @@ LKRMEP::~LKRMEP() {
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
-void LKRMEP::initializeLKREvents(const char * data, const uint16_t& dataLength)
+void LKRMEP::initializeLkrFragments(const char * data, const uint16_t& dataLength)
 		throw (UnknownCREAMSourceIDFound, BrokenPacketReceivedError) {
 	uint16_t offset = 0;
 
-	LKREvent* newEvent;
+	LkrFragment* newEvent;
 
 	while (offset < dataLength) {
-		newEvent = new LKREvent(this, data + offset, dataLength);
-		events.push_back(newEvent);
+		newEvent = new LkrFragment(this, data + offset, dataLength);
 
 		if (newEvent->getEventLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
-					"Incomplete LKREvent! Received only "
+					"Incomplete LkrFragment! Received only "
 							+ boost::lexical_cast<std::string>(dataLength)
 							+ " instead of "
 							+ boost::lexical_cast<std::string>(
@@ -58,6 +57,7 @@ void LKRMEP::initializeLKREvents(const char * data, const uint16_t& dataLength)
 							+ " bytes");
 		}
 		offset += newEvent->getEventLength();
+		events.push_back(std::move(newEvent));
 	}
 	eventNum = events.size();
 }

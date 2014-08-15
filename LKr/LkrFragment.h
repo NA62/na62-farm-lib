@@ -1,14 +1,15 @@
 /*
- * LKREvent.h
+ * LkrFragment.h
  *
  *  Created on: Nov 14, 2011
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #pragma once
-#ifndef LKREVENT_H_
-#define LKREVENT_H_
+#ifndef LkrFragment_H_
+#define LkrFragment_H_
 
+#include <boost/noncopyable.hpp>
 #include <netinet/in.h>
 #include <cstdint>
 #include "../exceptions/NA62Error.h"
@@ -50,12 +51,10 @@ struct LKR_EVENT_RAW_HDR {
 }__attribute__ ((__packed__));
 #endif
 
-class LKREvent {
+class LkrFragment: boost::noncopyable {
 public:
-	static const uint8_t HEADER_LENGTH = 4;
-
-	LKREvent(LKRMEP* mep, const char * data, const uint16_t& dataLength) throw (NA62Error);
-	virtual ~LKREvent();
+	LkrFragment(LKRMEP* mep, const char * data, const uint16_t& dataLength) throw (NA62Error);
+	virtual ~LkrFragment();
 
 	inline const uint32_t getEventLength() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS

@@ -27,7 +27,7 @@ public:
 	virtual ~Subevent();
 
 	void destroy();
-	inline void addEventPart(MEPFragment* eventPart) throw () {
+	inline void addFragment(MEPFragment* eventPart) {
 		eventFragments[eventPartCounter++] = eventPart;
 	}
 
@@ -35,7 +35,7 @@ public:
 	 * Returns all fragments of this Subevent
 	 * @return A pointer to an array of all received MEPFragment pointers
 	 */
-	inline MEPFragment ** getEventFragments() throw () {
+	inline MEPFragment ** getEventFragments() {
 		return eventFragments;
 	}
 
@@ -47,7 +47,7 @@ public:
 	 * 						than  getNumberOfParts()
 	 * @return The Nth fragment received
 	 */
-	inline MEPFragment* getFragment(uint16_t eventPartNumber) throw () {
+	inline MEPFragment* getFragment(uint16_t eventPartNumber) {
 		return eventFragments[eventPartNumber];
 	}
 
@@ -56,7 +56,7 @@ public:
 	 *
 	 * @return The number of subevent fragments received
 	 */
-	inline uint16_t getNumberOfFragments() throw () {
+	inline uint16_t getNumberOfFragments() {
 		return eventPartCounter;
 	}
 

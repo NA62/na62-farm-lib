@@ -30,7 +30,6 @@ public:
 	uint32_t Size_;
 	T* Data;
 
-
 	ThreadsafeQueue(uint32_t size) :
 			Size_(size) {
 		readPos_ = 0;
@@ -48,7 +47,7 @@ public:
 	/*
 	 * Push a new element into the circular queue. May only be called by one single thread (producer)!
 	 */
-	bool push(T &element) throw () {
+	bool push(T &element) {
 		const uint32_t nextElement = (writePos_ + 1) % Size_;
 		if (nextElement != readPos_) {
 			Data[writePos_] = element;
@@ -61,7 +60,7 @@ public:
 	/*
 	 * remove the oledest element from the circular queue. May only be called by one single thread (consumer)!
 	 */
-	bool pop(T &element) throw () {
+	bool pop(T &element) {
 		if (readPos_ == writePos_) {
 			return false;
 		}
