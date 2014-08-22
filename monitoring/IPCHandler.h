@@ -20,7 +20,7 @@ typedef boost::shared_ptr<boost::interprocess::message_queue> message_queue_ptr;
 enum STATE {
 	// 0=IDLE; 1=INITIALIZED; 2=RUNNING; Other=ERROR
 	OFF,
-	INITIALIZED,
+	INITIALIZING,
 	RUNNING,
 	ERROR
 };
