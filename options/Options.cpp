@@ -59,7 +59,13 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 			"Verbosity mode:\n0: Error\n1: Warning\n2: Info")
 
 	(OPTION_LOGTOSTDERR, po::value<int>()->default_value(0),
-			"Show logs in stderr");
+			"Show logs in stderr")
+
+	(OPTION_LOG_FILE,
+			po::value<std::string>()->default_value("/var/log/na62-farm"),
+			"Directory where the log files should be written to")
+
+			;
 
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -99,8 +105,14 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	}
 	FLAGS_minloglevel = 2 - Options::GetInt(OPTION_VERBOSITY);
 
-	FLAGS_log_dir = "/var/log/" + std::string(argv[0]);
+	boost::filesystem::path dir(OPTION_LOG_FILE);
+	if (!boost::filesystem::create_directory(dir)){
+		std::cerr << "Unable to create directory " << dir.string() << std::endl;
+	}
+
+	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
 	google::InitGoogleLogging(argv[0]);
+	std::cout << "Writing logs to " << FLAGS_log_dir << std::endl;
 #endif
 }
 
@@ -207,7 +219,7 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 	/*
 	 * Check if the parameter is empty
 	 */
-	if(comaSeparatedList.size()==0){
+	if (comaSeparatedList.size() == 0) {
 		return values;
 	}
 

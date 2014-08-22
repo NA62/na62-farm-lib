@@ -29,6 +29,7 @@ namespace po = boost::program_options;
 #define OPTION_CONFIG_FILE (char*)"configFile"
 #define OPTION_LOGTOSTDERR (char*)"logtostderr"
 #define OPTION_VERBOSITY (char*)"verbosity"
+#define OPTION_LOG_FILE (char*)"logDir"
 
 namespace na62 {
 class Options {
