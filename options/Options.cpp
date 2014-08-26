@@ -151,7 +151,7 @@ int Options::GetInt(char* parameter) {
 }
 
 bool Options::GetBool(char* parameter) {
-	return vm[parameter].as<int>() > 0;
+	return vm[parameter].as<bool>();
 }
 
 std::vector<int> Options::GetIntList(char* parameter) {
