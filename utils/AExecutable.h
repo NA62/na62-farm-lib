@@ -14,6 +14,7 @@
 #include <boost/thread.hpp>
 #include <sys/prctl.h>
 #include <pthread.h>
+#include <iostream>
 
 namespace na62 {
 
