@@ -8,7 +8,9 @@
 #include "EventPool.h"
 
 #include <tbb/tbb.h>
+#ifdef USE_GLOG
 #include <glog/logging.h>
+#endif
 #include <thread>
 #include <iostream>
 
@@ -51,8 +53,18 @@ void EventPool::Initialize(uint numberOfEventsToBeStored) {
 
 Event* EventPool::GetEvent(uint32_t eventNumber) {
 	if (eventNumber >= numberOfEventsStored_) {
-		LOG(ERROR)<<"Received Event with event number " << eventNumber
-		<< " which is higher than configured maximum number of events"<< std::endl;
+#ifdef USE_GLOG
+		LOG(ERROR)
+#else
+		std::cerr
+#endif
+		<<"Received Event with event number " << eventNumber
+		<< " which is higher than configured maximum number of events"
+#ifndef USE_GLOG
+		<< std::endl
+#endif
+		;
+
 		return nullptr;
 	}
 	return events_[eventNumber];
