@@ -105,8 +105,8 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	}
 	FLAGS_minloglevel = 2 - Options::GetInt(OPTION_VERBOSITY);
 
-	boost::filesystem::path dir(OPTION_LOG_FILE);
-	if (!boost::filesystem::create_directory(dir)){
+	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
+	if (!boost::filesystem::exists(dir) && !boost::filesystem::create_directory(dir)){
 		std::cerr << "Unable to create directory " << dir.string() << std::endl;
 	}
 
