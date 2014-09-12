@@ -20,7 +20,7 @@
 
 namespace na62 {
 
-std::string generateFreeFilePath(std::string fileName,
+std::string DataDumper::generateFreeFilePath(std::string fileName,
 		const std::string storageDir) {
 	std::string filePath = storageDir + "/" + fileName;
 	if (boost::filesystem::exists(filePath)) {
@@ -62,7 +62,7 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 	myfile.close();
 }
 
-bool generateDirIfNotExists(const std::string dirPath) {
+bool DataDumper::generateDirIfNotExists(const std::string dirPath) {
 	if (!boost::filesystem::exists(dirPath)) {
 		if (!boost::filesystem::create_directory(dirPath)) {
 			std::cerr << "Unable to write to file " << dirPath << std::endl;
@@ -96,5 +96,4 @@ void DataDumper::printToFile(std::string fileName, const std::string storageDir,
 
 	myfile.close();
 }
-
 }
