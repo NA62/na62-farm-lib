@@ -19,31 +19,33 @@
 #endif
 
 namespace na62 {
-void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
-		const char* data, const uint length) {
+
+std::string DataDumper::generateFreeFilePath(std::string fileName,
+		const std::string storageDir) {
 	std::string filePath = storageDir + "/" + fileName;
-
-	std::cout << "Writing file " << filePath << std::endl;
-
 	if (boost::filesystem::exists(filePath)) {
-		std::cerr << "File already exists: " << filePath << std::endl;
 		int counter = 2;
 		std::string tmpName = fileName;
 		do {
-			std::cerr << "File already exists: " << tmpName << std::endl;
 			tmpName = fileName + "_" + std::to_string(++counter);
 		} while (boost::filesystem::exists(storageDir + "/" + tmpName));
 
-		std::cerr << "Instead writing file: " << tmpName << std::endl;
 		fileName = tmpName;
 		filePath = storageDir + "/" + fileName;
 	}
 
-	if (!boost::filesystem::exists(storageDir)) {
-		if (!boost::filesystem::create_directory(storageDir)) {
-			std::cerr << "Unable to write to file " << filePath << std::endl;
-			return;
-		}
+	return filePath;
+}
+
+void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
+		const char* data, const uint length) {
+
+	const std::string filePath = generateFreeFilePath(fileName, storageDir);
+
+	std::cout << "Writing file " << filePath << std::endl;
+
+	if (!generateDirIfNotExists(storageDir)) {
+		return;
 	}
 
 	std::ofstream myfile;
@@ -58,6 +60,16 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 	}
 
 	myfile.close();
+}
+
+bool DataDumper::generateDirIfNotExists(const std::string dirPath) {
+	if (!boost::filesystem::exists(dirPath)) {
+		if (!boost::filesystem::create_directory(dirPath)) {
+			std::cerr << "Unable to write to file " << dirPath << std::endl;
+			return false;
+		}
+	}
+	return true;
 }
 
 void DataDumper::printToFile(std::string fileName, const std::string storageDir,
@@ -84,5 +96,4 @@ void DataDumper::printToFile(std::string fileName, const std::string storageDir,
 
 	myfile.close();
 }
-
 }

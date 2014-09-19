@@ -37,8 +37,7 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 						+ boost::lexical_cast<std::string>(
 								(int) rawData->eventNumberLSB_)
 						+ " but expected LSB is "
-						+ boost::lexical_cast<std::string>(
-								expectedEventNum & 0xFF000000));
+						+ std::to_string(expectedEventNum & 0x000000FF));
 	}
 }
 
