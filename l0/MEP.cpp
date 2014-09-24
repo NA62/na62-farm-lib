@@ -90,16 +90,16 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 
 		expectedEventNum++;
 		events[i] = newMEPFragment;
-		if (newMEPFragment->getDataLength() + offset > dataLength) {
+		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEPFragment! Received only "
 							+ boost::lexical_cast<std::string>(dataLength)
 							+ " of "
 							+ boost::lexical_cast<std::string>(
-									offset + newMEPFragment->getDataLength())
+									offset + newMEPFragment->getDataWithHeaderLength())
 							+ " bytes");
 		}
-		offset += newMEPFragment->getDataLength();
+		offset += newMEPFragment->getDataWithHeaderLength();
 	}
 
 	// Check if too many bytes have been transmitted

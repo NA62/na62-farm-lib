@@ -30,16 +30,24 @@ struct MEPFragment_HDR {
 	uint32_t timestamp_;
 }__attribute__ ((__packed__));
 
-class MEPFragment: private boost::noncopyable  {
+class MEPFragment: private boost::noncopyable {
 public:
-	MEPFragment(MEP* mep, const MEPFragment_HDR * data, uint32_t& expectedEventNum);
+	MEPFragment(MEP* mep, const MEPFragment_HDR * data,
+			uint32_t& expectedEventNum);
 	virtual ~MEPFragment();
 
 	/**
 	 * Number of Bytes of the data including the header (sizeof MEPFragment_HDR)
 	 */
-	inline const uint16_t getDataLength() const {
+	inline const uint16_t getDataWithHeaderLength() const {
 		return rawData->eventLength_;
+	}
+
+	/**
+	 * Number of Bytes of the payload data
+	 */
+	inline const uint16_t getPayloadLength() const {
+		return rawData->eventLength_ - sizeof(MEPFragment_HDR);
 	}
 
 	inline const uint32_t getTimestamp() const {
@@ -64,11 +72,19 @@ public:
 	const uint8_t getSourceIDNum() const;
 
 	/**
-	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including the header!).
-	 * From there on you should read only getEventLength() bytes!
+	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including the MEPFragment_HDR!).
+	 * From there on you should read only getDataWithHeaderLength() bytes!
 	 */
-	inline const MEPFragment_HDR* getData() const {
+	inline const MEPFragment_HDR* getDataWithMepHeader() const {
 		return rawData;
+	}
+
+	/**
+	 * Returns a pointer to the MEP-Buffer at the position where the payload data of this event starts (excluding the MEPFragment_HDR).
+	 * From there on you should read only getPayloadLength() bytes!
+	 */
+	inline const char* getPayload() const {
+		return ((char*) rawData) + sizeof(MEPFragment_HDR);
 	}
 
 	inline const MEP* getMep() {
