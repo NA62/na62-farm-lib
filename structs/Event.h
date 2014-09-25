@@ -12,6 +12,15 @@
 #include <cstdint>
 
 namespace na62 {
+
+/**
+ * Pointer to the payload of the given sourceID within an event
+ */
+struct EVENT_DATA_PTR {
+	uint32_t offset :24; // Number of 4B-Words from the beginning of the Event
+	uint8_t sourceID;
+};
+
 /*
  * UDP/IP complete header
  *
@@ -20,7 +29,7 @@ struct EVENT_HDR {
 	uint32_t eventNum :24;
 	uint8_t format;
 
-	uint32_t length;
+	uint32_t length; // number of 4B-words
 	uint32_t burstID;
 	uint32_t timestamp;
 
@@ -34,12 +43,22 @@ struct EVENT_HDR {
 	uint32_t processingID;
 
 	uint32_t SOBtimestamp;
+
+	/**
+	 * Returns the pointers to the data of all source IDs. Use it as following:
+	 ' EVENT_DATA_PTR* sourceIdAndOffsets = event->getDataPointer();
+	 ' for(int sourceNum=0; sourceNum!=event->numberOfDetectors; sourceNum++){
+	 ' 	EVENT_DATA_PTR* sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
+	 ' }
+	 */
+	EVENT_DATA_PTR* getDataPointer() {
+		return (EVENT_DATA_PTR*) (((char*) this) + sizeof(EVENT_HDR));
+	}
 }__attribute__ ((__packed__));
 
 /*
  * Header for each L0 data block coming from one Tel62 board. This allows to recognize the data block end even if the data coming
  * from the electronics is broken
- *
  */
 struct L0_BLOCK_HDR {
 	uint16_t dataBlockSize;
