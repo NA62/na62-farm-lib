@@ -277,6 +277,10 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	static void setPrintMissingSourceIds(bool doPrint){
+		printMissingSourceIDs_ = doPrint;
+	}
+
 #ifdef MEASURE_TIME
 	/*
 	 * Returns the number of wall microseconds since the first event part has been added to this event
@@ -359,6 +363,8 @@ private:
 	bool L1Processed_;bool L2Accepted_;
 
 	bool lastEventOfBurst_;
+
+	static bool printMissingSourceIDs_;
 
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
