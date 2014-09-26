@@ -27,6 +27,7 @@
 #include "../l0/Subevent.h"
 
 namespace na62 {
+bool Event::printMissingSourceIDs_ = true;
 
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMEvents_(
@@ -118,7 +119,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			std::cerr
 #endif
 
-					<< "MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
+<<			"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
 			return addL0Event(l0Event, burstID);
 		}
 
@@ -126,19 +127,20 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			/*
 			 * Event not build during last burst -> destroy it!
 			 */
+			if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-			LOG(INFO)
+				LOG(INFO)
 #else
-			std::cerr
+				std::cerr
 #endif
-			<< "Overwriting unfinished event from Burst " << (int) getBurstID()
-					<< "! Eventnumber " << (int) getEventNumber()
-					<< " misses data from sourceIDs " << getMissingSourceIDs()
+<<				"Overwriting unfinished event from Burst " << (int) getBurstID()
+				<< "! Eventnumber " << (int) getEventNumber()
+				<< " misses data from sourceIDs " << getMissingSourceIDs()
 #ifndef USE_GLOG
-					<< std::endl
+				<< std::endl
 #endif
-					;
-
+				;
+			}
 			EventPool::FreeEvent(this);
 			return addL0Event(l0Event, burstID);
 		}
@@ -159,20 +161,22 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
+		if(printMissingSourceIDs_) {
 #ifdef USE_GLOG
-		LOG(ERROR)
+			LOG(ERROR)
 #else
-		std::cerr
+			std::cerr
 #endif
-		<< "Event number " << l0Event->getEventNumber()
-				<< " already received from source "
-				<< ((int) l0Event->getSourceID())
-				<< "\nData from following sourceIDs is missing: "
-				<< getMissingSourceIDs()
+			<< "Event number " << l0Event->getEventNumber()
+			<< " already received from source "
+			<< ((int) l0Event->getSourceID())
+			<< "\nData from following sourceIDs is missing: "
+			<< getMissingSourceIDs()
 #ifndef USE_GLOG
-				<< std::endl
+			<< std::endl
 #endif
-				;
+			;
+		}
 
 		EventPool::FreeEvent(this);
 		return addL0Event(l0Event, burstID);
@@ -181,7 +185,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 	subevent->addFragment(l0Event);
 
 	int currentValue = numberOfL0Events_.fetch_add(1/*,
-	 std::memory_order_relaxed*/) + 1;
+			 std::memory_order_relaxed*/) + 1;
 
 #ifdef MEASURE_TIME
 	if (currentValue
@@ -193,7 +197,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 	return false;
 #else
 	return currentValue
-			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+	== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 #endif
 }
 
@@ -210,19 +214,19 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 			nonSuppressedLkrFragmentsByCrateCREAMID.lower_bound(crateCREAMID);
 
 	if (lb != nonSuppressedLkrFragmentsByCrateCREAMID.end()
-			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(crateCREAMID,
-					lb->first))) {
+			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
+					crateCREAMID, lb->first))) {
 #ifdef USE_GLOG
 		LOG(INFO)
 #else
 		std::cerr
 #endif
 
-		<< "Non zero suppressed LKr event with EventNumber "
-				<< (int) fragment->getEventNumber() << ", crateID "
-				<< (int) fragment->getCrateID() << " and CREAMID "
-				<< (int) fragment->getCREAMID()
-				<< " received twice! Will delete the whole event!";
+<<		"Non zero suppressed LKr event with EventNumber "
+		<< (int) fragment->getEventNumber() << ", crateID "
+		<< (int) fragment->getCrateID() << " and CREAMID "
+		<< (int) fragment->getCREAMID()
+		<< " received twice! Will delete the whole event!";
 
 		EventPool::FreeEvent(this);
 		delete fragment;
@@ -320,7 +324,6 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 //			delete fragment;
 //			return false;
 //		}
-
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
 		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
