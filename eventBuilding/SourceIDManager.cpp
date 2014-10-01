@@ -7,14 +7,16 @@
 
 #include "SourceIDManager.h"
 
-#include "../exceptions/NA62Error.h"
+#include <algorithm>
+#include <vector>
+#include <set>
 
 #ifdef USE_GLOG
 #include <glog/logging.h>
 #endif
 #include <iostream>
-#include <vector>
 
+#include "../exceptions/NA62Error.h"
 #include "../exceptions/BadOption.h"
 #include "../options/Options.h"
 
@@ -28,16 +30,34 @@ uint16_t * SourceIDManager::L0_DATA_SOURCE_ID_TO_PACKNUM; // Expected packets pe
 uint16_t * SourceIDManager::L0_DATA_SOURCE_NUM_TO_PACKNUM;
 uint16_t SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT; // The sum of all DATA_SOURCE_ID_TO_PACKNUM entries
 
+/*
+ * CREAM (LKr and MUV1/2)
+ */
 uint16_t SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 std::map<uint16_t, uint16_t> SourceIDManager::CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 std::pair<uint16_t, uint16_t>* SourceIDManager::LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
+std::map<uint16_t, std::vector<uint16_t>> SourceIDManager::CREAM_IDS_BY_CRATE;
+
+/*
+ * LKr
+ */
+uint16_t SourceIDManager::NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS;
+
+/*
+ * MUVs
+ */
+uint16_t SourceIDManager::MUV1_CREAM_CRATE;
+uint16_t SourceIDManager::MUV2_CREAM_CRATE;
+uint16_t SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS = 0;
+uint16_t SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS = 0;
 
 uint16_t SourceIDManager::TS_SOURCEID;
 
 void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		std::vector<std::pair<int, int> > sourceIDs,
 		std::vector<std::pair<int, int> > creamCrates,
-		std::vector<std::pair<int, int> > inactiveCreams) {
+		std::vector<std::pair<int, int> > inactiveCreams, int muv1Crate,
+		int muv2Crate) {
 	TS_SOURCEID = timeStampSourceID;
 
 	/*
@@ -49,75 +69,20 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 	L0_DATA_SOURCE_IDS = new uint8_t[NUMBER_OF_L0_DATA_SOURCES];
 	L0_DATA_SOURCE_NUM_TO_PACKNUM = new uint16_t[NUMBER_OF_L0_DATA_SOURCES];
 
-	bool LKrActive = false;
+	bool CreamsActive = false;
 
 	int pos = -1;
 	for (auto& pair : sourceIDs) {
-		if (pair.first == SOURCE_ID_LKr) {
+		if (pair.first == SOURCE_ID_LKr || pair.first == SOURCE_ID_MUV1
+				|| pair.first == SOURCE_ID_MUV2) {
 			NUMBER_OF_L0_DATA_SOURCES--;
-			LKrActive = true;
+			CreamsActive = true;
 			continue;
 		}
 
 		L0_DATA_SOURCE_IDS[++pos] = pair.first;
 		L0_DATA_SOURCE_NUM_TO_PACKNUM[pos] = pair.second;
 		NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT += pair.second;
-	}
-
-	/*
-	 * OPTION_CREAM_CRATES
-	 *
-	 */
-	if (LKrActive) {
-
-		if (creamCrates.size() == 0) {
-			throw NA62Error("Option defining CREAM IDsmust not be empty!'");
-		}
-
-		/*
-		 * Check if all inactive CREAMs are listed in the normal cream create list
-		 */
-		for (auto& inactivePair : inactiveCreams) {
-			uint8_t crateID = inactivePair.first;
-			uint8_t CREAMID = inactivePair.second;
-			for (auto& pair : creamCrates) {
-				if (crateID == pair.first
-						&& CREAMID == pair.second) {
-					continue;
-				}
-			}
-			throw NA62Error(
-					"The CREAM " + std::to_string(CREAMID) + " in crate "
-							+ std::to_string(crateID)
-							+ " appears in the list of inactive CREAMs but not in the list of available CREAMs");
-		}
-
-		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = creamCrates.size()
-				- inactiveCreams.size();
-		LOCAL_ID_TO_CRATE_AND_CREAM_IDS =
-				new std::pair<uint16_t, uint16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
-
-		std::cout << "List of activated CREAMs (" << creamCrates.size() << " total): \ncrateID\tSlot\n";
-		int creamNum = -1;
-		for (auto& pair : creamCrates) {
-			uint8_t crateID = pair.first;
-			uint8_t CREAMID = pair.second;
-			for (auto& inactivePair : inactiveCreams) {
-				if (crateID == inactivePair.first
-						&& CREAMID == inactivePair.second) {
-					continue;
-				}
-			}
-			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAMID] =
-					++creamNum;
-			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[creamNum] = std::make_pair(crateID,
-					CREAMID);
-			std::cout << (int) crateID << "\t" << (int) CREAMID << std::endl;
-		}
-	} else {
-		std::cout
-				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option" << std::endl;
-		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 
 	LARGEST_L0_DATA_SOURCE_ID = 0;
@@ -136,9 +101,131 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 				L0_DATA_SOURCE_NUM_TO_PACKNUM[i];
 	}
 
+	/*
+	 * OPTION_CREAM_CRATES
+	 *
+	 */
+	if (CreamsActive) {
+
+		if (creamCrates.size() == 0) {
+			throw NA62Error("Option defining CREAM IDs must not be empty!'");
+		}
+
+		/*
+		 * Check if all inactive CREAMs are listed in the normal cream create list
+		 */
+		for (auto& inactivePair : inactiveCreams) {
+			uint8_t crateID = inactivePair.first;
+			uint8_t CREAMID = inactivePair.second;
+			for (auto& pair : creamCrates) {
+				if (crateID == pair.first && CREAMID == pair.second) {
+					continue;
+				}
+			}
+			throw NA62Error(
+					"The CREAM " + std::to_string(CREAMID) + " in crate "
+							+ std::to_string(crateID)
+							+ " appears in the list of inactive CREAMs but not in the list of available CREAMs");
+		}
+
+		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = creamCrates.size()
+				- inactiveCreams.size();
+		LOCAL_ID_TO_CRATE_AND_CREAM_IDS =
+				new std::pair<uint16_t, uint16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
+
+		/*
+		 * Sort by crateID to make sure that the order is LKr->MUV1->MUV2
+		 */
+		std::sort(creamCrates.begin(), creamCrates.end(),
+				[](const std::pair<int, int> & a, const std::pair<int, int> & b) -> bool
+				{
+					/*
+					 * If crates are equal sort by creamID for better visualization of active creams
+					 */
+					if(a.first==b.first) {
+						return a.second < b.second;
+					}
+					return a.first < b.first;
+				});
+
+		std::set<uint8_t> allCrates;
+		int creamNum = -1;
+		for (auto& pair : creamCrates) {
+			uint8_t crateID = pair.first;
+			uint8_t CREAMID = pair.second;
+
+			allCrates.insert(crateID);
+			for (auto& inactivePair : inactiveCreams) {
+				if (crateID == inactivePair.first
+						&& CREAMID == inactivePair.second) {
+					continue;
+				}
+			}
+			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAMID] =
+					++creamNum;
+			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[creamNum] = std::make_pair(crateID,
+					CREAMID);
+
+			CREAM_IDS_BY_CRATE[crateID].push_back(CREAMID);
+		}
+	} else {
+		std::cout
+				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option" << std::endl;
+		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
+	}
+
+		std::cout << "List of activated CREAMs (" << creamCrates.size()
+				<< " total):\n";
+		for (auto creamsAndCrate : CREAM_IDS_BY_CRATE) {
+			std::cout << (int) creamsAndCrate.first << ":\t";
+			for (auto creamID : creamsAndCrate.second) {
+				std::cout << creamID << "\t";
+			}
+			std::cout << std::endl;
+		}
+
+		/*
+		 * MUV1/2
+		 */
+		std::vector<uint8_t> allCratesVector(allCrates.begin(), allCrates.end());
+
+		MUV1_CREAM_CRATE = muv1Crate;
+		if (muv1Crate >= 0) {
+			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS--;
+			MUV1_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muv1Crate].size();
+
+			if (allCratesVector[allCratesVector.size() - 2] != muv1Crate) {
+				throw NA62Error(
+						"The MUV1 crate ID must be the second largest crateID available");
+			}
+		}
+
+		MUV2_CREAM_CRATE = muv2Crate;
+		if (muv2Crate >= 0) {
+			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS--;
+			MUV2_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muv2Crate].size();
+
+			if (muv1Crate >= 0 && muv1Crate >= muv2Crate) {
+				throw NA62Error(
+						"The MUV1 crate ID must be smaller than than the MUV2 crate ID");
+			}
+
+			if (allCratesVector[allCratesVector.size() - 1] != muv1Crate) {
+				throw NA62Error(
+						"The MUV2 crate ID must be the largest crateID available");
+			}
+		}
+
+	} else {
+		std::cout
+				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
+		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
+	}
 }
 
-bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID)  {
+}
+
+bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}
