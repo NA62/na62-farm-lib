@@ -248,46 +248,46 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
  * Process data coming from the CREAMs
  */
 bool Event::addLkrFragment(cream::LkrFragment* fragment) {
-//	if (!L1Processed_) {
-//#ifdef USE_GLOG
-//		LOG(ERROR)
-//#else
-//		std::cerr
-//#endif
-//		<< "Received LKR data with EventNumber "
-//				<< (int) fragment->getEventNumber() + ", crateID "
-//				<< (int) fragment->getCrateID() + " and CREAMID "
-//				<< (int) fragment->getCREAMID()
-//				<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
-//				<< getBurstID() << ")"
-//#ifndef USE_GLOG
-//				<< std::endl
-//#endif
-//				;
-//
-//		delete fragment;
-//		return false;
-//	}
-//
-//	if (eventNumber_ != fragment->getEventNumber()) {
-//#ifdef USE_GLOG
-//		LOG(ERROR)
-//#else
-//		std::cerr
-//#endif
-//				<< "Trying to add LkrFragment with eventNumber "
-//						+ boost::lexical_cast<std::string>(
-//								fragment->getEventNumber())
-//						+ " to an Event with eventNumber "
-//						+ boost::lexical_cast<std::string>(eventNumber_)
-//						+ ". Will ignore the LkrFragment!"
-//#ifndef USE_GLOG
-//				<< std::endl
-//#endif
-//				;
-//		delete fragment;
-//		return false;
-//	}
+	if (!L1Processed_) {
+#ifdef USE_GLOG
+		LOG(ERROR)
+#else
+		std::cerr
+#endif
+<<		"Received LKR data with EventNumber "
+		<< (int) fragment->getEventNumber() + ", crateID "
+		<< (int) fragment->getCrateID() + " and CREAMID "
+		<< (int) fragment->getCREAMID()
+		<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
+		<< getBurstID() << ")"
+#ifndef USE_GLOG
+		<< std::endl
+#endif
+		;
+
+		delete fragment;
+		return false;
+	}
+
+	if (eventNumber_ != fragment->getEventNumber()) {
+#ifdef USE_GLOG
+		LOG(ERROR)
+#else
+		std::cerr
+#endif
+		<< "Trying to add LkrFragment with eventNumber "
+		+ boost::lexical_cast<std::string>(
+				fragment->getEventNumber())
+		+ " to an Event with eventNumber "
+		+ boost::lexical_cast<std::string>(eventNumber_)
+		+ ". Will ignore the LkrFragment!"
+#ifndef USE_GLOG
+		<< std::endl
+#endif
+		;
+		delete fragment;
+		return false;
+	}
 
 	if (nonZSuppressedDataRequestedNum != 0) {
 		return storeNonZSuppressedLkrFragemnt(fragment);
@@ -300,34 +300,34 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		/*
 		 * This must be a zero suppressed event
 		 */
-//		cream::LkrFragment* oldEvent =
-//				zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
-//
-//		if (oldEvent != NULL) {
-//#ifdef USE_GLOG
-//			LOG(INFO)
-//#else
-//			std::cerr
-//#endif
-//
-//					<< "LKr event with EventNumber "
-//							+ boost::lexical_cast<std::string>(
-//									(int) fragment->getEventNumber())
-//							+ ", crateID "
-//							+ boost::lexical_cast<std::string>(
-//									(int) fragment->getCrateID())
-//							+ " and CREAMID "
-//							+ boost::lexical_cast<std::string>(
-//									(int) fragment->getCREAMID())
-//							+ " received twice! Will delete the whole event!";
-//			EventPool::FreeEvent(this);
-//			delete fragment;
-//			return false;
-//		}
+		cream::LkrFragment* oldEvent =
+		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
+
+		if (oldEvent != NULL) {
+#ifdef USE_GLOG
+			LOG(INFO)
+#else
+			std::cerr
+#endif
+
+			<< "LKr event with EventNumber "
+			+ boost::lexical_cast<std::string>(
+					(int) fragment->getEventNumber())
+			+ ", crateID "
+			+ boost::lexical_cast<std::string>(
+					(int) fragment->getCrateID())
+			+ " and CREAMID "
+			+ boost::lexical_cast<std::string>(
+					(int) fragment->getCREAMID())
+			+ " received twice! Will delete the whole event!";
+			EventPool::FreeEvent(this);
+			delete fragment;
+			return false;
+		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
 		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
-		 std::memory_order_relaxed*/) + 1;
+				 std::memory_order_relaxed*/) + 1;
 
 #ifdef MEASURE_TIME
 		if (currentValue == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
@@ -338,7 +338,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 #else
 
 		return currentValue
-				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}
 }
