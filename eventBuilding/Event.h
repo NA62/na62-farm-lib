@@ -17,11 +17,11 @@
 #include <boost/timer/timer.hpp>
 #endif
 #include <boost/noncopyable.hpp>
+#include <tbb/spin_mutex.h>
 
 #include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
 
-#include <mutex>
 
 //#define MEASURE_TIME
 
@@ -365,6 +365,7 @@ private:
 	bool lastEventOfBurst_;
 
 	static bool printMissingSourceIDs_;
+	tbb::spin_mutex destroyMutex_;
 
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;

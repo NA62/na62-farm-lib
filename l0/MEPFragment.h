@@ -27,6 +27,7 @@ struct MEPFragment_HDR {
 	uint8_t eventNumberLSB_;
 	uint8_t reserved_ :7;
 	uint8_t lastEventOfBurst_ :1; // don't take bool as it will allocate 8 bits!
+
 	uint32_t timestamp_;
 }__attribute__ ((__packed__));
 
