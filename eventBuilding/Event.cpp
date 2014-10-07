@@ -358,6 +358,7 @@ void Event::reset() {
 }
 
 void Event::destroy() {
+	tbb::spin_mutex::scoped_lock my_lock(destroyMutex_);
 #ifdef MEASURE_TIME
 	firstEventPartAddedTime_.stop();
 #endif
