@@ -359,12 +359,12 @@ void Event::destroy() {
 	firstEventPartAddedTime_.stop();
 #endif
 
-	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+	for (uint8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0Subevents[i]->destroy();
 	}
 
 	for (int ID = 0;
-			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+			ID != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 			ID++) {
 		cream::LkrFragment* fragment = zSuppressedLkrFragmentsByLocalCREAMID[ID];
 		if (fragment != nullptr) {
