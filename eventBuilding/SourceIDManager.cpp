@@ -116,7 +116,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		}
 	} else {
 		std::cout
-				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
+				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option" << std::endl;
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 

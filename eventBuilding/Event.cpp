@@ -175,12 +175,8 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			;
 		}
 
-		/*
-		 * FIXME: This is not thread safe! If we receive two fragments at the same
-		 * time we'll add the first and delete the event due to the second one...
-		 */
-		EventPool::FreeEvent(this);
-		return addL0Event(l0Event, burstID);
+		delete l0Event;
+		return false;
 	}
 
 	int currentValue = numberOfL0Events_.fetch_add(1/*,
