@@ -165,8 +165,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #else
 			std::cerr
 #endif
-			<< "Event number " << l0Event->getEventNumber()
-			<< " already received from source "
+			<< "Already received all fragments from sourceID "
 			<< ((int) l0Event->getSourceID())
 			<< "\nData from following sourceIDs is missing: "
 			<< getMissingSourceIDs()
@@ -176,6 +175,10 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			;
 		}
 
+		/*
+		 * FIXME: This is not thread safe! If we receive two fragments at the same
+		 * time we'll add the first and delete the event due to the second one...
+		 */
 		EventPool::FreeEvent(this);
 		return addL0Event(l0Event, burstID);
 	}
@@ -359,12 +362,12 @@ void Event::destroy() {
 	firstEventPartAddedTime_.stop();
 #endif
 
-	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+	for (uint8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0Subevents[i]->destroy();
 	}
 
 	for (int ID = 0;
-			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+			ID != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 			ID++) {
 		cream::LkrFragment* fragment = zSuppressedLkrFragmentsByLocalCREAMID[ID];
 		if (fragment != nullptr) {

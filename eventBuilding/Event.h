@@ -319,8 +319,8 @@ public:
 #endif
 
 private:
-	void setBurstID(const uint32_t L0ID) {
-		burstID_ = L0ID;
+	void setBurstID(const uint32_t burstID) {
+		burstID_ = burstID;
 	}
 
 	/*
