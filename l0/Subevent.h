@@ -39,10 +39,11 @@ public:
 		if(oldNumberOfFragments
 					== SourceIDManager::getExpectedPacksBySourceID(
 							eventPart->getSourceID())){
+			eventPartCounter--;
 			return false;
 		}
 
-		eventFragments[oldNumberOfFragments+1] = eventPart;
+		eventFragments[oldNumberOfFragments] = eventPart;
 		return true;
 	}
 
