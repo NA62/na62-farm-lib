@@ -155,9 +155,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 
 	l0::Subevent* subevent = L0Subevents[l0Event->getSourceIDNum()];
 
-	if (subevent->getNumberOfFragments()
-			>= SourceIDManager::getExpectedPacksBySourceID(
-					l0Event->getSourceID())) {
+	if (!subevent->addFragment(l0Event)) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
@@ -181,8 +179,6 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		EventPool::FreeEvent(this);
 		return addL0Event(l0Event, burstID);
 	}
-
-	subevent->addFragment(l0Event);
 
 	int currentValue = numberOfL0Events_.fetch_add(1/*,
 			 std::memory_order_relaxed*/) + 1;
@@ -326,18 +322,18 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int currentValue = numberOfCREAMEvents_.fetch_add(1/*,
+		int numberOfStoredCreamFragments = numberOfCREAMEvents_.fetch_add(1/*,
 				 std::memory_order_relaxed*/) + 1;
 
 #ifdef MEASURE_TIME
-		if (currentValue == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+		if (numberOfStoredCreamFragments == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-l1ProcessingTime_;
 			return true;
 		}
 		return false;
 #else
 
-		return currentValue
+		return numberOfStoredCreamFragments
 		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}

@@ -10,13 +10,12 @@
 #define SUBEVENT_H_
 
 #include <boost/noncopyable.hpp>
+#include <atomic>
+#include <cstdbool>
 #include <cstdint>
 
-namespace na62 {
-namespace l0 {
-class MEPFragment;
-} /* namespace l0 */
-} /* namespace na62 */
+#include "../eventBuilding/SourceIDManager.h"
+#include "MEPFragment.h"
 
 namespace na62 {
 namespace l0 {
@@ -27,8 +26,25 @@ public:
 	virtual ~Subevent();
 
 	void destroy();
-	inline void addFragment(MEPFragment* eventPart) {
-		eventFragments[eventPartCounter++] = eventPart;
+
+	/**
+	 * If the Subevent is not complete yet the given fragment will be stored and true is returned.
+	 *
+	 * Otherwise false is returned
+	 *
+	 */
+	inline bool addFragment(MEPFragment* eventPart) {
+		uint16_t oldNumberOfFragments = eventPartCounter.fetch_add(1);
+
+		if(oldNumberOfFragments
+					== SourceIDManager::getExpectedPacksBySourceID(
+							eventPart->getSourceID())){
+			eventPartCounter--;
+			return false;
+		}
+
+		eventFragments[oldNumberOfFragments] = eventPart;
+		return true;
 	}
 
 	/**
@@ -63,7 +79,7 @@ public:
 private:
 	uint16_t ExpectedPacketsNum;
 	MEPFragment ** eventFragments;
-	uint16_t eventPartCounter;
+	std::atomic<uint16_t> eventPartCounter;
 };
 
 } /* namespace l0 */
