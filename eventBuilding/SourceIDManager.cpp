@@ -46,8 +46,7 @@ uint16_t SourceIDManager::NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS;
 /*
  * MUVs
  */
-uint16_t SourceIDManager::MUV1_CREAM_CRATE;
-uint16_t SourceIDManager::MUV2_CREAM_CRATE;
+uint16_t SourceIDManager::MUV_CREAM_CRATE;
 uint16_t SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS = 0;
 uint16_t SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS = 0;
 
@@ -56,8 +55,7 @@ uint16_t SourceIDManager::TS_SOURCEID;
 void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		std::vector<std::pair<int, int> > sourceIDs,
 		std::vector<std::pair<int, int> > creamCrates,
-		std::vector<std::pair<int, int> > inactiveCreams, int muv1Crate,
-		int muv2Crate) {
+		std::vector<std::pair<int, int> > inactiveCreams, int muvCrate) {
 	TS_SOURCEID = timeStampSourceID;
 
 	/*
@@ -168,11 +166,25 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 
 			CREAM_IDS_BY_CRATE[crateID].push_back(CREAMID);
 		}
-	} else {
-		std::cout
-				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option" << std::endl;
-		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
-	}
+
+		/*
+		 * MUV1/2
+		 */
+		std::vector<uint8_t> allCratesVector(allCrates.begin(),
+				allCrates.end());
+
+		MUV_CREAM_CRATE = muvCrate;
+		if (muvCrate >= 0) {
+			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS--;
+			MUV1_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muvCrate].size();
+			/*
+			 * TODO: Impelment the separation of MUV1/MUV2
+			 */
+			if (allCratesVector[allCratesVector.size() - 2] != muvCrate) {
+				throw NA62Error(
+						"The MUV1 crate ID must be the second largest crateID available");
+			}
+		}
 
 		std::cout << "List of activated CREAMs (" << creamCrates.size()
 				<< " total):\n";
@@ -184,41 +196,10 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			std::cout << std::endl;
 		}
 
-		/*
-		 * MUV1/2
-		 */
-		std::vector<uint8_t> allCratesVector(allCrates.begin(), allCrates.end());
-
-		MUV1_CREAM_CRATE = muv1Crate;
-		if (muv1Crate >= 0) {
-			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS--;
-			MUV1_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muv1Crate].size();
-
-			if (allCratesVector[allCratesVector.size() - 2] != muv1Crate) {
-				throw NA62Error(
-						"The MUV1 crate ID must be the second largest crateID available");
-			}
-		}
-
-		MUV2_CREAM_CRATE = muv2Crate;
-		if (muv2Crate >= 0) {
-			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS--;
-			MUV2_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muv2Crate].size();
-
-			if (muv1Crate >= 0 && muv1Crate >= muv2Crate) {
-				throw NA62Error(
-						"The MUV1 crate ID must be smaller than than the MUV2 crate ID");
-			}
-
-			if (allCratesVector[allCratesVector.size() - 1] != muv1Crate) {
-				throw NA62Error(
-						"The MUV2 crate ID must be the largest crateID available");
-			}
-		}
-
 	} else {
 		std::cout
-				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
+				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option"
+				<< std::endl;
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 }

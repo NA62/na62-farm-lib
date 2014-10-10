@@ -320,7 +320,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int numberOfStoredCreamFragments = numberOfCREAMEvents_.fetch_add(1/*,
+		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1/*,
 				 std::memory_order_relaxed*/) + 1;
 
 #ifdef MEASURE_TIME

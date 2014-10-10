@@ -64,8 +64,7 @@ public:
 	/*
 	 * MUV
 	 */
-	static uint16_t MUV1_CREAM_CRATE;
-	static uint16_t MUV2_CREAM_CRATE;
+	static uint16_t MUV_CREAM_CRATE;
 	static uint16_t MUV2_NUMBER_OF_FRAGMENTS;
 	static uint16_t MUV1_NUMBER_OF_FRAGMENTS;
 
@@ -77,8 +76,7 @@ public:
 	static void Initialize(const uint16_t timeStampSourceID,
 			std::vector<std::pair<int, int> > sourceIDs,
 			std::vector<std::pair<int, int> > creamCrates,
-			std::vector<std::pair<int, int> > inactiveCreams, int muv1Crate,
-			int muv2Crate);
+			std::vector<std::pair<int, int> > inactiveCreams, int muvCrate );
 
 	static inline uint16_t getExpectedPacksBySourceNum(
 			const uint8_t sourceNum) {
