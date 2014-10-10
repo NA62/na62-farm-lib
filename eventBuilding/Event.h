@@ -259,7 +259,7 @@ public:
 	 */
 	inline cream::LkrFragment** getMuv1Fragments() const {
 		/*
-		 * MUV1 is the second largest crate and therefore the fragments are stored behind the LKr fragments.
+		 * MUV1 is the largest crate and therefore the fragments are stored behind the LKr fragments.
 		 */
 		return &zSuppressedLkrFragmentsByLocalCREAMID[getNumberOfZSuppressedLkrFragments()];
 	}
@@ -276,7 +276,7 @@ public:
 	 */
 	inline cream::LkrFragment** getMuv2Fragments() const {
 		/*
-		 * MUV1 is the second largest crate and therefore the fragments are stored behind the LKr fragments.
+		 * MUV2 fragments are stored behind the MUV1 fragments.
 		 */
 		return &zSuppressedLkrFragmentsByLocalCREAMID[getNumberOfZSuppressedLkrFragments()
 				+ getNumberOfMuv1Fragments()];
