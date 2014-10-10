@@ -165,8 +165,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 #else
 			std::cerr
 #endif
-			<< "Event number " << l0Event->getEventNumber()
-			<< " already received from source "
+			<< "Already received all fragments from sourceID "
 			<< ((int) l0Event->getSourceID())
 			<< "\nData from following sourceIDs is missing: "
 			<< getMissingSourceIDs()
@@ -176,8 +175,8 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			;
 		}
 
-		EventPool::FreeEvent(this);
-		return addL0Event(l0Event, burstID);
+		delete l0Event;
+		return false;
 	}
 
 	int currentValue = numberOfL0Events_.fetch_add(1/*,
