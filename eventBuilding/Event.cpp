@@ -30,7 +30,7 @@ namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
 
 Event::Event(uint32_t eventNumber) :
-		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMEvents_(
+		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), lastEventOfBurst_(
@@ -205,8 +205,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 	/*
 	 * We were waiting for non zero suppressed data
 	 */
-	std::map<uint16_t, cream::LkrFragment*>::iterator lb =
-			nonSuppressedLkrFragmentsByCrateCREAMID.lower_bound(crateCREAMID);
+	auto lb = nonSuppressedLkrFragmentsByCrateCREAMID.lower_bound(crateCREAMID);
 
 	if (lb != nonSuppressedLkrFragmentsByCrateCREAMID.end()
 			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
@@ -321,7 +320,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int numberOfStoredCreamFragments = numberOfCREAMEvents_.fetch_add(1/*,
+		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1/*,
 				 std::memory_order_relaxed*/) + 1;
 
 #ifdef MEASURE_TIME
@@ -340,7 +339,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 
 void Event::reset() {
 	numberOfL0Events_ = 0;
-	numberOfCREAMEvents_ = 0;
+	numberOfCREAMFragments_ = 0;
 	burstID_ = 0;
 	triggerTypeWord_ = 0;
 	timestamp_ = 0;

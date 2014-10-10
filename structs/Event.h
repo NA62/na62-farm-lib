@@ -45,7 +45,7 @@ struct EVENT_HDR {
 	uint32_t SOBtimestamp;
 
 	/**
-	 * Returns the pointers to the data of all source IDs. Use it as following:
+	 * Returns the pointers from the pointer table to the data of all source IDs. Use it as following:
 	 ' EVENT_DATA_PTR* sourceIdAndOffsets = event->getDataPointer();
 	 ' for(int sourceNum=0; sourceNum!=event->numberOfDetectors; sourceNum++){
 	 ' 	EVENT_DATA_PTR* sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
