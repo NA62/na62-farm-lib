@@ -385,9 +385,20 @@ std::string Event::getMissingSourceIDs() {
 	 */
 	std::stringstream missingIDs;
 	for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
+		l0::Subevent* subevent = getL0SubeventBySourceIDNum(i);
 		if (SourceIDManager::getExpectedPacksBySourceNum(i)
-				!= getL0SubeventBySourceIDNum(i)->getNumberOfFragments()) {
-			missingIDs << (int) SourceIDManager::SourceNumToID(i) << "; ";
+				!= subevent->getNumberOfFragments()) {
+			missingIDs << (int) SourceIDManager::SourceNumToID(i) << "(";
+			for (int f = 0;
+					f != getL0SubeventBySourceIDNum(i)->getNumberOfFragments();
+					f++) {
+				if (f != 0) {
+					missingIDs << ", ";
+				}
+				missingIDs << (int)subevent->getFragment(f)->getSourceSubID();
+			}
+
+			missingIDs << "); ";
 		}
 	}
 	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT

@@ -401,8 +401,6 @@ private:
 	 * corresponding cream/create
 	 */
 	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
-	cream::LkrFragment* muv1CreamFragments;
-	cream::LkrFragment* muv2CreamFragments;
 	std::map<uint16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
 	bool L1Processed_;bool L2Accepted_;
