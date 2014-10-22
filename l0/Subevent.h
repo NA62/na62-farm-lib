@@ -13,6 +13,7 @@
 #include <atomic>
 #include <cstdbool>
 #include <cstdint>
+#include <iostream>
 
 #include "../eventBuilding/SourceIDManager.h"
 #include "MEPFragment.h"
@@ -33,17 +34,22 @@ public:
 	 * Otherwise false is returned
 	 *
 	 */
-	inline bool addFragment(MEPFragment* eventPart) {
+	inline bool addFragment(MEPFragment* fragment) {
 		uint16_t oldNumberOfFragments = eventPartCounter.fetch_add(1);
 
-		if(oldNumberOfFragments
-					== SourceIDManager::getExpectedPacksBySourceID(
-							eventPart->getSourceID())){
+		if (oldNumberOfFragments
+				>= SourceIDManager::getExpectedPacksBySourceID(
+						fragment->getSourceID())) {
+			/*
+			 * when more fragments are received than expected: decrement the counter back to the old value
+			 * We have to check >= as it might be > in case of a high rate where another thread could already
+			 * have incremented it without decrementing it yet
+			 */
 			eventPartCounter--;
 			return false;
 		}
 
-		eventFragments[oldNumberOfFragments] = eventPart;
+		eventFragments[oldNumberOfFragments] = fragment;
 		return true;
 	}
 
