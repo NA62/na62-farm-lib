@@ -185,7 +185,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			 */
 			if (allCratesVector[allCratesVector.size() - 1] != muvCrate) {
 				throw NA62Error(
-						"The MUV crate ID must be the largest crateID available");
+						"The MUV crate ID must be the largest crateID available which is "+std::to_string(allCratesVector[allCratesVector.size() - 1]));
 			}
 		}
 
