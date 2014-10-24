@@ -112,36 +112,56 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		setBurstID(burstID);
 	} else {
 		if (l0Event->isLastEventOfBurst() != lastEventOfBurst_) {
-			EventPool::FreeEvent(this);
-#ifdef USE_GLOG
-			LOG(INFO)
-#else
-			std::cerr
-#endif
-
-<<			"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
-			return addL0Event(l0Event, burstID);
-		}
-
-		if (burstID != getBurstID()) {
-			/*
-			 * Event not build during last burst -> destroy it!
-			 */
-			if (printMissingSourceIDs_) {
+			if (unfinishedEventMutex_.try_lock()) {
+				EventPool::FreeEvent(this);
 #ifdef USE_GLOG
 				LOG(INFO)
 #else
 				std::cerr
 #endif
-<<				"Overwriting unfinished event from Burst " << (int) getBurstID()
-				<< "! Eventnumber " << (int) getEventNumber()
-				<< " misses data from sourceIDs " << getMissingSourceIDs()
-#ifndef USE_GLOG
-				<< std::endl
-#endif
-				;
+
+<<				"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
+				unfinishedEventMutex_.unlock();
+			} else {
+				/*
+				 * If we didn't get the lock: wait for the other thread to free the event
+				 */
+				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
 			}
-			EventPool::FreeEvent(this);
+
+			return addL0Event(l0Event, burstID);
+		}
+
+		if (burstID != getBurstID()) {
+			if (unfinishedEventMutex_.try_lock()) {
+				/*
+				 * Event not build during last burst -> destroy it!
+				 */
+				if (printMissingSourceIDs_) {
+#ifdef USE_GLOG
+					LOG(INFO)
+#else
+					std::cerr
+#endif
+<<					"Overwriting unfinished event from Burst " << (int) getBurstID()
+					<< "! Eventnumber " << (int) getEventNumber()
+					<< " misses data from sourceIDs " << getMissingSourceIDs()
+#ifndef USE_GLOG
+					<< std::endl
+#endif
+					;
+				}
+				EventPool::FreeEvent(this);
+				unfinishedEventMutex_.unlock();
+			} else {
+				/*
+				 * If we didn't get the lock: wait for the other thread to free the event
+				 */
+				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
+			}
+			/*
+			 * Add the event after this or another thread has destoryed this event
+			 */
 			return addL0Event(l0Event, burstID);
 		}
 	}
@@ -210,19 +230,22 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 	if (lb != nonSuppressedLkrFragmentsByCrateCREAMID.end()
 			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
 					crateCREAMID, lb->first))) {
+		if (unfinishedEventMutex_.try_lock()) {
 #ifdef USE_GLOG
-		LOG(INFO)
+			LOG(INFO)
 #else
-		std::cerr
+			std::cerr
 #endif
 
-<<		"Non zero suppressed LKr event with EventNumber "
-		<< (int) fragment->getEventNumber() << ", crateID "
-		<< (int) fragment->getCrateID() << " and CREAMID "
-		<< (int) fragment->getCREAMID()
-		<< " received twice! Will delete the whole event!";
+<<			"Non zero suppressed LKr event with EventNumber "
+			<< (int) fragment->getEventNumber() << ", crateID "
+			<< (int) fragment->getCrateID() << " and CREAMID "
+			<< (int) fragment->getCREAMID()
+			<< " received twice! Will delete the whole event!";
 
-		EventPool::FreeEvent(this);
+			EventPool::FreeEvent(this);
+			unfinishedEventMutex_.unlock();
+		}
 		delete fragment;
 		return false;
 	} else {
@@ -298,23 +321,27 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
 
 		if (oldEvent != NULL) {
+			if (unfinishedEventMutex_.try_lock()) {
+
 #ifdef USE_GLOG
-			LOG(INFO)
+				LOG(INFO)
 #else
-			std::cerr
+				std::cerr
 #endif
 
-			<< "LKr event with EventNumber "
-			+ boost::lexical_cast<std::string>(
-					(int) fragment->getEventNumber())
-			+ ", crateID "
-			+ boost::lexical_cast<std::string>(
-					(int) fragment->getCrateID())
-			+ " and CREAMID "
-			+ boost::lexical_cast<std::string>(
-					(int) fragment->getCREAMID())
-			+ " received twice! Will delete the whole event!";
-			EventPool::FreeEvent(this);
+				<< "LKr event with EventNumber "
+				+ boost::lexical_cast<std::string>(
+						(int) fragment->getEventNumber())
+				+ ", crateID "
+				+ boost::lexical_cast<std::string>(
+						(int) fragment->getCrateID())
+				+ " and CREAMID "
+				+ boost::lexical_cast<std::string>(
+						(int) fragment->getCREAMID())
+				+ " received twice! Will delete the whole event!";
+				EventPool::FreeEvent(this);
+				unfinishedEventMutex_.unlock();
+			}
 			delete fragment;
 			return false;
 		}
@@ -358,6 +385,9 @@ void Event::destroy() {
 #endif
 
 	for (uint8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+		if (L0Subevents[i] == nullptr) {
+			std::cout << "!!!!!!!!!!" << std::endl;
+		}
 		L0Subevents[i]->destroy();
 	}
 
@@ -395,7 +425,7 @@ std::string Event::getMissingSourceIDs() {
 				if (f != 0) {
 					missingIDs << ", ";
 				}
-				missingIDs << (int)subevent->getFragment(f)->getSourceSubID();
+				missingIDs << (int) subevent->getFragment(f)->getSourceSubID();
 			}
 
 			missingIDs << "); ";
