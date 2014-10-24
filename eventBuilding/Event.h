@@ -409,6 +409,7 @@ private:
 
 	static bool printMissingSourceIDs_;
 	tbb::spin_mutex destroyMutex_;
+	tbb::spin_mutex unfinishedEventMutex_;
 
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
