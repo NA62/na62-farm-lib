@@ -385,9 +385,6 @@ void Event::destroy() {
 #endif
 
 	for (uint8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
-		if (L0Subevents[i] == nullptr) {
-			std::cout << "!!!!!!!!!!" << std::endl;
-		}
 		L0Subevents[i]->destroy();
 	}
 
