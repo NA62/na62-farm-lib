@@ -272,8 +272,8 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		std::cerr
 #endif
 <<		"Received LKR data with EventNumber "
-		<< (int) fragment->getEventNumber() + ", crateID "
-		<< (int) fragment->getCrateID() + " and CREAMID "
+		<< (int) fragment->getEventNumber() << ", crateID "
+		<< (int) fragment->getCrateID() << " and CREAMID "
 		<< (int) fragment->getCREAMID()
 		<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
 		<< getBurstID() << ")"
