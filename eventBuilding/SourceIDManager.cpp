@@ -34,9 +34,13 @@ uint16_t SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT; // The sum of
  * CREAM (LKr and MUV1/2)
  */
 uint16_t SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-std::map<uint16_t, uint16_t> SourceIDManager::CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
+uint16_t** SourceIDManager::CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 std::pair<uint16_t, uint16_t>* SourceIDManager::LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 std::map<uint16_t, std::vector<uint16_t>> SourceIDManager::CREAM_IDS_BY_CRATE;
+
+uint SourceIDManager::LARGEST_CREAM_CRATE = 0;
+uint64_t SourceIDManager::ENABLED_CREAM_CRATES_LUT = 0;
+uint32_t* SourceIDManager::ENABLED_CREAMS_BY_CRATE_LUT;
 
 /*
  * LKr
@@ -162,12 +166,65 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 					continue;
 				}
 			}
-			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAMID] =
-					++creamNum;
-			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[creamNum] = std::make_pair(crateID,
-					CREAMID);
+			LOCAL_ID_TO_CRATE_AND_CREAM_IDS[++creamNum] = std::make_pair(
+					crateID, CREAMID);
 
 			CREAM_IDS_BY_CRATE[crateID].push_back(CREAMID);
+
+			if (crateID > LARGEST_CREAM_CRATE) {
+				LARGEST_CREAM_CRATE = crateID;
+			}
+			ENABLED_CREAM_CRATES_LUT |= 1 << crateID; // Set crateID-th bit to 1
+		}
+
+		/*
+		 * Write the lookup table for crate+creamID to local cream ID
+		 */
+		CRATE_AND_CREAM_IDS_TO_LOCAL_ID =
+				new uint16_t*[LARGEST_CREAM_CRATE + 1];
+		for (uint i = 0; i != LARGEST_CREAM_CRATE + 1; i++) {
+			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[i] = nullptr;
+		}
+
+		// Add every cream to the LUT
+		for (uint localCreamID = 0;
+				localCreamID != NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+				localCreamID++) {
+			auto crateAndCream = LOCAL_ID_TO_CRATE_AND_CREAM_IDS[localCreamID];
+			const auto crateID = crateAndCream.first;
+			const auto creamID = crateAndCream.second;
+
+			/*
+			 * Initialize the array for the current cream
+			 */
+			if (CRATE_AND_CREAM_IDS_TO_LOCAL_ID[crateID] == nullptr) {
+				uint maxCreamID = 0;
+				// Find the largest CREAMID defining the number of elements
+				for (auto cID : CREAM_IDS_BY_CRATE[crateID]) {
+					if (cID > maxCreamID) {
+						maxCreamID = cID;
+					}
+				}
+				CRATE_AND_CREAM_IDS_TO_LOCAL_ID[crateID] =
+						new uint16_t[maxCreamID + 1];
+			}
+			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[crateID][creamID] = localCreamID;
+		}
+
+		/*
+		 * Write the lookup table for the enabled creams/crates
+		 * For every crate set the bit at creamID of ENABLED_CREAMS_BY_CRATE_LUT[crateID] to 1
+		 */
+		ENABLED_CREAMS_BY_CRATE_LUT = new uint32_t[LARGEST_CREAM_CRATE + 1];
+		memset(ENABLED_CREAMS_BY_CRATE_LUT, 0,
+				(LARGEST_CREAM_CRATE + 1)
+						* sizeof(ENABLED_CREAMS_BY_CRATE_LUT[0]));
+
+		for (auto crateAndCreams : CREAM_IDS_BY_CRATE) {
+			uint crateID = crateAndCreams.first;
+			for (auto creamID : crateAndCreams.second) {
+				ENABLED_CREAMS_BY_CRATE_LUT[crateID] |= 1 << creamID;
+			}
 		}
 
 		/*
@@ -185,7 +242,10 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			 */
 			if (allCratesVector[allCratesVector.size() - 1] != muvCrate) {
 				throw NA62Error(
-						"The MUV crate ID must be the largest crateID available which is "+std::to_string(allCratesVector[allCratesVector.size() - 1]));
+						"The MUV crate ID must be the largest crateID available which is "
+								+ std::to_string(
+										allCratesVector[allCratesVector.size()
+												- 1]));
 			}
 		}
 

@@ -54,12 +54,16 @@ public:
 	 *The Crate IDs and the CREAM IDs will be consecutive numbers!
 	 */
 	static uint16_t NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-	static std::map<uint16_t, uint16_t> CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
+	static uint16_t** CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
 	static std::pair<uint16_t, uint16_t>* LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 
 	static uint16_t NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS;
 
 	static std::map<uint16_t, std::vector<uint16_t>> CREAM_IDS_BY_CRATE;
+
+	static uint LARGEST_CREAM_CRATE;
+	static uint64_t ENABLED_CREAM_CRATES_LUT;
+	static uint32_t* ENABLED_CREAMS_BY_CRATE_LUT;
 
 	/*
 	 * MUV
@@ -76,7 +80,7 @@ public:
 	static void Initialize(const uint16_t timeStampSourceID,
 			std::vector<std::pair<int, int> > sourceIDs,
 			std::vector<std::pair<int, int> > creamCrates,
-			std::vector<std::pair<int, int> > inactiveCreams, int muvCrate );
+			std::vector<std::pair<int, int> > inactiveCreams, int muvCrate);
 
 	static inline uint16_t getExpectedPacksBySourceNum(
 			const uint8_t sourceNum) {
@@ -115,7 +119,7 @@ public:
 	 */
 	static inline uint16_t getLocalCREAMID(const uint8_t crateID,
 			const uint8_t CREAM_ID) {
-		return CRATE_AND_CREAM_IDS_TO_LOCAL_ID[(crateID << 8) | CREAM_ID];
+		return CRATE_AND_CREAM_IDS_TO_LOCAL_ID[crateID][CREAM_ID];
 	}
 
 	/**
@@ -128,12 +132,9 @@ public:
 
 	static inline bool CheckCREAMID(const uint8_t crateID,
 			const uint8_t CREAM_ID) {
-		std::map<uint16_t, uint16_t>* cratesMap =
-				&CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
-		if (cratesMap->find((crateID << 8) | CREAM_ID) == cratesMap->end()) {
-			return false;
-		}
-		return true;
+
+		return CREAM_ID < 32 && (ENABLED_CREAM_CRATES_LUT & (1L << crateID)) // check crate
+				&& (ENABLED_CREAMS_BY_CRATE_LUT[crateID] & (1 << CREAM_ID)); // check CREAM of this crate
 	}
 };
 
