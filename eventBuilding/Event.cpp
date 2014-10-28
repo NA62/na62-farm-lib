@@ -199,8 +199,8 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 		return false;
 	}
 
-	int currentValue = numberOfL0Events_.fetch_add(1/*,
-			 std::memory_order_relaxed*/) + 1;
+	int currentValue = numberOfL0Events_.fetch_add(1,
+			std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
 	if (currentValue
@@ -347,8 +347,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1/*,
-				 std::memory_order_relaxed*/) + 1;
+		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1, std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
 		if (numberOfStoredCreamFragments == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {

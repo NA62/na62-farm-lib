@@ -19,8 +19,6 @@
 namespace na62 {
 namespace cream {
 
-class LKRMEP;
-
 /**
  * Defines the structure of a L1 CREAM event header as defined in the LKr spec.
  */
@@ -53,7 +51,7 @@ struct LKR_EVENT_RAW_HDR {
 
 class LkrFragment: boost::noncopyable {
 public:
-	LkrFragment(LKRMEP* mep, const char * data, const uint16_t& dataLength) throw (NA62Error);
+	LkrFragment(const char * data, const uint16_t& dataLength, const char* etherFrame) throw (NA62Error);
 	virtual ~LkrFragment();
 
 	inline const uint32_t getEventLength() const {
@@ -137,15 +135,11 @@ public:
 #endif
 	}
 
-	const LKRMEP* getMep() const {
-		return mep_;
-	}
-
 private:
-	LKRMEP* mep_;
 	const struct LKR_EVENT_RAW_HDR * rawData;
 
 	const char *data_;
+	const char* etherFrame_;
 };
 
 } /* namespace cream */
