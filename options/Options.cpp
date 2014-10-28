@@ -151,6 +151,9 @@ int Options::GetInt(char* parameter) {
 }
 
 bool Options::GetBool(char* parameter) {
+	if (GetOptionType(parameter) == typeid(int)) {
+		return vm[parameter].as<int>();
+	}
 	return vm[parameter].as<bool>();
 }
 
