@@ -10,15 +10,15 @@
  */
 
 #pragma once
-#ifndef THREADSAFEQUEUE_H_
-#define THREADSAFEQUEUE_H_
+#ifndef THREADSAFECONSUMERPRODUCERQUEUE_H_
+#define THREADSAFECONSUMERPRODUCERQUEUE_H_
 
 #include <cstdint>
 #include <iostream>
 
 namespace na62 {
 
-template<class T> class ThreadsafeQueue {
+template<class T> class ThreadsafeProducerConsumerQueue {
 public:
 //	volatile int eadPos_;
 //	volatile int writePos_;
@@ -30,20 +30,21 @@ public:
 	uint32_t Size_;
 	T* Data;
 
-	ThreadsafeQueue(uint32_t size) :
+	ThreadsafeProducerConsumerQueue(uint32_t size) :
 			Size_(size) {
 		readPos_ = 0;
 		writePos_ = 0;
 		Data = new T[Size_];
 	}
 
-	~ThreadsafeQueue() {
+	~ThreadsafeProducerConsumerQueue() {
 		delete[] Data;
 	}
 
 	T print() {
 		return Data[readPos_];
 	}
+
 	/*
 	 * Push a new element into the circular queue. May only be called by one single thread (producer)!
 	 */
@@ -58,7 +59,7 @@ public:
 	}
 
 	/*
-	 * remove the oledest element from the circular queue. May only be called by one single thread (consumer)!
+	 * remove the oldest element from the circular queue. May only be called by one single thread (consumer)!
 	 */
 	bool pop(T &element) {
 		if (readPos_ == writePos_) {
@@ -81,9 +82,8 @@ public:
 		} else {
 			return Size_ - readPos_ + writePos_;
 		}
-
 	}
 };
 
 } /* namespace na62 */
-#endif /* THREADSAFEQUEUE_H_ */
+#endif /* THREADSAFECONSUMERPRODUCERQUEUE_H_ */
