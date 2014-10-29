@@ -88,7 +88,7 @@ Event::~Event() {
 /**
  * Process data coming from the TEL boards
  */
-bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
+bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 #ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
 		firstEventPartAddedTime_.start();
@@ -108,10 +108,10 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 //	}
 
 	if (numberOfL0Events_ == 0) {
-		lastEventOfBurst_ = l0Event->isLastEventOfBurst();
+		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
 	} else {
-		if (l0Event->isLastEventOfBurst() != lastEventOfBurst_) {
+		if (fragment->isLastEventOfBurst() != lastEventOfBurst_) {
 			if (unfinishedEventMutex_.try_lock()) {
 				EventPool::FreeEvent(this);
 #ifdef USE_GLOG
@@ -120,7 +120,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 				std::cerr
 #endif
 
-<<				"MEPE Events  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
+<<				"MEPFragment's  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
 				unfinishedEventMutex_.unlock();
 			} else {
 				/*
@@ -129,7 +129,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
 			}
 
-			return addL0Event(l0Event, burstID);
+			return addL0Event(fragment, burstID);
 		}
 
 		if (burstID != getBurstID()) {
@@ -162,20 +162,20 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			/*
 			 * Add the event after this or another thread has destoryed this event
 			 */
-			return addL0Event(l0Event, burstID);
+			return addL0Event(fragment, burstID);
 		}
 	}
 
 	/*
 	 * Store the global event timestamp if the source ID is the TS_SOURCEID
 	 */
-	if (l0Event->getSourceID() == SourceIDManager::TS_SOURCEID) {
-		timestamp_ = l0Event->getTimestamp();
+	if (fragment->getSourceID() == SourceIDManager::TS_SOURCEID) {
+		timestamp_ = fragment->getTimestamp();
 	}
 
-	l0::Subevent* subevent = L0Subevents[l0Event->getSourceIDNum()];
+	l0::Subevent* subevent = L0Subevents[fragment->getSourceIDNum()];
 
-	if (!subevent->addFragment(l0Event)) {
+	if (!subevent->addFragment(fragment)) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
@@ -186,7 +186,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			std::cerr
 #endif
 			<< "Already received all fragments from sourceID "
-			<< ((int) l0Event->getSourceID())
+			<< ((int) fragment->getSourceID())
 			<< "\nData from following sourceIDs is missing: "
 			<< getMissingSourceIDs()
 #ifndef USE_GLOG
@@ -195,7 +195,7 @@ bool Event::addL0Event(l0::MEPFragment* l0Event, uint32_t burstID) {
 			;
 		}
 
-		delete l0Event;
+		delete fragment;
 		return false;
 	}
 
