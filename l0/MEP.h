@@ -65,11 +65,11 @@ public:
 	/**
 	 * Returns a pointer to the n'th event within this MEP where 0<=n<getFirstEventNum()
 	 */
-	inline MEPFragment* getEvent(const uint16_t n) {
+	inline MEPFragment* getFragment(const uint16_t n) {
 		/*
 		 * n may be bigger than <getNumberOfEvents()> as <deleteEvent()> could have been invoked already
 		 */
-		return events[n];
+		return fragments[n];
 	}
 
 	inline const uint8_t getSourceID() const {
@@ -133,7 +133,7 @@ private:
 	const char* etherFrame_;
 	// Pointer to the Payload of the UDP packet
 	struct MEP_HDR * rawData;
-	MEPFragment **events;
+	MEPFragment **fragments;
 
 	bool checkSumsVarified_;
 };

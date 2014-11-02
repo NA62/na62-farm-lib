@@ -29,6 +29,8 @@
 namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
 
+std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
+
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
@@ -85,6 +87,16 @@ Event::~Event() {
 //	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
 }
 
+void Event::initialize() {
+	MissingEventsBySourceNum_ =
+			new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
+					+ 1];
+
+	for (uint i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1; i++) {
+		MissingEventsBySourceNum_[i] = 0;
+	}
+}
+
 /**
  * Process data coming from the TEL boards
  */
@@ -137,6 +149,8 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 				/*
 				 * Event not build during last burst -> destroy it!
 				 */
+				std::string missingSourceIDs = getMissingSourceIDs();
+
 				if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
 					LOG(INFO)
@@ -145,7 +159,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 #endif
 <<					"Overwriting unfinished event from Burst " << (int) getBurstID()
 					<< "! Eventnumber " << (int) getEventNumber()
-					<< " misses data from sourceIDs " << getMissingSourceIDs()
+					<< " misses data from sourceIDs " << missingSourceIDs
 #ifndef USE_GLOG
 					<< std::endl
 #endif
@@ -179,16 +193,17 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
-		if(printMissingSourceIDs_) {
+		std::string missingSourceIDs = getMissingSourceIDs();
+		if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
 			LOG(ERROR)
 #else
 			std::cerr
 #endif
-			<< "Already received all fragments from sourceID "
+<<			"Already received all fragments from sourceID "
 			<< ((int) fragment->getSourceID())
 			<< "\nData from following sourceIDs is missing: "
-			<< getMissingSourceIDs()
+			<< missingSourceIDs
 #ifndef USE_GLOG
 			<< std::endl
 #endif
@@ -199,8 +214,8 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 		return false;
 	}
 
-	int currentValue = numberOfL0Events_.fetch_add(1,
-			std::memory_order_release) + 1;
+	int currentValue = numberOfL0Events_.fetch_add(1, std::memory_order_release)
+			+ 1;
 
 #ifdef MEASURE_TIME
 	if (currentValue
@@ -212,7 +227,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 	return false;
 #else
 	return currentValue
-	== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 #endif
 }
 
@@ -410,39 +425,57 @@ std::string Event::getMissingSourceIDs() {
 	 * Find the missing sourceIDs
 	 */
 	std::stringstream missingIDs;
-	for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
-		l0::Subevent* subevent = getL0SubeventBySourceIDNum(i);
-		if (SourceIDManager::getExpectedPacksBySourceNum(i)
+	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+			sourceNum >= 0; sourceNum--) {
+		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+		if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
 				!= subevent->getNumberOfFragments()) {
-			missingIDs << (int) SourceIDManager::SourceNumToID(i) << "(";
-			for (int f = 0;
-					f != getL0SubeventBySourceIDNum(i)->getNumberOfFragments();
-					f++) {
-				if (f != 0) {
-					missingIDs << ", ";
+			MissingEventsBySourceNum_[sourceNum].fetch_add(1,
+					std::memory_order_relaxed);
+			if (printMissingSourceIDs_) {
+				missingIDs << (int) SourceIDManager::SourceNumToID(sourceNum)
+						<< "(";
+				for (int f = 0;
+						f != L0Subevents[sourceNum]->getNumberOfFragments();
+						f++) {
+					if (f != 0) {
+						missingIDs << ", ";
+					}
+					missingIDs
+							<< (int) subevent->getFragment(f)->getSourceSubID();
 				}
-				missingIDs << (int) subevent->getFragment(f)->getSourceSubID();
+
+				missingIDs << "); ";
 			}
-
-			missingIDs << "); ";
-		}
-	}
-	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
-			- 1; i >= 0; i--) {
-		if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
-			std::pair<uint8_t, uint8_t> crateAndCream =
-					SourceIDManager::getCrateAndCREAMIDByLocalID(i);
-
-			missingIDs << "crate " << (int) crateAndCream.first << "/cream "
-					<< (int) crateAndCream.second << "; ";
 		}
 	}
 
-	std::stringstream dump;
-	dump << "Burst:\t" << getBurstID() << "\tEvent:\t" << getEventNumber()
-			<< "\tTS:\t" << getTimestamp() << "\tMissing:\t";
-	dump << missingIDs.str();
-	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
+	if (numberOfCREAMFragments_
+			!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
+				1, std::memory_order_relaxed);
+
+		if (printMissingSourceIDs_) {
+			for (int i = 0;
+					i
+							!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+					i++) {
+				if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
+					std::pair<uint8_t, uint8_t> crateAndCream =
+							SourceIDManager::getCrateAndCREAMIDByLocalID(i);
+
+					missingIDs << "crate " << (int) crateAndCream.first
+							<< "/cream " << (int) crateAndCream.second << "; ";
+				}
+			}
+		}
+	}
+
+//	std::stringstream dump;
+//	dump << "Burst:\t" << getBurstID() << "\tEvent:\t" << getEventNumber()
+//			<< "\tTS:\t" << getTimestamp() << "\tMissing:\t";
+//	dump << missingIDs.str();
+//	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
 
 	return missingIDs.str();
 }

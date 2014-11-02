@@ -32,7 +32,7 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 		etherFrame_(originalData), rawData((struct MEP_HDR*) (data)), checkSumsVarified_(
 				false) {
 
-	events = new MEPFragment*[rawData->eventCount];
+	fragments = new MEPFragment*[rawData->eventCount];
 	if (getLength() != dataLength) {
 		if (getLength() > dataLength) {
 			throw BrokenPacketReceivedError(
@@ -69,7 +69,7 @@ MEP::~MEP() {
 		 */
 		throw NA62Error("Deleting non-empty MEP!!!");
 	}
-	delete[] events;
+	delete[] fragments;
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
@@ -89,7 +89,7 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 				(MEPFragment_HDR*) (data + offset), expectedEventNum);
 
 		expectedEventNum++;
-		events[i] = newMEPFragment;
+		fragments[i] = newMEPFragment;
 		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEPFragment! Received only "
