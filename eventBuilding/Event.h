@@ -22,7 +22,6 @@
 #include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
 
-
 //#define MEASURE_TIME
 
 namespace na62 {
@@ -186,7 +185,8 @@ public:
 	 */
 	inline l0::Subevent* getL0SubeventBySourceID(
 			const uint8_t&& sourceID) const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
+		return L0Subevents[SourceIDManager::SourceIDToNum(
+				std::forward<const uint8_t>(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CEDAR)];
@@ -320,6 +320,10 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	static uint64_t getMissingEventsBySourceNum(uint sourceNum) {
+		return MissingEventsBySourceNum_[sourceNum];
+	}
+
 	static void setPrintMissingSourceIds(bool doPrint) {
 		printMissingSourceIDs_ = doPrint;
 	}
@@ -361,6 +365,7 @@ public:
 	}
 #endif
 
+	static void initialize();
 private:
 	void setBurstID(const uint32_t burstID) {
 		burstID_ = burstID;
@@ -407,10 +412,11 @@ private:
 
 	bool lastEventOfBurst_;
 
-	static bool printMissingSourceIDs_;
 	tbb::spin_mutex destroyMutex_;
 	tbb::spin_mutex unfinishedEventMutex_;
 
+	static std::atomic<uint64_t>* MissingEventsBySourceNum_;
+	static bool printMissingSourceIDs_;
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
 
