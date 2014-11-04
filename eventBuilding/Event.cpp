@@ -30,6 +30,7 @@ namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
 
 std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
+std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
@@ -281,21 +282,24 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
  */
 bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 	if (!L1Processed_) {
+		if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-		LOG(ERROR)
+			LOG(ERROR)
 #else
-		std::cerr
+			std::cerr
 #endif
-<<		"Received LKR data with EventNumber "
-		<< (int) fragment->getEventNumber() << ", crateID "
-		<< (int) fragment->getCrateID() << " and CREAMID "
-		<< (int) fragment->getCREAMID()
-		<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
-		<< getBurstID() << ")"
+<<			"Received LKR data with EventNumber "
+			<< (int) fragment->getEventNumber() << ", crateID "
+			<< (int) fragment->getCrateID() << " and CREAMID "
+			<< (int) fragment->getCREAMID()
+			<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
+			<< getBurstID() << ")"
 #ifndef USE_GLOG
-		<< std::endl
+			<< std::endl
 #endif
-		;
+			;
+		}
+		nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
 		delete fragment;
 		return false;
@@ -424,12 +428,14 @@ std::string Event::getMissingSourceIDs() {
 	/*
 	 * Find the missing sourceIDs
 	 */
+	bool l1NotFinished = false;
 	std::stringstream missingIDs;
 	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
 			sourceNum >= 0; sourceNum--) {
 		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
 		if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
 				!= subevent->getNumberOfFragments()) {
+			l1NotFinished = true;
 			MissingEventsBySourceNum_[sourceNum].fetch_add(1,
 					std::memory_order_relaxed);
 			if (printMissingSourceIDs_) {
@@ -450,7 +456,7 @@ std::string Event::getMissingSourceIDs() {
 		}
 	}
 
-	if (numberOfCREAMFragments_
+	if (!l1NotFinished && numberOfCREAMFragments_
 			!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
 				1, std::memory_order_relaxed);

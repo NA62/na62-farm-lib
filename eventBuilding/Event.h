@@ -324,6 +324,10 @@ public:
 		return MissingEventsBySourceNum_[sourceNum];
 	}
 
+	static uint64_t getNumberOfNonRequestedCreamFragments(){
+		return nonRequestsCreamFramesReceived_;
+	}
+
 	static void setPrintMissingSourceIds(bool doPrint) {
 		printMissingSourceIDs_ = doPrint;
 	}
@@ -416,6 +420,7 @@ private:
 	tbb::spin_mutex unfinishedEventMutex_;
 
 	static std::atomic<uint64_t>* MissingEventsBySourceNum_;
+	static std::atomic<uint64_t> nonRequestsCreamFramesReceived_;
 	static bool printMissingSourceIDs_;
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
