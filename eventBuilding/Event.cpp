@@ -456,12 +456,14 @@ std::string Event::getMissingSourceIDs() {
 		}
 	}
 
-	if (!l1NotFinished && numberOfCREAMFragments_
-			!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+	if (!l1NotFinished
+			&& numberOfCREAMFragments_
+					!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
 				1, std::memory_order_relaxed);
 
 		if (printMissingSourceIDs_) {
+			uint crateID = 0xFFFFFFFF;
 			for (int i = 0;
 					i
 							!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
@@ -470,10 +472,16 @@ std::string Event::getMissingSourceIDs() {
 					std::pair<uint8_t, uint8_t> crateAndCream =
 							SourceIDManager::getCrateAndCREAMIDByLocalID(i);
 
-					missingIDs << "crate " << (int) crateAndCream.first
-							<< "/cream " << (int) crateAndCream.second << "; ";
+					if (crateID != crateAndCream.first) {
+						crateID = crateAndCream.first;
+						missingIDs << "\n" << crateID << "\t";
+					}
+					missingIDs << (int) crateAndCream.second << "\t";
+				} else {
+					missingIDs << "\t";
 				}
 			}
+			missingIDs << "\n";
 		}
 	}
 
