@@ -247,17 +247,20 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
 					crateCREAMID, lb->first))) {
 		if (unfinishedEventMutex_.try_lock()) {
+			if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-			LOG(INFO)
+				LOG(INFO)
 #else
-			std::cerr
+				std::cerr
 #endif
 
-<<			"Non zero suppressed LKr event with EventNumber "
-			<< (int) fragment->getEventNumber() << ", crateID "
-			<< (int) fragment->getCrateID() << " and CREAMID "
-			<< (int) fragment->getCREAMID()
-			<< " received twice! Will delete the whole event!";
+<<				"Non zero suppressed LKr event with EventNumber "
+				<< (int) fragment->getEventNumber() << ", crateID "
+				<< (int) fragment->getCrateID() << " and CREAMID "
+				<< (int) fragment->getCREAMID()
+				<< " received twice! Will delete the whole event!";
+			}
+			nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
 			EventPool::FreeEvent(this);
 			unfinishedEventMutex_.unlock();
@@ -341,23 +344,28 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 
 		if (oldEvent != NULL) {
 			if (unfinishedEventMutex_.try_lock()) {
-
+				if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-				LOG(INFO)
+					LOG(INFO)
 #else
-				std::cerr
+					std::cerr
 #endif
 
-				<< "LKr event with EventNumber "
-				+ boost::lexical_cast<std::string>(
-						(int) fragment->getEventNumber())
-				+ ", crateID "
-				+ boost::lexical_cast<std::string>(
-						(int) fragment->getCrateID())
-				+ " and CREAMID "
-				+ boost::lexical_cast<std::string>(
-						(int) fragment->getCREAMID())
-				+ " received twice! Will delete the whole event!";
+					<< "LKr event with EventNumber "
+					+ boost::lexical_cast<std::string>(
+							(int) fragment->getEventNumber())
+					+ ", crateID "
+					+ boost::lexical_cast<std::string>(
+							(int) fragment->getCrateID())
+					+ " and CREAMID "
+					+ boost::lexical_cast<std::string>(
+							(int) fragment->getCREAMID())
+					+ " received twice! Will delete the whole event!";
+
+				}
+
+				nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
+
 				EventPool::FreeEvent(this);
 				unfinishedEventMutex_.unlock();
 			}
