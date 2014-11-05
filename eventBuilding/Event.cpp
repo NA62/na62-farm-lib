@@ -30,6 +30,7 @@ namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
 
 std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
+std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
@@ -246,17 +247,20 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
 					crateCREAMID, lb->first))) {
 		if (unfinishedEventMutex_.try_lock()) {
+			if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-			LOG(INFO)
+				LOG(INFO)
 #else
-			std::cerr
+				std::cerr
 #endif
 
-<<			"Non zero suppressed LKr event with EventNumber "
-			<< (int) fragment->getEventNumber() << ", crateID "
-			<< (int) fragment->getCrateID() << " and CREAMID "
-			<< (int) fragment->getCREAMID()
-			<< " received twice! Will delete the whole event!";
+<<				"Non zero suppressed LKr event with EventNumber "
+				<< (int) fragment->getEventNumber() << ", crateID "
+				<< (int) fragment->getCrateID() << " and CREAMID "
+				<< (int) fragment->getCREAMID()
+				<< " received twice! Will delete the whole event!";
+			}
+			nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
 			EventPool::FreeEvent(this);
 			unfinishedEventMutex_.unlock();
@@ -281,21 +285,24 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
  */
 bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 	if (!L1Processed_) {
+		if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-		LOG(ERROR)
+			LOG(ERROR)
 #else
-		std::cerr
+			std::cerr
 #endif
-<<		"Received LKR data with EventNumber "
-		<< (int) fragment->getEventNumber() << ", crateID "
-		<< (int) fragment->getCrateID() << " and CREAMID "
-		<< (int) fragment->getCREAMID()
-		<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
-		<< getBurstID() << ")"
+<<			"Received LKR data with EventNumber "
+			<< (int) fragment->getEventNumber() << ", crateID "
+			<< (int) fragment->getCrateID() << " and CREAMID "
+			<< (int) fragment->getCREAMID()
+			<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
+			<< getBurstID() << ")"
 #ifndef USE_GLOG
-		<< std::endl
+			<< std::endl
 #endif
-		;
+			;
+		}
+		nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
 		delete fragment;
 		return false;
@@ -337,23 +344,28 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 
 		if (oldEvent != NULL) {
 			if (unfinishedEventMutex_.try_lock()) {
-
+				if (printMissingSourceIDs_) {
 #ifdef USE_GLOG
-				LOG(INFO)
+					LOG(INFO)
 #else
-				std::cerr
+					std::cerr
 #endif
 
-				<< "LKr event with EventNumber "
-				+ boost::lexical_cast<std::string>(
-						(int) fragment->getEventNumber())
-				+ ", crateID "
-				+ boost::lexical_cast<std::string>(
-						(int) fragment->getCrateID())
-				+ " and CREAMID "
-				+ boost::lexical_cast<std::string>(
-						(int) fragment->getCREAMID())
-				+ " received twice! Will delete the whole event!";
+					<< "LKr event with EventNumber "
+					+ boost::lexical_cast<std::string>(
+							(int) fragment->getEventNumber())
+					+ ", crateID "
+					+ boost::lexical_cast<std::string>(
+							(int) fragment->getCrateID())
+					+ " and CREAMID "
+					+ boost::lexical_cast<std::string>(
+							(int) fragment->getCREAMID())
+					+ " received twice! Will delete the whole event!";
+
+				}
+
+				nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
+
 				EventPool::FreeEvent(this);
 				unfinishedEventMutex_.unlock();
 			}
@@ -424,12 +436,14 @@ std::string Event::getMissingSourceIDs() {
 	/*
 	 * Find the missing sourceIDs
 	 */
+	bool l1NotFinished = false;
 	std::stringstream missingIDs;
 	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
 			sourceNum >= 0; sourceNum--) {
 		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
 		if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
 				!= subevent->getNumberOfFragments()) {
+			l1NotFinished = true;
 			MissingEventsBySourceNum_[sourceNum].fetch_add(1,
 					std::memory_order_relaxed);
 			if (printMissingSourceIDs_) {
@@ -450,12 +464,14 @@ std::string Event::getMissingSourceIDs() {
 		}
 	}
 
-	if (numberOfCREAMFragments_
-			!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+	if (!l1NotFinished
+			&& numberOfCREAMFragments_
+					!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
 				1, std::memory_order_relaxed);
 
 		if (printMissingSourceIDs_) {
+			uint crateID = 0xFFFFFFFF;
 			for (int i = 0;
 					i
 							!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
@@ -464,10 +480,16 @@ std::string Event::getMissingSourceIDs() {
 					std::pair<uint8_t, uint8_t> crateAndCream =
 							SourceIDManager::getCrateAndCREAMIDByLocalID(i);
 
-					missingIDs << "crate " << (int) crateAndCream.first
-							<< "/cream " << (int) crateAndCream.second << "; ";
+					if (crateID != crateAndCream.first) {
+						crateID = crateAndCream.first;
+						missingIDs << "\n" << crateID << "\t";
+					}
+					missingIDs << (int) crateAndCream.second << "\t";
+				} else {
+					missingIDs << "\t";
 				}
 			}
+			missingIDs << "\n";
 		}
 	}
 
