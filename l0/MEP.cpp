@@ -7,7 +7,6 @@
 
 #include "MEP.h"
 
-#include <boost/lexical_cast.hpp>
 #ifdef USE_GLOG
 #include <glog/logging.h>
 #endif
@@ -37,16 +36,16 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 		if (getLength() > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEP! Received only "
-							+ boost::lexical_cast<std::string>(dataLength)
+							+ std::to_string(dataLength)
 							+ " of "
-							+ boost::lexical_cast<std::string>(getLength())
+							+ std::to_string(getLength())
 							+ " bytes");
 		} else {
 			throw BrokenPacketReceivedError(
 					"Received MEP longer than 'mep length' field! Received "
-							+ boost::lexical_cast<std::string>(dataLength)
+							+ std::to_string(dataLength)
 							+ " instead of "
-							+ boost::lexical_cast<std::string>(getLength())
+							+ std::to_string(getLength())
 							+ " bytes");
 		}
 	}
@@ -93,9 +92,9 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEPFragment! Received only "
-							+ boost::lexical_cast<std::string>(dataLength)
+							+ std::to_string(dataLength)
 							+ " of "
-							+ boost::lexical_cast<std::string>(
+							+ std::to_string(
 									offset + newMEPFragment->getDataWithHeaderLength())
 							+ " bytes");
 		}
@@ -106,9 +105,9 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 	if (offset < dataLength) {
 		throw BrokenPacketReceivedError(
 				"Sum of MEP events + MEP Header is smaller than expected: "
-						+ boost::lexical_cast<std::string>(offset)
+						+ std::to_string(offset)
 						+ " instead of "
-						+ boost::lexical_cast<std::string>(dataLength));
+						+ std::to_string(dataLength));
 	}
 	eventCount_ = rawData->eventCount;
 }

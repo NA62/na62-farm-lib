@@ -22,7 +22,7 @@ std::string Utils::FormatSize(long int size) {
 	char buffer[128];
 
 	if (size < kB) {
-		return boost::lexical_cast<std::string>(size);
+		return std::to_string(size);
 	}
 	if (size < MB) {
 		snprintf(buffer, sizeof(buffer), "%.2fk", (double) size / kB);

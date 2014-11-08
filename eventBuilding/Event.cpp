@@ -7,7 +7,6 @@
 
 #include "Event.h"
 
-#include <boost/lexical_cast.hpp>
 #include <cstdbool>
 #include <sstream>
 
@@ -114,8 +113,8 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 //#else
 //			std::cerr
 //#endif
-//		<<"Trying to add MEPFragment with eventNumber " + boost::lexical_cast<std::string>(l0Event->getEventNumber())
-//		+ " to an Event with eventNumber " + boost::lexical_cast<std::string>(eventNumber_) + ". Will ignore the MEPFragment!";
+//		<<"Trying to add MEPFragment with eventNumber " + std::to_string(l0Event->getEventNumber())
+//		+ " to an Event with eventNumber " + std::to_string(eventNumber_) + ". Will ignore the MEPFragment!";
 //		delete l0Event;
 //		return false;
 //	}
@@ -315,10 +314,10 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		std::cerr
 #endif
 		<< "Trying to add LkrFragment with eventNumber "
-		+ boost::lexical_cast<std::string>(
+		+ std::to_string(
 				fragment->getEventNumber())
 		+ " to an Event with eventNumber "
-		+ boost::lexical_cast<std::string>(eventNumber_)
+		+ std::to_string(eventNumber_)
 		+ ". Will ignore the LkrFragment!"
 #ifndef USE_GLOG
 		<< std::endl
@@ -352,13 +351,13 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 #endif
 
 					<< "LKr event with EventNumber "
-					+ boost::lexical_cast<std::string>(
+					+ std::to_string(
 							(int) fragment->getEventNumber())
 					+ ", crateID "
-					+ boost::lexical_cast<std::string>(
+					+ std::to_string(
 							(int) fragment->getCrateID())
 					+ " and CREAMID "
-					+ boost::lexical_cast<std::string>(
+					+ std::to_string(
 							(int) fragment->getCREAMID())
 					+ " received twice! Will delete the whole event!";
 

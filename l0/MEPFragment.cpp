@@ -7,7 +7,6 @@
 
 #include "MEPFragment.h"
 
-#include <boost/lexical_cast.hpp>
 #include <string>
 
 #include "../exceptions/BrokenPacketReceivedError.h"
@@ -34,7 +33,7 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)) {
 		throw BrokenPacketReceivedError(
 				"MEPFragment with bad event number LSB received: received "
-						+ boost::lexical_cast<std::string>(
+						+ std::to_string(
 								(int) rawData->eventNumberLSB_)
 						+ " but expected LSB is "
 						+ std::to_string(expectedEventNum & 0x000000FF));

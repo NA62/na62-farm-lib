@@ -8,8 +8,6 @@
 #pragma once
 #ifndef UNDNOWNSOURCEIDFOUND_H_
 #define UNDNOWNSOURCEIDFOUND_H_
-#include <boost/lexical_cast.hpp>
-
 #include <stdint.h>
 
 #include "NA62Error.h"
@@ -20,7 +18,7 @@ class UnknownSourceIDFound: public na62::NA62Error {
 public:
 	UnknownSourceIDFound(uint8_t sourceID) :
 			na62::NA62Error(
-					"Unknown source ID: " + boost::lexical_cast<std::string>((int) sourceID)
+					"Unknown source ID: " + std::to_string((int) sourceID)
 							+ "\n Check the corresponding field in the Options file!") {
 	}
 };
