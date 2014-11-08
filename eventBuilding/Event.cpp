@@ -93,7 +93,7 @@ void Event::initialize() {
 			new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
 					+ 1];
 
-	for (uint i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1; i++) {
+	for (int i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1; i++) {
 		MissingEventsBySourceNum_[i] = 0;
 	}
 }

@@ -36,6 +36,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.807594041" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/afs/cern.ch/sw/IntelSoftware/linux/x86_64/xe2013/composer_xe_2013_sp1.2.144/ipp/include"/>
 								</option>
+								<option id="gnu.cpp.compiler.option.optimization.flags.811671503" superClass="gnu.cpp.compiler.option.optimization.flags" value="-Ofast" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1209846087" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.lib.release.1857002422" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.lib.release">
