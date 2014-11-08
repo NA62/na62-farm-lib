@@ -19,7 +19,7 @@ public:
 	static std::string FormatSize(long int size);
 	static double Average(std::vector<double> data);
 	static double StandardDevation(std::vector<double> data);
-	static void PrintHex(const char* data, const size_t dataLength);
+	static std::string PrintHex(const char* data, const size_t dataLength);
 	static uint ToUInt(std::string str) throw (boost::bad_lexical_cast);
 
 	static inline uint8_t highbit(uint8_t& t) {

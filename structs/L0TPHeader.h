@@ -10,10 +10,12 @@
 
 #include <stdint.h>
 
-struct L0TpHeader {
+struct L0TpHeader { // 24 bytes
 	uint8_t refFineTime;
 	uint8_t dataType;
-	uint16_t primitive[7];
+	uint16_t primitives[7];
+
+	// 3 words primitives
 
 	uint16_t previousTimeStampHight;
 	uint16_t memoryAddress;
