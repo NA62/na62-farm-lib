@@ -78,7 +78,7 @@ public:
 
 	static std::vector<std::pair<int, int> > GetIntPairList(char* parameter);
 
-	static float GetFloat(char* parameter);
+	static double GetDouble(char* parameter);
 
 	static void Save(void);
 	static void Save(std::string fileName);

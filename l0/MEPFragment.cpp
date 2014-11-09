@@ -49,21 +49,21 @@ MEPFragment::~MEPFragment() {
 /*
  * The sourceID in the header of this MEP event
  */
-const uint8_t MEPFragment::getSourceID() const {
+uint8_t MEPFragment::getSourceID() const {
 	return mep_->getSourceID();
 }
 
 /*
  * The sourceSubID in the header of this MEP event
  */
-const uint8_t MEPFragment::getSourceSubID() const {
+uint8_t MEPFragment::getSourceSubID() const {
 	return mep_->getSourceSubID();
 }
 
 /*
  * The internally used number corresponding to the sourceID of this MEP event
  */
-const uint8_t MEPFragment::getSourceIDNum() const {
+uint8_t MEPFragment::getSourceIDNum() const {
 	return mep_->getSourceIDNum();
 }
 

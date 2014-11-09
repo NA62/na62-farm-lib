@@ -54,7 +54,7 @@ public:
 	LkrFragment(const char * data, const uint16_t& dataLength, const char* etherFrame) throw (NA62Error);
 	virtual ~LkrFragment();
 
-	inline const uint32_t getEventLength() const {
+	inline uint32_t getEventLength() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return (ntohl(rawData->numberOf4BWords) >> 8) * 4;
 #else
@@ -62,7 +62,7 @@ public:
 #endif
 	}
 
-	inline const uint32_t getEvent4BWords() const {
+	inline uint32_t getEvent4BWords() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return ntohl(rawData->numberOf4BWords >> 8);
 #else
@@ -73,7 +73,7 @@ public:
 	/**
 	 * Absolute event number (MSB & LSB)
 	 */
-	inline const uint32_t getEventNumber() const {
+	inline uint32_t getEventNumber() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return ntohl(rawData->eventNumber) >> 8;
 #else
@@ -81,7 +81,7 @@ public:
 #endif
 	}
 
-	inline const uint8_t getCrateID() const {
+	inline uint8_t getCrateID() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// skip the lowest 5 bits as these are the CREMID
 		return (uint8_t) (ntohs(rawData->sourceCrateCREAMID) >> 5) & 63;
@@ -90,7 +90,7 @@ public:
 #endif
 	}
 
-	inline const uint8_t getCREAMID() const {
+	inline uint8_t getCREAMID() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// The CREAMID is in the lowest 5(which is 31) bits
 		return (uint8_t) (ntohs(rawData->sourceCrateCREAMID) & 31);
@@ -99,7 +99,7 @@ public:
 #endif
 	}
 
-	inline const uint32_t getTimestamp() const {
+	inline uint32_t getTimestamp() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return ntohl(rawData->timestamp);
 #else
@@ -122,11 +122,11 @@ public:
 		return data_;
 	}
 
-	inline const uint16_t getCrateCREAMID() {
+	inline uint16_t getCrateCREAMID() {
 		return generateCrateCREAMID(getCrateID(), getCREAMID());
 	}
 
-	static inline const uint16_t generateCrateCREAMID(const uint8_t crateID, const uint8_t CREAMID) {
+	static inline uint16_t generateCrateCREAMID(const uint8_t crateID, const uint8_t CREAMID) {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// The CREAMID is in the lowest 5(which is 31) bits
 		return htons((crateID << 8) | CREAMID);

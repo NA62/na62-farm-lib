@@ -36,12 +36,12 @@ namespace l0 {
  */
 struct MEP_HDR {
 	// Number of L0 triggers since start of burst
-	uint32_t firstEventNum :24;
-	uint8_t sourceID;
+	const uint32_t firstEventNum :24;
+	const uint8_t sourceID;
 
-	uint16_t mepLength; //  Total length of the MEP in bytes including the header
-	uint8_t eventCount;
-	uint8_t sourceSubID;
+	const uint16_t mepLength; //  Total length of the MEP in bytes including the header
+	const uint8_t eventCount;
+	const uint8_t sourceSubID;
 }__attribute__ ((__packed__));
 
 class MEP: private boost::noncopyable {
@@ -72,7 +72,7 @@ public:
 		return fragments[n];
 	}
 
-	inline const uint8_t getSourceID() const {
+	inline uint8_t getSourceID() const {
 		return rawData->sourceID;
 	}
 
@@ -81,26 +81,26 @@ public:
 	 * you would probably want to have an array with three entries, one for each source. For this you need a relation like 2->0, 5->1, 7->2.
 	 * This is done by this method!
 	 */
-	inline const uint8_t getSourceIDNum() const {
+	inline uint8_t getSourceIDNum() const {
 		return SourceIDManager::SourceIDToNum(rawData->sourceID);
 	}
 
-	inline const uint32_t getFirstEventNum() const {
+	inline uint32_t getFirstEventNum() const {
 		return rawData->firstEventNum;
 	}
 
-	inline const uint16_t getNumberOfEvents() const {
+	inline uint16_t getNumberOfEvents() const {
 		return rawData->eventCount;
 	}
 
 	/**
 	 * Total length of the MEP in bytes including the header
 	 */
-	inline const uint16_t getLength() const {
+	inline uint16_t getLength() const {
 		return rawData->mepLength;
 	}
 
-	inline const uint8_t getSourceSubID() const {
+	inline uint8_t getSourceSubID() const {
 		return rawData->sourceSubID;
 	}
 
