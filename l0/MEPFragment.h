@@ -40,37 +40,37 @@ public:
 	/**
 	 * Number of Bytes of the data including the header (sizeof MEPFragment_HDR)
 	 */
-	inline const uint16_t getDataWithHeaderLength() const {
+	inline uint16_t getDataWithHeaderLength() const {
 		return rawData->eventLength_;
 	}
 
 	/**
 	 * Number of Bytes of the payload data
 	 */
-	inline const uint16_t getPayloadLength() const {
+	inline uint16_t getPayloadLength() const {
 		return rawData->eventLength_ - sizeof(MEPFragment_HDR);
 	}
 
-	inline const uint32_t getTimestamp() const {
+	inline uint32_t getTimestamp() const {
 		return rawData->timestamp_;
 	}
 
-	inline const bool isLastEventOfBurst() const {
+	inline bool isLastEventOfBurst() const {
 		return rawData->lastEventOfBurst_;
 	}
 
 	/**
 	 * Absolute event number (MSB & LSB)
 	 */
-	inline const uint32_t getEventNumber() const {
+	inline uint32_t getEventNumber() const {
 		return eventNumber_;
 	}
 
-	const uint8_t getSourceID() const;
+	uint8_t getSourceID() const;
 
-	const uint8_t getSourceSubID() const;
+	uint8_t getSourceSubID() const;
 
-	const uint8_t getSourceIDNum() const;
+	uint8_t getSourceIDNum() const;
 
 	/**
 	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including the MEPFragment_HDR!).
@@ -84,11 +84,11 @@ public:
 	 * Returns a pointer to the MEP-Buffer at the position where the payload data of this event starts (excluding the MEPFragment_HDR).
 	 * From there on you should read only getPayloadLength() bytes!
 	 */
-	inline const char* getPayload() const {
+	inline char* getPayload() const {
 		return ((char*) rawData) + sizeof(MEPFragment_HDR);
 	}
 
-	inline const MEP* getMep() {
+	inline MEP* getMep() {
 		return mep_;
 	}
 private:

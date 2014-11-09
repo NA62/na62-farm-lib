@@ -22,7 +22,7 @@ std::string Utils::FormatSize(long int size) {
 	char buffer[128];
 
 	if (size < kB) {
-		return boost::lexical_cast<std::string>(size);
+		return std::to_string(size);
 	}
 	if (size < MB) {
 		snprintf(buffer, sizeof(buffer), "%.2fk", (double) size / kB);
@@ -55,16 +55,17 @@ double Utils::StandardDevation(std::vector<double> data) {
 	return sqrt(sum / (data.size() - 1));
 }
 
-void Utils::PrintHex(const char* data, const size_t dataLength) {
+std::string Utils::PrintHex(const char* data, const size_t dataLength) {
+	std::stringstream stream;
 	for (uint32_t i = 0; i < dataLength; i++) {
 		uint8_t byte;
 		memcpy(&byte, &((char*) data)[i], 1);
-		std::cerr << std::hex << std::setw(2) << std::setfill('0') << (int) byte << " ";
+		stream << std::hex << std::setw(2) << std::setfill('0') << (int) byte << " ";
 		if ((i + 1) % 4 == 0) {
-			std::cerr << std::endl;
+			stream << std::endl;
 		}
 	}
-	std::cerr << std::dec;
+	return stream.str();
 }
 
 uint Utils::ToUInt(std::string str) throw (boost::bad_lexical_cast) {

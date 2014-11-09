@@ -273,8 +273,8 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 	return values;
 }
 
-float Options::GetFloat(char* parameter) {
-	return vm[parameter].as<float>();
+double Options::GetDouble(char* parameter) {
+	return vm[parameter].as<double>();
 }
 
 const std::type_info& Options::GetOptionType(std::string key) {

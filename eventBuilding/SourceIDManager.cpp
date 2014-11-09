@@ -54,7 +54,8 @@ uint16_t SourceIDManager::MUV_CREAM_CRATE;
 uint16_t SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS = 0;
 uint16_t SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS = 0;
 
-uint16_t SourceIDManager::TS_SOURCEID;
+uint_fast8_t SourceIDManager::TS_SOURCEID;
+bool SourceIDManager::L0TP_ACTIVE = false;
 
 void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		std::vector<std::pair<int, int> > sourceIDs,
@@ -265,6 +266,8 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 				<< std::endl;
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
+
+	L0TP_ACTIVE = SourceIDManager::CheckL0SourceID(SOURCE_ID_L0TP);
 }
 
 bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) {

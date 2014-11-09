@@ -18,13 +18,13 @@
 #include <stdint.h>
 
 #include <string>
-#include <boost/lexical_cast.hpp>
 #include <stdio.h>
 #include <vector>
 #include <iostream>
 
 #include <sys/resource.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include<map>
 
