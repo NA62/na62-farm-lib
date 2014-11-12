@@ -56,7 +56,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	(OPTION_HELP, "Produce help message")
 
 	(OPTION_VERBOSITY, po::value<int>()->default_value(0),
-			"Verbosity mode:\n0: Error\n1: Warning\n2: Info")
+			"Verbosity mode:\n0: Silent\n1: Error\n2: Warning\n3: Info")
 
 	(OPTION_LOGTOSTDERR, po::value<int>()->default_value(0),
 			"Show logs in stderr")
@@ -103,16 +103,18 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
 		FLAGS_logtostderr = true;
 	}
-	FLAGS_minloglevel = 2 - Options::GetInt(OPTION_VERBOSITY);
+	FLAGS_minloglevel = 3 - Options::GetInt(OPTION_VERBOSITY);
 
 	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
-	if (!boost::filesystem::exists(dir) && !boost::filesystem::create_directory(dir)){
+	if (!boost::filesystem::exists(dir)
+			&& !boost::filesystem::create_directory(dir)) {
 		std::cerr << "Unable to create directory " << dir.string() << std::endl;
 	}
 
 	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
 	google::InitGoogleLogging(argv[0]);
-	std::cout << "Writing logs to " << FLAGS_log_dir << std::endl;
+	std::cout << "Writing logs to " << FLAGS_log_dir << " With min log level "
+			<< FLAGS_minloglevel << std::endl;
 #endif
 }
 
