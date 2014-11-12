@@ -11,6 +11,12 @@
 
 #include <cstdint>
 
+/*
+ * Special triggers
+ */
+#define TRIGGER_L0_SOB 0x22
+#define TRIGGER_L0_EOB 0x23
+
 namespace na62 {
 
 /**
@@ -54,6 +60,19 @@ struct EVENT_HDR {
 	EVENT_DATA_PTR* getDataPointer() {
 		return (EVENT_DATA_PTR*) (((char*) this) + sizeof(EVENT_HDR));
 	}
+
+	uint8_t getL0TriggerTypeWord() {
+		return triggerWord & 0xFF;
+	}
+
+	uint8_t getL1TriggerTypeWord() {
+		return triggerWord >> 8 & 0xFF;
+	}
+
+	uint8_t getL2TriggerTypeWord() {
+		return triggerWord >> 16 & 0xFF;
+	}
+
 }__attribute__ ((__packed__));
 
 /*

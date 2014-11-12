@@ -129,10 +129,13 @@ public:
 
 private:
 	std::atomic<int> eventCount_;
+
 	// The whole Ethernet frame
 	const char* etherFrame_;
-	// Pointer to the Payload of the UDP packet
+
+	// Pointer to the payload of the UDP packet
 	struct MEP_HDR * rawData;
+
 	MEPFragment **fragments;
 
 	bool checkSumsVarified_;
