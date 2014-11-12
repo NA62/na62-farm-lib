@@ -36,12 +36,12 @@ namespace l0 {
  */
 struct MEP_HDR {
 	// Number of L0 triggers since start of burst
-	const uint32_t firstEventNum :24;
-	const uint8_t sourceID;
+	uint32_t firstEventNum :24;
+	uint8_t sourceID;
 
-	const uint16_t mepLength; //  Total length of the MEP in bytes including the header
-	const uint8_t eventCount;
-	const uint8_t sourceSubID;
+	uint16_t mepLength; //  Total length of the MEP in bytes including the header
+	uint8_t eventCount;
+	uint8_t sourceSubID;
 }__attribute__ ((__packed__));
 
 class MEP: private boost::noncopyable {
