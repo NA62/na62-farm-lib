@@ -45,7 +45,7 @@ public:
 	static uint16_t * L0_DATA_SOURCE_NUM_TO_PACKNUM;
 	static uint16_t NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT; // The sum of all DATA_SOURCE_ID_TO_PACKNUM entries
 
-	static uint_fast8_t TS_SOURCEID;
+	static uint_fast8_t TS_SOURCEID_NUM;
 
 	static bool L0TP_ACTIVE;
 

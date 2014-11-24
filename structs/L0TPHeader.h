@@ -17,7 +17,7 @@ struct L0TpHeader { // 24 bytes
 
 	// 3 words primitives
 
-	uint16_t previousTimeStampHight;
+	uint16_t previousTimeStampHigh;
 	uint16_t memoryAddress;
 
 	uint8_t l0TriggerType;

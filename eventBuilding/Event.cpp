@@ -180,13 +180,6 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 		}
 	}
 
-	/*
-	 * Store the global event timestamp if the source ID is the TS_SOURCEID
-	 */
-	if (fragment->getSourceID() == SourceIDManager::TS_SOURCEID) {
-		timestamp_ = fragment->getTimestamp();
-	}
-
 	l0::Subevent* subevent = L0Subevents[fragment->getSourceIDNum()];
 
 	if (!subevent->addFragment(fragment)) {
