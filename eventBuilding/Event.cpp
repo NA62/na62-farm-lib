@@ -106,44 +106,11 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 		firstEventPartAddedTime_.start();
 	}
 #endif
-//	if (eventNumber_ != l0Event->getEventNumber()) {
-//		#ifdef USE_GLOG
-//			#ifdef USE_GLOG
-//		LOG(INFO)
-//#else
-//			std::cerr
-//#endif
-//		<<"Trying to add MEPFragment with eventNumber " + std::to_string(l0Event->getEventNumber())
-//		+ " to an Event with eventNumber " + std::to_string(eventNumber_) + ". Will ignore the MEPFragment!";
-//		delete l0Event;
-//		return false;
-//	}
 
 	if (numberOfL0Events_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
 	} else {
-//		if (fragment->isLastEventOfBurst() != lastEventOfBurst_) {
-//			if (unfinishedEventMutex_.try_lock()) {
-//				EventPool::FreeEvent(this);
-//#ifdef USE_GLOG
-//				LOG(INFO)
-//#else
-//				std::cerr
-//#endif
-//
-//<<				"MEPFragment's  'lastEvenOfBurst' flag discords with the flag of the Event with the same eventNumber.";
-//				unfinishedEventMutex_.unlock();
-//			} else {
-//				/*
-//				 * If we didn't get the lock: wait for the other thread to free the event
-//				 */
-//				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
-//			}
-//
-//			return addL0Event(fragment, burstID);
-//		}
-
 		if (burstID != getBurstID()) {
 			if (unfinishedEventMutex_.try_lock()) {
 				/*
