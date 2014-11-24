@@ -266,7 +266,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 
 	L0TP_ACTIVE = SourceIDManager::CheckL0SourceID(SOURCE_ID_L0TP);
 	TS_SOURCEID_NUM = SourceIDToNum(timeStampSourceID);
-	if (!SourceIDManager::CheckL0SourceID(TS_SOURCEID_NUM)) {
+	if (!SourceIDManager::CheckL0SourceID(timeStampSourceID)) {
 		LOG(ERROR)<< "The timestamp reference source ID is not part of the L0SourceIDs list";
 		exit(1);
 	}
