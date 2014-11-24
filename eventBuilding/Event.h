@@ -128,22 +128,18 @@ public:
 		return triggerTypeWord_;
 	}
 
+	void setTimestamp(const uint32_t time) {
+		timestamp_ = time;
+	}
+
 	uint32_t getTimestamp() const {
 		return timestamp_;
 	}
 
-	/*
-	 * This should be used within the L1 trigger algorithm as the fine time is transmitted within the
-	 * L0TP subevent
-	 */
 	void setFinetime(const uint8_t finetime) {
 		finetime_ = finetime;
 	}
 
-	/*
-	 * This will return an undefined value before the L1 trigger algorithm has executed setFinetime()
-	 * Only use it for any L2 trigger algorithm!
-	 */
 	uint8_t getFinetime() const {
 		return finetime_;
 	}
@@ -184,9 +180,9 @@ public:
 	 *	See table 50 in the TDR for the source IDs.
 	 */
 	inline l0::Subevent* getL0SubeventBySourceID(
-			const uint8_t&& sourceID) const {
+			const uint8_t sourceID) const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(
-				std::forward<const uint8_t>(sourceID))];
+				std::move(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CEDAR)];

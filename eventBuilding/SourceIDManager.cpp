@@ -54,14 +54,13 @@ uint16_t SourceIDManager::MUV_CREAM_CRATE;
 uint16_t SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS = 0;
 uint16_t SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS = 0;
 
-uint_fast8_t SourceIDManager::TS_SOURCEID;
+uint_fast8_t SourceIDManager::TS_SOURCEID_NUM;
 bool SourceIDManager::L0TP_ACTIVE = false;
 
 void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		std::vector<std::pair<int, int> > sourceIDs,
 		std::vector<std::pair<int, int> > creamCrates,
 		std::vector<std::pair<int, int> > inactiveCreams, int muvCrate) {
-	TS_SOURCEID = timeStampSourceID;
 
 	/*
 	 * OPTION_DATA_SOURCE_IDS
@@ -261,13 +260,17 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		}
 
 	} else {
-		std::cout
-				<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option"
-				<< std::endl;
+		LOG(INFO)<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 
 	L0TP_ACTIVE = SourceIDManager::CheckL0SourceID(SOURCE_ID_L0TP);
+	TS_SOURCEID_NUM = SourceIDToNum(timeStampSourceID);
+	if (!SourceIDManager::CheckL0SourceID(TS_SOURCEID_NUM)) {
+		LOG(ERROR)<< "The timestamp reference source ID is not part of the L0SourceIDs list";
+		exit(1);
+	}
+
 }
 
 bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) {
