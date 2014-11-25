@@ -11,14 +11,13 @@
 #include <vector>
 #include <set>
 
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
 #include <iostream>
 
 #include "../exceptions/NA62Error.h"
 #include "../exceptions/BadOption.h"
 #include "../options/Options.h"
+#include "../options/Logging.h"
+
 
 namespace na62 {
 uint8_t SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; // Must be greater than 1!!!
@@ -249,28 +248,27 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			}
 		}
 
-		std::cout << "List of activated CREAMs (" << creamCrates.size()
+		LOG_INFO << "List of activated CREAMs (" << creamCrates.size()
 				<< " total):\n";
 		for (auto creamsAndCrate : CREAM_IDS_BY_CRATE) {
-			std::cout << (int) creamsAndCrate.first << ":\t";
+			LOG_INFO << (int) creamsAndCrate.first << ":\t";
 			for (auto creamID : creamsAndCrate.second) {
-				std::cout << creamID << "\t";
+				LOG_INFO << creamID << "\t";
 			}
-			std::cout << std::endl;
+			LOG_INFO << ENDL;
 		}
 
 	} else {
-		LOG(INFO)<< "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
+		LOG_INFO << "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 
 	L0TP_ACTIVE = SourceIDManager::CheckL0SourceID(SOURCE_ID_L0TP);
 	TS_SOURCEID_NUM = SourceIDToNum(timeStampSourceID);
 	if (!SourceIDManager::CheckL0SourceID(timeStampSourceID)) {
-		LOG(ERROR)<< "The timestamp reference source ID is not part of the L0SourceIDs list";
+		LOG_ERROR<< "The timestamp reference source ID is not part of the L0SourceIDs list";
 		exit(1);
 	}
-
 }
 
 bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) {

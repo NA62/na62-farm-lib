@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <iostream>
 
+#include "../options/Logging.h"
 namespace na62 {
 
 class AExecutable {
@@ -77,13 +78,13 @@ public:
 			instances_[i]->onInterruption();
 		}
 
-		std::cout << "Interrupting " << instances_.size() << " threads"
-				<< std::endl;
+		LOG_INFO << "Interrupting " << instances_.size() << " threads"
+				<< ENDL;
 		threads_.interrupt_all();
 	}
 
 	static void JoinAll() {
-		std::cout << "Joining " << instances_.size() << " threads" << std::endl;
+		LOG_INFO << "Joining " << instances_.size() << " threads" << ENDL;
 		threads_.join_all();
 	}
 

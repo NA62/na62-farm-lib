@@ -7,6 +7,7 @@
 
 #include "Utils.h"
 
+#include "../options/Logging.h"
 #include <iomanip>
 
 
@@ -62,7 +63,7 @@ std::string Utils::PrintHex(const char* data, const size_t dataLength) {
 		memcpy(&byte, &((char*) data)[i], 1);
 		stream << std::hex << std::setw(2) << std::setfill('0') << (int) byte << " ";
 		if ((i + 1) % 4 == 0) {
-			stream << std::endl;
+			stream << ENDL;
 		}
 	}
 	return stream.str();

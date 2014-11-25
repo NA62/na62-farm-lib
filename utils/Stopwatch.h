@@ -26,6 +26,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "../options/Logging.h"
+
 #include<map>
 
 namespace na62 {
@@ -83,7 +85,7 @@ public:
 		for (int i = 0; i < 1000000; i++) {
 			sum += rand();
 		}
-		std::cout << "Heated up CPU for frequency measurement: " << sum << std::endl;
+		LOG_INFO << "Heated up CPU for frequency measurement: " << sum << ENDL;
 
 // cumputing usleep delay
 		uint64_t tick_start = GetTicks();
