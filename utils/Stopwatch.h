@@ -172,7 +172,7 @@ public:
 		return sec + usec / 1E6;
 	}
 
-	inline __time_t getRealTimeSeconds() {
+	inline time_t getRealTimeSeconds() {
 		struct timeval tp;
 		gettimeofday(&tp, NULL);
 		return tp.tv_sec - RealStartTime.tv_sec;
