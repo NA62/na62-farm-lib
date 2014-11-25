@@ -32,6 +32,7 @@ void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short thre
 }
 
 void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, std::vector<short> CPUsToBind, int scheduler) {
+#ifndef __APPLE__
 	int policy;
 	pthread_t threadID = (pthread_t) (daThread->native_handle());
 	if (scheduler > 0) {
@@ -73,6 +74,7 @@ void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short thre
 			throw NA62Error("Unable to bind threads to specific CPUs!");
 		}
 	}
+#endif
 }
 
 } /* namespace na62 */
