@@ -13,9 +13,6 @@
 #include "../exceptions/NA62Error.h"
 #include "EventPool.h"
 
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
 #include <sys/types.h>
 #include <iostream>
 #include <string>
@@ -24,6 +21,7 @@
 #include "../utils/DataDumper.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
+#include "../options/Logging.h"
 
 namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
@@ -119,18 +117,11 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 				std::string missingSourceIDs = getMissingSourceIDs();
 
 				if (printMissingSourceIDs_) {
-#ifdef USE_GLOG
-					LOG(INFO)
-#else
-					std::cerr
-#endif
-<<					"Overwriting unfinished event from Burst " << (int) getBurstID()
-					<< "! Eventnumber " << (int) getEventNumber()
-					<< " misses data from sourceIDs " << missingSourceIDs
-#ifndef USE_GLOG
-					<< std::endl
-#endif
-					;
+					LOG_INFO<< "Overwriting unfinished event from Burst "
+					<< (int) getBurstID() << "! Eventnumber "
+					<< (int) getEventNumber()
+					<< " misses data from sourceIDs "
+					<< missingSourceIDs << ENDL;
 				}
 				EventPool::FreeEvent(this);
 				unfinishedEventMutex_.unlock();
@@ -155,19 +146,10 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 		 */
 		std::string missingSourceIDs = getMissingSourceIDs();
 		if (printMissingSourceIDs_) {
-#ifdef USE_GLOG
-			LOG(ERROR)
-#else
-			std::cerr
-#endif
-<<			"Already received all fragments from sourceID "
+			LOG_ERROR<< "Already received all fragments from sourceID "
 			<< ((int) fragment->getSourceID())
 			<< "\nData from following sourceIDs is missing: "
-			<< missingSourceIDs
-#ifndef USE_GLOG
-			<< std::endl
-#endif
-			;
+			<< missingSourceIDs << ENDL;
 		}
 
 		delete fragment;
@@ -207,17 +189,11 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 					crateCREAMID, lb->first))) {
 		if (unfinishedEventMutex_.try_lock()) {
 			if (printMissingSourceIDs_) {
-#ifdef USE_GLOG
-				LOG(INFO)
-#else
-				std::cerr
-#endif
-
-<<				"Non zero suppressed LKr event with EventNumber "
+				LOG_INFO<< "Non zero suppressed LKr event with EventNumber "
 				<< (int) fragment->getEventNumber() << ", crateID "
 				<< (int) fragment->getCrateID() << " and CREAMID "
 				<< (int) fragment->getCREAMID()
-				<< " received twice! Will delete the whole event!";
+				<< " received twice! Will delete the whole event!" << ENDL;
 			}
 			nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
@@ -245,21 +221,13 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 	if (!L1Processed_) {
 		if (printMissingSourceIDs_) {
-#ifdef USE_GLOG
-			LOG(ERROR)
-#else
-			std::cerr
-#endif
-<<			"Received LKR data with EventNumber "
+			LOG_ERROR<< "Received LKR data with EventNumber "
 			<< (int) fragment->getEventNumber() << ", crateID "
 			<< (int) fragment->getCrateID() << " and CREAMID "
 			<< (int) fragment->getCREAMID()
 			<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
 			<< getBurstID() << ")"
-#ifndef USE_GLOG
-			<< std::endl
-#endif
-			;
+			<< ENDL;
 		}
 		nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
@@ -268,21 +236,14 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 	}
 
 	if (eventNumber_ != fragment->getEventNumber()) {
-#ifdef USE_GLOG
-		LOG(ERROR)
-#else
-		std::cerr
-#endif
+		LOG_ERROR
 		<< "Trying to add LkrFragment with eventNumber "
 		+ std::to_string(
 				fragment->getEventNumber())
 		+ " to an Event with eventNumber "
 		+ std::to_string(eventNumber_)
 		+ ". Will ignore the LkrFragment!"
-#ifndef USE_GLOG
-		<< std::endl
-#endif
-		;
+		<< ENDL;
 		delete fragment;
 		return false;
 	}
@@ -304,12 +265,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 		if (oldEvent != NULL) {
 			if (unfinishedEventMutex_.try_lock()) {
 				if (printMissingSourceIDs_) {
-#ifdef USE_GLOG
-					LOG(INFO)
-#else
-					std::cerr
-#endif
-
+					LOG_ERROR
 					<< "LKr event with EventNumber "
 					+ std::to_string(
 							(int) fragment->getEventNumber())
@@ -319,7 +275,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 					+ " and CREAMID "
 					+ std::to_string(
 							(int) fragment->getCREAMID())
-					+ " received twice! Will delete the whole event!";
+					+ " received twice! Will delete the whole event!"<<ENDL;
 
 				}
 

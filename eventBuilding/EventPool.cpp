@@ -8,11 +8,10 @@
 #include "EventPool.h"
 
 #include <tbb/tbb.h>
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
 #include <thread>
 #include <iostream>
+
+#include "../options/Logging.h"
 
 #include "Event.h"
 
@@ -25,8 +24,8 @@ void EventPool::Initialize(uint numberOfEventsToBeStored) {
 	numberOfEventsStored_ = numberOfEventsToBeStored;
 	events_.resize(numberOfEventsStored_);
 
-	std::cout << "Initializing EventPool with " << numberOfEventsStored_
-			<< " Events" << std::endl;
+	LOG_INFO<< "Initializing EventPool with " << numberOfEventsStored_
+	<< " Events" << ENDL;
 
 	/*
 	 * Fill the pool with empty events.
@@ -36,7 +35,7 @@ void EventPool::Initialize(uint numberOfEventsToBeStored) {
 	tbb::parallel_for(
 			tbb::blocked_range<uint32_t>(0, numberOfEventsStored_,
 					numberOfEventsStored_
-					/ std::thread::hardware_concurrency()),
+							/ std::thread::hardware_concurrency()),
 			[](const tbb::blocked_range<uint32_t>& r) {
 				for(size_t eventNumber=r.begin();eventNumber!=r.end(); ++eventNumber) {
 					events_[eventNumber] = new Event(eventNumber);
@@ -53,17 +52,9 @@ void EventPool::Initialize(uint numberOfEventsToBeStored) {
 
 Event* EventPool::GetEvent(uint32_t eventNumber) {
 	if (eventNumber >= numberOfEventsStored_) {
-#ifdef USE_GLOG
-		LOG(ERROR)
-#else
-		std::cerr
-#endif
-		<<"Received Event with event number " << eventNumber
+		LOG_ERROR<<"Received Event with event number " << eventNumber
 		<< " which is higher than configured maximum number of events"
-#ifndef USE_GLOG
-		<< std::endl
-#endif
-		;
+		<< ENDL;
 
 		return nullptr;
 	}

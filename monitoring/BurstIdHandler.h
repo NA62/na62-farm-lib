@@ -9,11 +9,10 @@
 #define BURSTIDHANDLER_H_
 
 #include <boost/timer/timer.hpp>
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
 #include <cstdint>
 #include <iostream>
+
+#include "../options/Logging.h"
 
 namespace na62 {
 
@@ -26,9 +25,7 @@ public:
 		currentBurstID_ = nextBurstID;
 
 		EOBReceivedTimer_.start();
-#ifdef USE_GLOG
-		LOG(INFO) << "Changing BurstID to " << nextBurstID;
-#endif
+		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
 	}
 
 	static uint32_t getCurrentBurstId() {

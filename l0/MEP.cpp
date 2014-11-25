@@ -7,9 +7,6 @@
 
 #include "MEP.h"
 
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
@@ -120,24 +117,16 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 //
 //	struct UDP_HDR* hdr = (struct UDP_HDR*) getUDPPack();
 //	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
-//#ifdef USE_GLOG
-//		LOG(INFO)
-//#else
-//		std::cerr
-//#endif
-//		<< "Packet with broken IP-checksum received";
+//		LOG_INFO
+//		<< "Packet with broken IP-checksum received" << ENDL;
 //		return false;
 //	}
 //
 //	if (!EthernetUtils::CheckUDP(hdr,
 //			(const char *) (&hdr->udp) + sizeof(struct udphdr),
 //			ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
-//#ifdef USE_GLOG
-//		LOG(INFO)
-//#else
-//		std::cerr
-//#endif
-//		<< "Packet with broken UDP-checksum received";
+//		LOG_INFO
+//		<< "Packet with broken UDP-checksum received"<<ENDL;
 //		return false;
 //	}
 //	checkSumsVarified_ = true;

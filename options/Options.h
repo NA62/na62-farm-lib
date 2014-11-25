@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+#include "Logging.h"
+
 namespace po = boost::program_options;
 
 /*

@@ -20,9 +20,7 @@
 #include <map>
 #include <typeinfo>
 #include <utility>
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
+
 
 #include "../exceptions/BadOption.h"
 #include "../utils/Utils.h"
@@ -34,18 +32,18 @@ po::options_description Options::desc("Allowed options");
 void Options::PrintVM(po::variables_map vm) {
 	using namespace po;
 	for (variables_map::iterator it = vm.begin(); it != vm.end(); ++it) {
-		std::cout << it->first << "=";
+		LOG_INFO << it->first << "=";
 
 		const variable_value& v = it->second;
 		if (!v.empty()) {
 			const std::type_info& type = v.value().type();
 			if (type == typeid(::std::string)) {
-				std::cout << v.as<std::string>();
+				LOG_INFO << v.as<std::string>();
 			} else if (type == typeid(int)) {
-				std::cout << v.as<int>();
+				LOG_INFO << v.as<int>();
 			}
 		}
-		std::cout << std::endl;
+		LOG_INFO << ENDL;
 	}
 }
 
@@ -70,19 +68,19 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
 	if (vm.count(OPTION_HELP)) {
-		std::cout << desc << "\n";
+		LOG_INFO << desc << "\n";
 		exit(EXIT_SUCCESS);
 	}
 
 	if (vm.count(OPTION_CONFIG_FILE)) {
 		if (!boost::filesystem::exists(
 				vm[OPTION_CONFIG_FILE ].as<std::string>())) {
-			std::cout << "Config file does not exist: "
-					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << std::endl;
+			LOG_INFO << "Config file does not exist: "
+					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << ENDL;
 		} else {
 
-			std::cout << "======= Reading config file "
-					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << std::endl;
+			LOG_INFO << "======= Reading config file "
+					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << ENDL;
 
 			po::store(
 					po::parse_config_file<char>(
@@ -96,7 +94,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	po::notify(vm); // Check the configuration
 
-	std::cout << "======= Running with following configuration:" << std::endl;
+	LOG_INFO << "======= Running with following configuration:" << ENDL;
 	PrintVM(vm);
 
 #ifdef USE_GLOG
@@ -108,13 +106,13 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
 	if (!boost::filesystem::exists(dir)
 			&& !boost::filesystem::create_directory(dir)) {
-		std::cerr << "Unable to create directory " << dir.string() << std::endl;
+		LOG_ERROR << "Unable to create directory " << dir.string() << ENDL;
 	}
 
 	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
 	google::InitGoogleLogging(argv[0]);
-	std::cout << "Writing logs to " << FLAGS_log_dir << " With min log level "
-			<< FLAGS_minloglevel << std::endl;
+	LOG_INFO << "Writing logs to " << FLAGS_log_dir << " With min log level "
+			<< FLAGS_minloglevel << ENDL;
 #endif
 }
 
@@ -174,10 +172,10 @@ std::vector<int> Options::GetIntList(char* parameter) {
 				values.push_back(Utils::ToUInt(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			std::cerr
+			LOG_ERROR
 					<< "Unable to cast '" + str
 							+ "' to int! Try correct option " << parameter
-					<< std::endl;
+					<< ENDL;
 			exit(1);
 		}
 	}
@@ -200,10 +198,10 @@ std::vector<double> Options::GetDoubleList(char* parameter) {
 				values.push_back(boost::lexical_cast<double>(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			std::cerr
+			LOG_ERROR
 					<< "Unable to cast '" + str
 							+ "' to double! Try correct option " << parameter
-					<< std::endl;
+					<< ENDL;
 			exit(1);
 		}
 	}

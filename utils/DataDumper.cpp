@@ -14,9 +14,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#ifdef USE_GLOG
-#include <glog/logging.h>
-#endif
+#include "../options/Logging.h"
 
 namespace na62 {
 
@@ -42,7 +40,7 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 
 	const std::string filePath = generateFreeFilePath(fileName, storageDir);
 
-	std::cout << "Writing file " << filePath << std::endl;
+	LOG_INFO << "Writing file " << filePath << ENDL;
 
 	if (!generateDirIfNotExists(storageDir)) {
 		return;
@@ -53,7 +51,7 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 			std::ios::out | std::ios::trunc | std::ios::binary);
 
 	if (!myfile.good()) {
-		std::cerr << "Unable to write to file " << filePath << std::endl;
+		LOG_ERROR << "Unable to write to file " << filePath << ENDL;
 		// carry on to free the memory. myfile.write will not throw!
 	} else {
 		myfile.write(data, length);
@@ -65,7 +63,7 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 bool DataDumper::generateDirIfNotExists(const std::string dirPath) {
 	if (!boost::filesystem::exists(dirPath)) {
 		if (!boost::filesystem::create_directory(dirPath)) {
-			std::cerr << "Unable to write to file " << dirPath << std::endl;
+			LOG_ERROR << "Unable to write to file " << dirPath << ENDL;
 			return false;
 		}
 	}
@@ -78,7 +76,7 @@ void DataDumper::printToFile(std::string fileName, const std::string storageDir,
 
 	if (!boost::filesystem::exists(storageDir)) {
 		if (!boost::filesystem::create_directory(storageDir)) {
-			std::cerr << "Unable to write to file " << filePath << std::endl;
+			LOG_ERROR << "Unable to write to file " << filePath << ENDL;
 			return;
 		}
 	}
@@ -87,7 +85,7 @@ void DataDumper::printToFile(std::string fileName, const std::string storageDir,
 	myfile.open(filePath.data(), std::ios::out | std::ios::app);
 
 	if (!myfile.good()) {
-		std::cerr << "Unable to write to file " << filePath << std::endl;
+		LOG_ERROR << "Unable to write to file " << filePath << ENDL;
 		// carry on to free the memory. myfile.write will not throw!
 	} else {
 		myfile.write(message.c_str(), message.length());
