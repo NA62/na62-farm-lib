@@ -22,7 +22,7 @@
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
 #include "../options/Logging.h"
-
+#include "UnfinishedEventsCollector.h"
 namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
 
@@ -348,38 +348,30 @@ void Event::destroy() {
 }
 
 std::string Event::getMissingSourceIDs() {
+	std::stringstream missingIDs;
 	/*
 	 * Find the missing sourceIDs
 	 */
-	bool l1NotFinished = false;
-	std::stringstream missingIDs;
-	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-			sourceNum >= 0; sourceNum--) {
-		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
-		if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
-				!= subevent->getNumberOfFragments()) {
-			l1NotFinished = true;
-			MissingEventsBySourceNum_[sourceNum].fetch_add(1,
-					std::memory_order_relaxed);
-			if (printMissingSourceIDs_) {
-				missingIDs << (int) SourceIDManager::SourceNumToID(sourceNum)
-						<< "(";
+	if (!L1Processed_) {
+		for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+				sourceNum >= 0; sourceNum--) {
+			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+			if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
+					!= subevent->getNumberOfFragments()) {
+				MissingEventsBySourceNum_[sourceNum].fetch_add(1,
+						std::memory_order_relaxed);
 				for (int f = 0;
 						f != L0Subevents[sourceNum]->getNumberOfFragments();
 						f++) {
-					if (f != 0) {
-						missingIDs << ", ";
-					}
-					missingIDs
-							<< (int) subevent->getFragment(f)->getSourceSubID();
+					UnfinishedEventsCollector::addReceivedSubSourceIdFromUnfinishedEvent(
+							sourceNum,
+							subevent->getFragment(f)->getSourceSubID());
 				}
-
-				missingIDs << "); ";
 			}
 		}
 	}
 
-	if (!l1NotFinished
+	if (!L1Processed_
 			&& numberOfCREAMFragments_
 					!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(

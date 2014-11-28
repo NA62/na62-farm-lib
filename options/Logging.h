@@ -2,7 +2,7 @@
  * Logging.h
  *
  *  Created on: Nov 24, 2014
- *      Author: root
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #ifndef LOGGING_H_
