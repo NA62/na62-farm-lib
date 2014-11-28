@@ -69,7 +69,7 @@ std::string Utils::PrintHex(const char* data, const size_t dataLength) {
 	return stream.str();
 }
 
-uint Utils::ToUInt(std::string str) throw (boost::bad_lexical_cast) {
+uint64_t Utils::ToUInt(std::string str) throw (boost::bad_lexical_cast) {
 	if (str.size() > 2 && str.substr(0, 2) == "0x") {
 		uint x;
 		std::stringstream ss;
@@ -77,7 +77,9 @@ uint Utils::ToUInt(std::string str) throw (boost::bad_lexical_cast) {
 		ss >> x;
 		return x;
 	} else {
-		return boost::lexical_cast<unsigned int>(str);
+		return boost::lexical_cast<uint64_t>(str);
 	}
 }
+
+
 } /* namespace na62 */
