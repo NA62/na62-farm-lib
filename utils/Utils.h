@@ -20,7 +20,7 @@ public:
 	static double Average(std::vector<double> data);
 	static double StandardDevation(std::vector<double> data);
 	static std::string PrintHex(const char* data, const size_t dataLength);
-	static uint ToUInt(std::string str) throw (boost::bad_lexical_cast);
+	static uint64_t ToUInt(std::string str) throw (boost::bad_lexical_cast);
 
 	static inline uint8_t highbit(uint8_t& t) {
 		return t = (((uint8_t) (-1)) >> 1) + 1;

@@ -32,18 +32,18 @@ po::options_description Options::desc("Allowed options");
 void Options::PrintVM(po::variables_map vm) {
 	using namespace po;
 	for (variables_map::iterator it = vm.begin(); it != vm.end(); ++it) {
-		LOG_INFO << it->first << "=";
+		std::cout << it->first << "=";
 
 		const variable_value& v = it->second;
 		if (!v.empty()) {
 			const std::type_info& type = v.value().type();
 			if (type == typeid(::std::string)) {
-				LOG_INFO << v.as<std::string>();
+				std::cout << v.as<std::string>();
 			} else if (type == typeid(int)) {
-				LOG_INFO << v.as<int>();
+				std::cout << v.as<int>();
 			}
 		}
-		LOG_INFO << ENDL;
+		std::cout << std::endl;
 	}
 }
 
@@ -68,19 +68,19 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 
 	if (vm.count(OPTION_HELP)) {
-		LOG_INFO << desc << "\n";
+		std::cout << desc << "\n";
 		exit(EXIT_SUCCESS);
 	}
 
 	if (vm.count(OPTION_CONFIG_FILE)) {
 		if (!boost::filesystem::exists(
 				vm[OPTION_CONFIG_FILE ].as<std::string>())) {
-			LOG_INFO << "Config file does not exist: "
-					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << ENDL;
+			std::cout << "Config file does not exist: "
+					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << std::endl;
 		} else {
 
-			LOG_INFO << "======= Reading config file "
-					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << ENDL;
+			std::cout << "======= Reading config file "
+					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << std::endl;
 
 			po::store(
 					po::parse_config_file<char>(
@@ -94,7 +94,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	po::notify(vm); // Check the configuration
 
-	LOG_INFO << "======= Running with following configuration:" << ENDL;
+	std::cout << "======= Running with following configuration:" << std::endl;
 	PrintVM(vm);
 
 #ifdef USE_GLOG
@@ -106,13 +106,13 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
 	if (!boost::filesystem::exists(dir)
 			&& !boost::filesystem::create_directory(dir)) {
-		LOG_ERROR << "Unable to create directory " << dir.string() << ENDL;
+		LOG_ERROR << "Unable to create directory " << dir.string() << std::endl;
 	}
 
 	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
 	google::InitGoogleLogging(argv[0]);
-	LOG_INFO << "Writing logs to " << FLAGS_log_dir << " With min log level "
-			<< FLAGS_minloglevel << ENDL;
+	std::cout << "Writing logs to " << FLAGS_log_dir << " With min log level "
+			<< FLAGS_minloglevel << std::endl;
 #endif
 }
 
@@ -139,7 +139,7 @@ std::vector<std::string> Options::GetStringList(char* parameter) {
 		return list;
 	}
 
-	boost::split(list, optionString, boost::is_any_of(","));
+	boost::split(list, optionString, boost::is_any_of(";,"));
 	return list;
 }
 

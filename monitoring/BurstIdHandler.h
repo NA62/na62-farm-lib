@@ -2,7 +2,7 @@
  * BurstIdHandler.h
  *
  *  Created on: May 27, 2014
- *      Author: root
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #ifndef BURSTIDHANDLER_H_
