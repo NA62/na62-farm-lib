@@ -2,7 +2,7 @@
  * BurstIdHandler.cpp
  *
  *  Created on: May 27, 2014
- *      Author: root
+ *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
 #include "BurstIdHandler.h"
