@@ -248,15 +248,17 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			}
 		}
 
-		LOG_INFO << "List of activated CREAMs (" << creamCrates.size()
+		std::stringstream sstream;
+		sstream << "List of activated CREAMs (" << creamCrates.size()
 				<< " total):\n";
 		for (auto creamsAndCrate : CREAM_IDS_BY_CRATE) {
-			LOG_INFO << (int) creamsAndCrate.first << ":\t";
+			sstream << (int) creamsAndCrate.first << ":\t";
 			for (auto creamID : creamsAndCrate.second) {
-				LOG_INFO << creamID << "\t";
+				sstream << creamID << "\t";
 			}
-			LOG_INFO << ENDL;
+			sstream << ENDL;
 		}
+		LOG_INFO << ENDL;
 
 	} else {
 		LOG_INFO << "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option";
