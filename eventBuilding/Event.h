@@ -57,7 +57,7 @@ public:
 	 *
 	 * @return [true] if the given LKr event fragment was the last one to complete the event
 	 */
-	bool addLkrFragment(cream::LkrFragment* fragment);
+	bool addLkrFragment(cream::LkrFragment* fragment, uint sourceIP);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -365,7 +365,7 @@ public:
 	}
 #endif
 
-	static void initialize();
+	static void initialize(bool writeBrokenCreamInfo);
 private:
 	void setBurstID(const uint32_t burstID) {
 		burstID_ = burstID;
@@ -418,6 +418,7 @@ private:
 	static std::atomic<uint64_t>* MissingEventsBySourceNum_;
 	static std::atomic<uint64_t> nonRequestsCreamFramesReceived_;
 	static bool printMissingSourceIDs_;
+	static bool writeBrokenCreamInfo_;
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
 
