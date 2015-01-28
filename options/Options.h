@@ -73,7 +73,7 @@ public:
 	/*
 	 * If a parameter is formated like A:a,B:b this will return the following vector v:
 	 * v[0]: std::make_pair(A, a)
-	 * v[1]: std::make_pair(B, b)
+	 * v[1]: std::make_pair(B, b)GetString
 	 */
 	static std::vector<std::pair<std::string, std::string> > GetPairList(
 			char* parameter);
@@ -98,10 +98,13 @@ public:
 		return desc.options();
 	}
 
+protected:
 	static po::options_description desc;
+	static std::vector<char*> fileNameOptions;
 
 private:
 	static po::variables_map vm;
+
 };
 }
 #endif /* OPTIONS_H_ */
