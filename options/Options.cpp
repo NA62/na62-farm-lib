@@ -151,6 +151,9 @@ int Options::GetInt(char* parameter) {
 	if (GetOptionType(parameter) == typeid(int)) {
 		return vm[parameter].as<int>();
 	}
+	if (GetOptionType(parameter) == typeid(uint)) {
+		return vm[parameter].as<uint>();
+	}
 	return Utils::ToUInt(vm[parameter].as<std::string>());
 }
 

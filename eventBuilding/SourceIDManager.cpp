@@ -113,7 +113,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		}
 
 		/*
-		 * Check if all inactive CREAMs are listed in the normal cream create list
+		 * Check if all inactive CREAMs are listed in the normal cream crate list
 		 */
 		for (auto& inactivePair : inactiveCreams) {
 			uint8_t crateID = inactivePair.first;

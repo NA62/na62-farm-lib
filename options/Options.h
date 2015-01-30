@@ -9,9 +9,7 @@
 #ifndef Options_H_
 #define Options_H_
 
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
-#include <boost/smart_ptr/shared_ptr.hpp>
+#include <boost/program_options.hpp>
 #include <string>
 #include <vector>
 
@@ -90,13 +88,6 @@ public:
 	static void UpdateValue(std::string key, float f, bool notify = true);
 	static void UpdateValue(std::string key, std::string str,
 			bool notify = true);
-
-	/*
-	 * Can be used to access all Descriptions
-	 */
-	static std::vector<boost::shared_ptr<po::option_description> > GetOptions() {
-		return desc.options();
-	}
 
 protected:
 	static po::options_description desc;
