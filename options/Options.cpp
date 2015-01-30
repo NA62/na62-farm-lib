@@ -42,6 +42,8 @@ void Options::PrintVM(po::variables_map vm) {
 				std::cout << v.as<std::string>();
 			} else if (type == typeid(int)) {
 				std::cout << v.as<int>();
+			} else if (type == typeid(double)) {
+				std::cout << v.as<double>();
 			}
 		}
 		std::cout << std::endl;
