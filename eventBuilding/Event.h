@@ -128,6 +128,35 @@ public:
 		return triggerTypeWord_;
 	}
 
+	/**
+	 * Returns the L0 trigger type word if readTriggerTypeWordAndFineTime has already
+	 * been called. The return value is undefined otherwise!
+	 */
+	uint8_t getL0TriggerTypeWord() const {
+		return triggerTypeWord_ & 0xFF;
+	}
+
+	/**
+	 * Returns the L1 trigger type word if L1 has already been processed.
+	 * The return value is undefined otherwise!
+	 */
+	uint8_t getL1TriggerTypeWord() const {
+		return (triggerTypeWord_ >> 8) & 0xFF;
+	}
+
+	/**
+	 * Returns the L2 trigger type word if L2 has already been processed.
+	 * The return value is undefined otherwise!
+	 */
+	uint32_t getL2TriggerTypeWord() const {
+		return (triggerTypeWord_ >> 16) & 0xFF;
+	}
+
+	/**
+	 * Returns the L0 trigger type word stored in the L0TP data and stores the fineTime. If L0TP is not activated 1 is returned
+	 */
+	uint8_t readTriggerTypeWordAndFineTime();
+
 	void setTimestamp(const uint32_t time) {
 		timestamp_ = time;
 	}
@@ -179,10 +208,8 @@ public:
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline l0::Subevent* getL0SubeventBySourceID(
-			const uint8_t sourceID) const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(
-				std::move(sourceID))];
+	inline l0::Subevent* getL0SubeventBySourceID(const uint8_t sourceID) const {
+		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
 		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CEDAR)];
@@ -320,7 +347,7 @@ public:
 		return MissingEventsBySourceNum_[sourceNum];
 	}
 
-	static uint64_t getNumberOfNonRequestedCreamFragments(){
+	static uint64_t getNumberOfNonRequestedCreamFragments() {
 		return nonRequestsCreamFramesReceived_;
 	}
 

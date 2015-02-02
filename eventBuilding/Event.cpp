@@ -18,6 +18,7 @@
 #include <string>
 #include <utility>
 
+#include "../structs/L0TPHeader.h"
 #include "../utils/DataDumper.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
@@ -424,6 +425,20 @@ std::string Event::getMissingSourceIDs() {
 //	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
 
 	return missingIDs.str();
+}
+
+uint8_t Event::readTriggerTypeWordAndFineTime() {
+	/*
+	 * Read the L0 trigger type word and the fine time from the L0TP data
+	 */
+	if (SourceIDManager::L0TP_ACTIVE) {
+		l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
+		L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
+		setFinetime(L0TPData->refFineTime);
+
+		return L0TPData->l0TriggerType;
+	}
+	return 1;
 }
 
 } /* namespace na62 */

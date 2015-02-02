@@ -103,8 +103,8 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		 */
 		int payloadLength;
 		for (uint i = 0; i != subevent->getNumberOfFragments(); i++) {
-			l0::MEPFragment* e = subevent->getFragment(i);
-			payloadLength = e->getPayloadLength() + sizeof(struct L0_BLOCK_HDR);
+			l0::MEPFragment* fragment = subevent->getFragment(i);
+			payloadLength = fragment->getPayloadLength() + sizeof(struct L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
 						eventBufferSize + payloadLength);
@@ -114,11 +114,11 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 			struct L0_BLOCK_HDR* blockHdr = (struct L0_BLOCK_HDR*) (eventBuffer
 					+ eventOffset);
 			blockHdr->dataBlockSize = payloadLength;
-			blockHdr->sourceSubID = e->getSourceSubID();
+			blockHdr->sourceSubID = fragment->getSourceSubID();
 			blockHdr->reserved = 0;
 
 			memcpy(eventBuffer + eventOffset + sizeof(struct L0_BLOCK_HDR),
-					e->getPayload(),
+					fragment->getPayload(),
 					payloadLength - sizeof(struct L0_BLOCK_HDR));
 			eventOffset += payloadLength;
 
