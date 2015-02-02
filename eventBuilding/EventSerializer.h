@@ -24,6 +24,7 @@ class EventSerializer {
 public:
 	/**
 	 * Generates the raw data as it should be send to the merger
+	 * The returned buffer must be deleted by you!
 	 */
 	static EVENT_HDR* SerializeEvent(const Event* event);
 

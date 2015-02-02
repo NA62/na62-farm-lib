@@ -55,7 +55,6 @@ char* EventSerializer::ResizeBuffer(char* buffer, const int oldLength,
 }
 
 EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
-
 	uint eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
