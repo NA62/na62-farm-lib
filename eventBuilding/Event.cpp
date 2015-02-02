@@ -67,24 +67,24 @@ Event::Event(uint32_t eventNumber) :
 }
 
 Event::~Event() {
-	throw NA62Error(
-			"An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
+//	throw NA62Error(
+//			"An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
 
-//	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
-////		L0Subevents[i]->destroy();
-//		delete L0Subevents[i];
-//	}
-//	delete[] L0Subevents;
-//
-//	for (int ID = 0;
-//			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-//			ID++) {
-//		cream::LkrFragment* event = zSuppressedLkrFragmentsByLocalCREAMID[ID];
-//		if (event != NULL) {
-//			delete event;
-//		}
-//	}
-//	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
+	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+//		L0Subevents[i]->destroy();
+		delete L0Subevents[i];
+	}
+	delete[] L0Subevents;
+
+	for (int ID = 0;
+			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+			ID++) {
+		cream::LkrFragment* event = zSuppressedLkrFragmentsByLocalCREAMID[ID];
+		if (event != NULL) {
+			delete event;
+		}
+	}
+	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
 }
 
 void Event::initialize(bool writeBrokenCreamInfo) {
