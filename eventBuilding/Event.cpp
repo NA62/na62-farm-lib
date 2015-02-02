@@ -18,6 +18,7 @@
 #include <string>
 #include <utility>
 
+#include "../structs/L0TPHeader.h"
 #include "../utils/DataDumper.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
@@ -25,6 +26,7 @@
 #include "UnfinishedEventsCollector.h"
 namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
+bool Event::writeBrokenCreamInfo_ = false;
 
 std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
 std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
@@ -85,7 +87,7 @@ Event::~Event() {
 //	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
 }
 
-void Event::initialize() {
+void Event::initialize(bool writeBrokenCreamInfo) {
 	MissingEventsBySourceNum_ =
 			new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
 					+ 1];
@@ -93,6 +95,8 @@ void Event::initialize() {
 	for (int i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1; i++) {
 		MissingEventsBySourceNum_[i] = 0;
 	}
+
+	writeBrokenCreamInfo_ = writeBrokenCreamInfo;
 }
 
 /**
@@ -132,7 +136,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
 			}
 			/*
-			 * Add the event after this or another thread has destoryed this event
+			 * Add the event after this or another thread has destroyed this event
 			 */
 			return addL0Event(fragment, burstID);
 		}
@@ -218,7 +222,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 /**
  * Process data coming from the CREAMs
  */
-bool Event::addLkrFragment(cream::LkrFragment* fragment) {
+bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 	if (!L1Processed_) {
 		if (printMissingSourceIDs_) {
 			LOG_ERROR<< "Received LKR data with EventNumber "
@@ -230,6 +234,13 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 			<< ENDL;
 		}
 		nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
+
+		if(writeBrokenCreamInfo_) {
+			std::stringstream dump;
+			dump << getBurstID() << "\t" << getEventNumber()
+			<< "\t" << getTimestamp() << "\t" << sourceIP;
+			DataDumper::printToFile("unrequestedCreamData", "/tmp/farm-logs", dump.str());
+		}
 
 		delete fragment;
 		return false;
@@ -280,6 +291,13 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment) {
 				}
 
 				nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
+
+				if(writeBrokenCreamInfo_) {
+					std::stringstream dump;
+					dump << getBurstID() << "\t" << getEventNumber()
+					<< "\t" << getTimestamp() << "\t" << sourceIP;
+					DataDumper::printToFile("creamDataReceivedTwice", "/tmp/farm-logs", dump.str());
+				}
 
 				EventPool::FreeEvent(this);
 				unfinishedEventMutex_.unlock();
@@ -407,6 +425,20 @@ std::string Event::getMissingSourceIDs() {
 //	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
 
 	return missingIDs.str();
+}
+
+uint8_t Event::readTriggerTypeWordAndFineTime() {
+	/*
+	 * Read the L0 trigger type word and the fine time from the L0TP data
+	 */
+	if (SourceIDManager::L0TP_ACTIVE) {
+		l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
+		L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
+		setFinetime(L0TPData->refFineTime);
+
+		return L0TPData->l0TriggerType;
+	}
+	return 1;
 }
 
 } /* namespace na62 */

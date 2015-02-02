@@ -21,13 +21,14 @@
 #include <typeinfo>
 #include <utility>
 
-
 #include "../exceptions/BadOption.h"
 #include "../utils/Utils.h"
 
 namespace na62 {
 po::variables_map Options::vm;
 po::options_description Options::desc("Allowed options");
+
+std::vector<char*> Options::fileNameOptions;
 
 void Options::PrintVM(po::variables_map vm) {
 	using namespace po;
@@ -41,6 +42,8 @@ void Options::PrintVM(po::variables_map vm) {
 				std::cout << v.as<std::string>();
 			} else if (type == typeid(int)) {
 				std::cout << v.as<int>();
+			} else if (type == typeid(double)) {
+				std::cout << v.as<double>();
 			}
 		}
 		std::cout << std::endl;
@@ -48,6 +51,7 @@ void Options::PrintVM(po::variables_map vm) {
 }
 
 void Options::Initialize(int argc, char* argv[], po::options_description desc) {
+	fileNameOptions.push_back(OPTION_CONFIG_FILE);
 
 	desc.add_options()
 
@@ -72,23 +76,25 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 		exit(EXIT_SUCCESS);
 	}
 
-	if (vm.count(OPTION_CONFIG_FILE)) {
-		if (!boost::filesystem::exists(
-				vm[OPTION_CONFIG_FILE ].as<std::string>())) {
-			std::cout << "Config file does not exist: "
-					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << std::endl;
-		} else {
+	for (char* fileNameOption : fileNameOptions) {
+		if (vm.count(fileNameOption)) {
+			if (!boost::filesystem::exists(
+					vm[fileNameOption].as<std::string>())) {
+				std::cout << "Config file does not exist: "
+						<< vm[fileNameOption].as<std::string>() << std::endl;
+			} else {
 
-			std::cout << "======= Reading config file "
-					<< vm[OPTION_CONFIG_FILE ].as<std::string>() << std::endl;
+				std::cout << "======= Reading config file "
+						<< vm[fileNameOption].as<std::string>() << std::endl;
 
-			po::store(
-					po::parse_config_file<char>(
-							vm[OPTION_CONFIG_FILE ].as<std::string>().data(),
-							desc), vm);
+				po::store(
+						po::parse_config_file<char>(
+								vm[fileNameOption].as<std::string>().data(),
+								desc), vm);
 
-			// Override file settings with argv settings
-			po::store(po::parse_command_line(argc, argv, desc), vm);
+				// Override file settings with argv settings
+				po::store(po::parse_command_line(argc, argv, desc), vm);
+			}
 		}
 	}
 
@@ -106,7 +112,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
 	if (!boost::filesystem::exists(dir)
 			&& !boost::filesystem::create_directory(dir)) {
-		LOG_ERROR << "Unable to create directory " << dir.string() << std::endl;
+		LOG_ERROR<< "Unable to create directory " << dir.string() << std::endl;
 	}
 
 	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
@@ -147,6 +153,9 @@ int Options::GetInt(char* parameter) {
 	if (GetOptionType(parameter) == typeid(int)) {
 		return vm[parameter].as<int>();
 	}
+	if (GetOptionType(parameter) == typeid(uint)) {
+		return vm[parameter].as<uint>();
+	}
 	return Utils::ToUInt(vm[parameter].as<std::string>());
 }
 
@@ -172,10 +181,9 @@ std::vector<int> Options::GetIntList(char* parameter) {
 				values.push_back(Utils::ToUInt(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR
-					<< "Unable to cast '" + str
-							+ "' to int! Try correct option " << parameter
-					<< ENDL;
+			LOG_ERROR<< "Unable to cast '" + str
+			+ "' to int! Try correct option " << parameter
+			<< ENDL;
 			exit(1);
 		}
 	}
@@ -198,10 +206,9 @@ std::vector<double> Options::GetDoubleList(char* parameter) {
 				values.push_back(boost::lexical_cast<double>(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR
-					<< "Unable to cast '" + str
-							+ "' to double! Try correct option " << parameter
-					<< ENDL;
+			LOG_ERROR<< "Unable to cast '" + str
+			+ "' to double! Try correct option " << parameter
+			<< ENDL;
 			exit(1);
 		}
 	}

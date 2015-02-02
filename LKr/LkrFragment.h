@@ -126,6 +126,10 @@ public:
 		return generateCrateCREAMID(getCrateID(), getCREAMID());
 	}
 
+	inline const char* getEtherFrame(){
+		return etherFrame_;
+	}
+
 	static inline uint16_t generateCrateCREAMID(const uint8_t crateID, const uint8_t CREAMID) {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// The CREAMID is in the lowest 5(which is 31) bits

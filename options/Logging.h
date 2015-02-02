@@ -24,6 +24,10 @@
 	#define LOG_ERROR std::cerr
 	#define LOG_WARNING std::cerr
 	#define ENDL std::endl
+//	#define LOG_INFO std::cout
+//	#define LOG_ERROR std::cerr << "\033[1;31m"
+//	#define LOG_WARNING std::cerr << "\033[1;33m"
+//	#define ENDL "\033[0m" << std::endl
 #endif
 
 #endif /* LOGGING_H_ */
