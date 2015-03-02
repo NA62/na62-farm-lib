@@ -209,37 +209,37 @@ public:
 	 *	See table 50 in the TDR for the source IDs.
 	 */
 	inline l0::Subevent* getL0SubeventBySourceID(const uint8_t sourceID) const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
+		return L0Subevents[SourceIDManager::sourceIDToNum(std::move(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CEDAR)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CEDAR)];
 	}
 	inline l0::Subevent* getGTKSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_GTK)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_GTK)];
 	}
 	inline l0::Subevent* getCHANTISubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CHANTI)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHANTI)];
 	}
 	inline l0::Subevent* getLAVSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_LAV)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_LAV)];
 	}
 	inline l0::Subevent* getSTRAWSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_STRAW)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_STRAW)];
 	}
 	inline l0::Subevent* getCHODSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CHOD)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHOD)];
 	}
 	inline l0::Subevent* getIRCSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_IRC)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_IRC)];
 	}
 	inline l0::Subevent* getMUV3Subevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_MUV3)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV3)];
 	}
 	inline l0::Subevent* getSACSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_SAC)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_SAC)];
 	}
 	inline l0::Subevent* getL0TPSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_L0TP)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L0TP)];
 	}
 
 	/*

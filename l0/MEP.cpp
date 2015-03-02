@@ -52,7 +52,7 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 	 *
 	 * TODO: Do we need to check the sourceID? This is quite expensive!
 	 */
-	if (!SourceIDManager::CheckL0SourceID(getSourceID())) {
+	if (!SourceIDManager::checkL0SourceID(getSourceID())) {
 		throw UnknownSourceIDFound(getSourceID());
 	}
 	initializeMEPFragments(data, dataLength);

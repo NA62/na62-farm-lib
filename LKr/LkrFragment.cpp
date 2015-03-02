@@ -23,7 +23,7 @@ LkrFragment::LkrFragment(const char *data, const uint16_t& dataLength,
 		throw BrokenPacketReceivedError(
 				"LKR Event with a non 0x24 source field received!");
 	}
-	if (!SourceIDManager::CheckCREAMID(getCrateID(), getCREAMID())) {
+	if (!SourceIDManager::checkCREAMID(getCrateID(), getCREAMID())) {
 		throw UnknownCREAMSourceIDFound(getCrateID(), getCREAMID());
 	}
 }

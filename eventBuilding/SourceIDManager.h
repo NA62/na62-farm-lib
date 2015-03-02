@@ -94,25 +94,123 @@ public:
 		return L0_DATA_SOURCE_ID_TO_PACKNUM[sourceID];
 	}
 
+	/**
+	 * Returns true if the CEDAR is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isCedarActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the GTK is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isGtkActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the CHANTI is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isChantiActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the LAV is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isLavActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the STRAW is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isStrawActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the CHOD is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isChodActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the RICH is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isRhichActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the IRC is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isIrcActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the LKR is activated so that it's data is stored in every event from L2 on
+	 */
+	static inline bool isLkrActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the MUV1 is activated so that it's data is stored in every event from L2 on
+	 */
+	static inline bool isMUV1Active() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the MUV2 is activated so that it's data is stored in every event from L2 on
+	 */
+	static inline bool isMUV2Active() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the MUV3 is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isMUV3Active() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the SAC is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isSacActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
+	/**
+	 * Returns true if the L0TP is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isL0TPActive() {
+		return checkL0SourceID(SOURCE_ID_CEDAR);
+	}
+
 	/*
 	 * sourceID must be a valid SourceID! So use checkSourceID if you are not sure!
 	 * 0 <= sourceID < L1_LARGEST_DATA_SOURCE_ID
 	 */
-	static inline uint8_t SourceIDToNum(const uint8_t sourceID) {
+	static inline uint8_t sourceIDToNum(const uint8_t sourceID) {
 		return L0_DATA_SOURCE_ID_TO_NUM[sourceID];
 	}
 
 	/*
 	 * 0 <= sourceNum < L1_NUMBER_OF_DATA_SOURCES
 	 */
-	static inline uint8_t SourceNumToID(const uint8_t sourceNum) {
+	static inline uint8_t sourceNumToID(const uint8_t sourceNum) {
 		return L0_DATA_SOURCE_IDS[sourceNum];
 	}
 
 	/*
 	 * @return bool <true> if the sourceID is correct, <false> else
 	 */
-	static bool CheckL0SourceID(const uint8_t sourceID);
+	static bool checkL0SourceID(const uint8_t sourceID);
 
 	/**
 	 * Returns the local CREAMID corresponding to the given crateID and CREAM_ID
@@ -133,7 +231,7 @@ public:
 		return LOCAL_ID_TO_CRATE_AND_CREAM_IDS[localID];
 	}
 
-	static inline bool CheckCREAMID(const uint8_t crateID,
+	static inline bool checkCREAMID(const uint8_t crateID,
 			const uint8_t CREAM_ID) {
 
 		return CREAM_ID < 32 && (ENABLED_CREAM_CRATES_LUT & (1L << crateID)) // check crate

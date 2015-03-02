@@ -55,7 +55,7 @@ std::string UnfinishedEventsCollector::toJson() {
 
 	for (const auto& sourceAndData : receivedEventsBySubsourceBySourceID) {
 		stream << "\""
-				<< (int) SourceIDManager::SourceNumToID(sourceAndData.first)
+				<< (int) SourceIDManager::sourceNumToID(sourceAndData.first)
 				<< "\":{";
 
 		for (auto& subsourceAndEventNum : sourceAndData.second) {

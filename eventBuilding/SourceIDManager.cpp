@@ -18,7 +18,6 @@
 #include "../options/Options.h"
 #include "../options/Logging.h"
 
-
 namespace na62 {
 uint8_t SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; // Must be greater than 1!!!
 uint8_t * SourceIDManager::L0_DATA_SOURCE_IDS; // All sourceIDs participating in L1 (not the CREAM 0x24)
@@ -95,6 +94,8 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 
 	L0_DATA_SOURCE_ID_TO_NUM = new uint8_t[LARGEST_L0_DATA_SOURCE_ID + 1];
 	L0_DATA_SOURCE_ID_TO_PACKNUM = new uint16_t[LARGEST_L0_DATA_SOURCE_ID + 1];
+
+	memset(L0_DATA_SOURCE_ID_TO_NUM, 0, LARGEST_L0_DATA_SOURCE_ID + 1);
 
 	for (uint8_t i = 0; i < NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0_DATA_SOURCE_ID_TO_NUM[L0_DATA_SOURCE_IDS[i]] = i;
@@ -258,30 +259,26 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 			}
 			sstream << ENDL;
 		}
-		LOG_INFO << ENDL;
+		LOG_INFO<< ENDL;
 
 	} else {
 		LOG_INFO << "There is no LKr SourceID in the sourceID option! Will ignore CREAM ID option" << ENDL;
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 
-	L0TP_ACTIVE = SourceIDManager::CheckL0SourceID(SOURCE_ID_L0TP);
-	TS_SOURCEID_NUM = SourceIDToNum(timeStampSourceID);
-	if (!SourceIDManager::CheckL0SourceID(timeStampSourceID)) {
+	L0TP_ACTIVE = SourceIDManager::checkL0SourceID(SOURCE_ID_L0TP);
+	TS_SOURCEID_NUM = sourceIDToNum(timeStampSourceID);
+	if (!SourceIDManager::checkL0SourceID(timeStampSourceID)) {
 		LOG_ERROR<< "The timestamp reference source ID is not part of the L0SourceIDs list" << ENDL;
 		exit(1);
 	}
 }
 
-bool SourceIDManager::CheckL0SourceID(const uint8_t sourceID) {
+bool SourceIDManager::checkL0SourceID(const uint8_t sourceID) {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}
-	uint8_t num = L0_DATA_SOURCE_ID_TO_NUM[sourceID];
-	if (sourceID != L0_DATA_SOURCE_IDS[num]) {
-		return false;
-	}
-	return true;
+	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != 0;
 }
 
 }

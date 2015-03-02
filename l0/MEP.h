@@ -82,7 +82,7 @@ public:
 	 * This is done by this method!
 	 */
 	inline uint8_t getSourceIDNum() const {
-		return SourceIDManager::SourceIDToNum(rawData->sourceID);
+		return SourceIDManager::sourceIDToNum(rawData->sourceID);
 	}
 
 	inline uint32_t getFirstEventNum() const {
