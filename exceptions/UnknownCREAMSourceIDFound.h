@@ -9,6 +9,8 @@
 #ifndef UNDNOWNCREAMSOURCEIDFOUND_H_
 #define UNDNOWNCREAMSOURCEIDFOUND_H_
 #include <stdint.h>
+#include <string>
+
 #include "NA62Error.h"
 
 namespace na62 {
