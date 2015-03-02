@@ -278,7 +278,7 @@ bool SourceIDManager::checkL0SourceID(const uint8_t sourceID) {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}
-	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != 0x255;
+	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != (uint8_t)0x255;
 }
 
 }
