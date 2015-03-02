@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <map>
 #include <utility>
+#include <sys/types.h>
 
 #define SOURCE_ID_CEDAR 0x04
 #define SOURCE_ID_GTK 0x08
