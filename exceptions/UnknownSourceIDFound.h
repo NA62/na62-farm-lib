@@ -9,6 +9,7 @@
 #ifndef UNDNOWNSOURCEIDFOUND_H_
 #define UNDNOWNSOURCEIDFOUND_H_
 #include <stdint.h>
+#inclue <string>
 
 #include "NA62Error.h"
 
