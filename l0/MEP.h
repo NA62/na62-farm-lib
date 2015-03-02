@@ -69,11 +69,14 @@ public:
 		/*
 		 * n may be bigger than <getNumberOfEvents()> as <deleteEvent()> could have been invoked already
 		 */
-		return fragments[n];
+		return fragments_[n];
 	}
 
+	/**
+	 * Returns the source ID of the detector that has sent this MEP
+	 */
 	inline uint8_t getSourceID() const {
-		return rawData->sourceID;
+		return rawData_->sourceID;
 	}
 
 	/**
@@ -82,28 +85,40 @@ public:
 	 * This is done by this method!
 	 */
 	inline uint8_t getSourceIDNum() const {
-		return SourceIDManager::sourceIDToNum(rawData->sourceID);
+		return SourceIDManager::sourceIDToNum(rawData_->sourceID);
 	}
 
+	/**
+	 * Returns the event number of the first event fragment
+	 */
 	inline uint32_t getFirstEventNum() const {
-		return rawData->firstEventNum;
+		return rawData_->firstEventNum;
 	}
 
-	inline uint16_t getNumberOfEvents() const {
-		return rawData->eventCount;
+	/**
+	 * Returns the number of MEP event fragments stored in this MEP
+	 */
+	inline uint16_t getNumberOfFragments() const {
+		return rawData_->eventCount;
 	}
 
 	/**
 	 * Total length of the MEP in bytes including the header
 	 */
 	inline uint16_t getLength() const {
-		return rawData->mepLength;
+		return rawData_->mepLength;
 	}
 
+	/**
+	 * Returns the ID of the read out board as provided by the MEP frame header
+	 */
 	inline uint8_t getSourceSubID() const {
-		return rawData->sourceSubID;
+		return rawData_->sourceSubID;
 	}
 
+	/**
+	 * Returns the pointer to the raw UDP frame sotring this MEP
+	 */
 	inline const char* getUDPPack() const {
 		return etherFrame_;
 	}
@@ -117,7 +132,6 @@ public:
 		 * Decrement eventCount. If we reach 0 we can delete this object as all events have been processed.
 		 */
 
-		// TODO: Do we need to lock here? Probably not locking is that much faster that it's worth implementing a garbage collector?!
 		return --eventCount_ == 0;
 	}
 
@@ -134,9 +148,9 @@ private:
 	const char* etherFrame_;
 
 	// Pointer to the payload of the UDP packet
-	struct MEP_HDR * rawData;
+	struct MEP_HDR * rawData_;
 
-	MEPFragment **fragments;
+	MEPFragment **fragments_;
 
 	bool checkSumsVarified_;
 };

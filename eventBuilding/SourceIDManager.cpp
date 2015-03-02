@@ -266,7 +266,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 		NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
 	}
 
-	L0TP_ACTIVE = SourceIDManager::checkL0SourceID(SOURCE_ID_L0TP);
+	L0TP_ACTIVE = SourceIDManager::isL0TPActive();
 	TS_SOURCEID_NUM = sourceIDToNum(timeStampSourceID);
 	if (!SourceIDManager::checkL0SourceID(timeStampSourceID)) {
 		LOG_ERROR<< "The timestamp reference source ID is not part of the L0SourceIDs list" << ENDL;
