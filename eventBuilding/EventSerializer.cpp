@@ -21,7 +21,7 @@
 namespace na62 {
 
 
-std::atomic<uint> EventSerializer::InitialEventBufferSize_;
+uint EventSerializer::InitialEventBufferSize_;
 int EventSerializer::TotalNumberOfDetectors_;
 
 void EventSerializer::initialize() {
