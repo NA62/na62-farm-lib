@@ -229,6 +229,9 @@ public:
 	inline l0::Subevent* getCHODSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHOD)];
 	}
+	inline l0::Subevent* getRICHSubevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_RICH)];
+	}
 	inline l0::Subevent* getIRCSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_IRC)];
 	}
