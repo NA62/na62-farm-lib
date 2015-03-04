@@ -64,6 +64,10 @@ public:
 	 */
 	void destroy();
 
+	bool isUnfinished() const {
+		return unfinished_;
+	}
+
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
@@ -118,6 +122,7 @@ public:
 		L2Accepted_ = L2TriggerTypeWord > 0;
 		// Move the L2 trigger type word to the third byte of triggerTypeWord_
 		triggerTypeWord_ |= L2TriggerTypeWord << 16;
+		unfinished_ = false;
 	}
 
 	uint32_t getEventNumber() const {
@@ -346,6 +351,13 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	/*
+	 * Find the missing sourceIDs
+	 */
+	std::map<uint, std::vector<uint>> getMissingSourceIDs();
+	std::map<uint, std::vector<uint>> getMissingCreams();
+	std::string getMissingSourceIDsSring();
+
 	static uint64_t getMissingEventsBySourceNum(uint sourceNum) {
 		return MissingEventsBySourceNum_[sourceNum];
 	}
@@ -401,11 +413,6 @@ private:
 		burstID_ = burstID;
 	}
 
-	/*
-	 * Find the missing sourceIDs
-	 */
-	std::string getMissingSourceIDs();
-
 	void reset();
 
 	bool storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment);
@@ -438,7 +445,7 @@ private:
 	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
 	std::map<uint16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	bool L1Processed_;bool L2Accepted_;
+	bool L1Processed_;bool L2Accepted_; bool unfinished_;
 
 	bool lastEventOfBurst_;
 

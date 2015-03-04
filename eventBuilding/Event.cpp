@@ -35,7 +35,7 @@ Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
-				0), L1Processed_(false), L2Accepted_(false), lastEventOfBurst_(
+				0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(
 		false)
 #ifdef MEASURE_TIME
 , l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
@@ -109,6 +109,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 	}
 #endif
 
+	unfinished_ = true;
 	if (numberOfL0Events_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
@@ -118,7 +119,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 				/*
 				 * Event not build during last burst -> destroy it!
 				 */
-				std::string missingSourceIDs = getMissingSourceIDs();
+				std::string missingSourceIDs = getMissingSourceIDsSring();
 
 				if (printMissingSourceIDs_) {
 					LOG_INFO<< "Overwriting unfinished event from Burst "
@@ -148,7 +149,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
-		std::string missingSourceIDs = getMissingSourceIDs();
+		std::string missingSourceIDs = getMissingSourceIDsSring();
 		if (printMissingSourceIDs_) {
 			LOG_ERROR<< "Already received all fragments from sourceID "
 			<< ((int) fragment->getSourceID())
@@ -333,6 +334,7 @@ void Event::reset() {
 	processingID_ = 0;
 	L1Processed_ = false;
 	L2Accepted_ = false;
+	unfinished_ = false;
 	lastEventOfBurst_ = false;
 	nonZSuppressedDataRequestedNum = 0;
 }
@@ -365,7 +367,53 @@ void Event::destroy() {
 	reset();
 }
 
-std::string Event::getMissingSourceIDs() {
+std::map<uint, std::vector<uint>> Event::getMissingSourceIDs() {
+	std::map<uint, std::vector<uint>> missingIds;
+	if (!L1Processed_) {
+		for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+				sourceNum >= 0; sourceNum--) {
+			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+			if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
+					!= subevent->getNumberOfFragments()) {
+				MissingEventsBySourceNum_[sourceNum].fetch_add(1,
+						std::memory_order_relaxed);
+				missingIds[SourceIDManager::sourceNumToID(sourceNum)] =
+						subevent->getMissingSourceSubIds();
+
+				for (int f = 0; f != subevent->getNumberOfFragments(); f++) {
+					UnfinishedEventsCollector::addReceivedSubSourceIdFromUnfinishedEvent(
+							sourceNum,
+							subevent->getFragment(f)->getSourceSubID());
+				}
+			}
+		}
+	}
+	return missingIds;
+}
+
+std::map<uint, std::vector<uint>> Event::getMissingCreams() {
+	std::map<uint, std::vector<uint>> missingCratsAndCreams;
+	if (L1Processed_
+			&& numberOfCREAMFragments_
+					!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
+				1, std::memory_order_relaxed);
+
+		uint crateID = 0xFFFFFFFF;
+		for (int i = 0;
+				i != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+				i++) {
+			if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
+				std::pair<uint8_t, uint8_t> crateAndCream =
+						SourceIDManager::getCrateAndCREAMIDByLocalID(i);
+				missingCratsAndCreams[crateAndCream.first].push_back(crateAndCream.second);
+			}
+		}
+	}
+	return missingCratsAndCreams;
+}
+
+std::string Event::getMissingSourceIDsSring() {
 	std::stringstream missingIDs;
 	/*
 	 * Find the missing sourceIDs

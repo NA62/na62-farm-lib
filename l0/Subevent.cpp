@@ -16,7 +16,7 @@ namespace l0 {
 
 Subevent::Subevent(const uint16_t expectedPacketsNum) :
 		ExpectedPacketsNum(expectedPacketsNum), eventFragments(
-				new (std::nothrow) MEPFragment*[expectedPacketsNum]), eventPartCounter(
+				new (std::nothrow) MEPFragment*[expectedPacketsNum]), fragmentCounter(
 				0) {
 }
 
@@ -26,10 +26,10 @@ Subevent::~Subevent() {
 }
 
 void Subevent::destroy() {
-	for (int i = 0; i != eventPartCounter; i++) {
+	for (int i = 0; i != fragmentCounter; i++) {
 		delete eventFragments[i];
 	}
-	eventPartCounter = 0;
+	fragmentCounter = 0;
 }
 } /* namespace l0 */
 } /* namespace na62 */
