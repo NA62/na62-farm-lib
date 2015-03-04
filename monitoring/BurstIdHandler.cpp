@@ -9,6 +9,7 @@
 
 namespace na62 {
 boost::timer::cpu_timer BurstIdHandler::EOBReceivedTimer_;
-uint32_t BurstIdHandler::currentBurstID_;
+uint BurstIdHandler::nextBurstId_;
+uint BurstIdHandler::currentBurstID_;
 
 } /* namespace na62 */

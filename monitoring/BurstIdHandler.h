@@ -22,8 +22,7 @@ public:
 	virtual ~BurstIdHandler();
 
 	static void setNextBurstID(uint32_t nextBurstID) {
-		currentBurstID_ = nextBurstID;
-
+		nextBurstId_ = nextBurstID;
 		EOBReceivedTimer_.start();
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
 	}
@@ -32,14 +31,41 @@ public:
 		return currentBurstID_;
 	}
 
+	static uint32_t getNextBurstId() {
+		return nextBurstId_;
+	}
+
 	static long int getTimeSinceLastEOB() {
 		return EOBReceivedTimer_.elapsed().wall;
+	}
+
+	static inline bool isInBurst() {
+		return nextBurstId_ == currentBurstID_;
+	}
+
+	static void checkBurstIdChange() {
+		if (nextBurstId_ != currentBurstID_
+				&& EOBReceivedTimer_.elapsed().wall / 1E6 > 1000 /*1s*/) {
+			currentBurstID_ = nextBurstId_;
+		}
+	}
+
+	static void initialize(uint startBurstID) {
+		currentBurstID_ = startBurstID;
+		nextBurstId_ = currentBurstID_;
 	}
 
 private:
 	static boost::timer::cpu_timer EOBReceivedTimer_;
 
-	static uint32_t currentBurstID_;
+	/*
+	 * Store the current Burst ID and the next one separately. As soon as an EOB event is
+	 * received the nextBurstID_ will be set. Then the currentBurstID will be updated later
+	 * to make sure currently enqueued frames in other threads are not processed with
+	 * the new burstID
+	 */
+	static uint nextBurstId_;
+	static uint currentBurstID_;
 };
 
 }
