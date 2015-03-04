@@ -19,6 +19,7 @@ namespace na62 {
 
 std::vector<Event*> EventPool::events_;
 uint32_t EventPool::numberOfEventsStored_;
+uint32_t EventPool::largestEventNumberTouched_;
 
 void EventPool::initialize(uint numberOfEventsToBeStored) {
 	numberOfEventsStored_ = numberOfEventsToBeStored;
