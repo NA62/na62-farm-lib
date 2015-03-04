@@ -237,6 +237,8 @@ public:
 		return CREAM_ID < 32 && (ENABLED_CREAM_CRATES_LUT & (1L << crateID)) // check crate
 				&& (ENABLED_CREAMS_BY_CRATE_LUT[crateID] & (1 << CREAM_ID)); // check CREAM of this crate
 	}
+
+	static std::string sourceIdToDetectorName(uint8_t sourceID);
 };
 
 } /* namespace na62 */

@@ -281,5 +281,25 @@ bool SourceIDManager::checkL0SourceID(const uint8_t sourceID) {
 	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != (uint8_t)0x255;
 }
 
+std::string SourceIDManager::sourceIdToDetectorName(uint8_t sourceID){
+	switch (sourceID) {
+		case SOURCE_ID_CEDAR: return "CEDAR";
+		case SOURCE_ID_GTK: return "GTK";
+		case SOURCE_ID_CHANTI: return "CHANTI";
+		case SOURCE_ID_LAV: return "LAV";
+		case SOURCE_ID_STRAW: return "STRAW";
+		case SOURCE_ID_CHOD: return "CHOD";
+		case SOURCE_ID_RICH: return "RICH";
+		case SOURCE_ID_IRC: return "IRC";
+		case SOURCE_ID_LKr: return "LKR";
+		case SOURCE_ID_MUV1: return "MUV1";
+		case SOURCE_ID_MUV2: return "MUV2";
+		case SOURCE_ID_MUV3: return "MUV3";
+		case SOURCE_ID_SAC: return "SAC";
+		case SOURCE_ID_L0TP: return "L0TP";
+		default: return "UNKNOWN SOURCE ID!";
+	}
+}
+
 }
 /* namespace na62 */
