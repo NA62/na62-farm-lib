@@ -87,7 +87,7 @@ Event::~Event() {
 	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
 }
 
-void Event::initialize(bool writeBrokenCreamInfo) {
+void Event::initialize(bool printMissingSourceIDs, bool writeBrokenCreamInfo) {
 	MissingEventsBySourceNum_ =
 			new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
 					+ 1];
@@ -95,6 +95,8 @@ void Event::initialize(bool writeBrokenCreamInfo) {
 	for (int i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1; i++) {
 		MissingEventsBySourceNum_[i] = 0;
 	}
+
+	printMissingSourceIDs_ = printMissingSourceIDs;
 
 	writeBrokenCreamInfo_ = writeBrokenCreamInfo;
 }

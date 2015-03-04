@@ -18,7 +18,6 @@
 #define TRIGGER_L0_EOB 0x23
 
 namespace na62 {
-
 /**
  * Pointer to the payload of the given sourceID within an event
  */

@@ -21,6 +21,7 @@
 
 #include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
+#include "../structs/Event.h"
 
 //#define MEASURE_TIME
 
@@ -351,6 +352,15 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	bool isSpecialTriggerEvent() {
+		switch (getL0TriggerTypeWord()) {
+		case TRIGGER_L0_EOB:
+		case TRIGGER_L0_SOB:
+			return true;
+		default:
+			return false;
+		}
+	}
 	/*
 	 * Find the missing sourceIDs
 	 */
@@ -364,10 +374,6 @@ public:
 
 	static uint64_t getNumberOfNonRequestedCreamFragments() {
 		return nonRequestsCreamFramesReceived_;
-	}
-
-	static void setPrintMissingSourceIds(bool doPrint) {
-		printMissingSourceIDs_ = doPrint;
 	}
 
 #ifdef MEASURE_TIME
@@ -407,7 +413,8 @@ public:
 	}
 #endif
 
-	static void initialize(bool writeBrokenCreamInfo);
+	static void initialize(bool printMissingSourceIDs,
+			bool writeBrokenCreamInfo);
 private:
 	void setBurstID(const uint32_t burstID) {
 		burstID_ = burstID;
@@ -445,7 +452,7 @@ private:
 	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
 	std::map<uint16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	bool L1Processed_;bool L2Accepted_; bool unfinished_;
+	bool L1Processed_;bool L2Accepted_;bool unfinished_;
 
 	bool lastEventOfBurst_;
 
