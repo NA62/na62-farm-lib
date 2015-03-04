@@ -127,7 +127,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
 					<< " misses data from sourceIDs "
 					<< missingSourceIDs << ENDL;
 				}
-				EventPool::FreeEvent(this);
+				EventPool::freeEvent(this);
 				unfinishedEventMutex_.unlock();
 			} else {
 				/*
@@ -201,7 +201,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 			}
 			nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
-			EventPool::FreeEvent(this);
+			EventPool::freeEvent(this);
 			unfinishedEventMutex_.unlock();
 		}
 		delete fragment;
@@ -299,7 +299,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 					DataDumper::printToFile("creamDataReceivedTwice", "/tmp/farm-logs", dump.str());
 				}
 
-				EventPool::FreeEvent(this);
+				EventPool::freeEvent(this);
 				unfinishedEventMutex_.unlock();
 			}
 			delete fragment;

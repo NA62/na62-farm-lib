@@ -19,10 +19,19 @@ class EventPool {
 private:
 	static std::vector<Event*> events_;
 	static uint32_t numberOfEventsStored_;
+
+	/*
+	 * Largest eventnumber that was passed to GetEvent
+	 */
+	static uint32_t largestEventNumberTouched_;
 public:
-	static void Initialize(uint numberOfEventsToBeStored);
-	static Event* GetEvent(uint32_t eventNumber);
-	static void FreeEvent(Event* event);
+	static void initialize(uint numberOfEventsToBeStored);
+	static Event* getEvent(uint32_t eventNumber);
+	static void freeEvent(Event* event);
+
+	static uint32_t getLargestTouchedEventnumber(){
+		return largestEventNumberTouched_;
+	}
 };
 
 } /* namespace na62 */

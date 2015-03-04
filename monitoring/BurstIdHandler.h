@@ -21,7 +21,7 @@ public:
 	BurstIdHandler();
 	virtual ~BurstIdHandler();
 
-	static void SetNextBurstID(uint32_t nextBurstID) {
+	static void setNextBurstID(uint32_t nextBurstID) {
 		currentBurstID_ = nextBurstID;
 
 		EOBReceivedTimer_.start();
