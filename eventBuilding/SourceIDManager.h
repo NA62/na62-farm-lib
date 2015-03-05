@@ -105,91 +105,91 @@ public:
 	 * Returns true if the GTK is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isGtkActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_GTK);
 	}
 
 	/**
 	 * Returns true if the CHANTI is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isChantiActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_CHANTI);
 	}
 
 	/**
 	 * Returns true if the LAV is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isLavActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_LAV);
 	}
 
 	/**
 	 * Returns true if the STRAW is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isStrawActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_STRAW);
 	}
 
 	/**
 	 * Returns true if the CHOD is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isChodActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_CHOD);
 	}
 
 	/**
 	 * Returns true if the RICH is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isRhichActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_RICH);
 	}
 
 	/**
 	 * Returns true if the IRC is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isIrcActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_IRC);
 	}
 
 	/**
 	 * Returns true if the LKR is activated so that it's data is stored in every event from L2 on
 	 */
 	static inline bool isLkrActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_LKr);
 	}
 
 	/**
 	 * Returns true if the MUV1 is activated so that it's data is stored in every event from L2 on
 	 */
 	static inline bool isMUV1Active() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_MUV1);
 	}
 
 	/**
 	 * Returns true if the MUV2 is activated so that it's data is stored in every event from L2 on
 	 */
 	static inline bool isMUV2Active() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_MUV2);
 	}
 
 	/**
 	 * Returns true if the MUV3 is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isMUV3Active() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_MUV3);
 	}
 
 	/**
 	 * Returns true if the SAC is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isSacActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_SAC);
 	}
 
 	/**
 	 * Returns true if the L0TP is activated so that it's data is stored in every event from L1 on
 	 */
 	static inline bool isL0TPActive() {
-		return checkL0SourceID(SOURCE_ID_CEDAR);
+		return checkL0SourceID(SOURCE_ID_L0TP);
 	}
 
 	/*

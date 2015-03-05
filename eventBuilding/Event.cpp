@@ -226,6 +226,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
  * Process data coming from the CREAMs
  */
 bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
+	std::cout << getTimestamp() << std::endl;
 	if (!L1Processed_) {
 		if (printMissingSourceIDs_) {
 			LOG_ERROR<< "Received LKR data with EventNumber "
@@ -241,7 +242,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		if(writeBrokenCreamInfo_) {
 			std::stringstream dump;
 			dump << getBurstID() << "\t" << getEventNumber()
-			<< "\t" << getTimestamp() << "\t" << sourceIP;
+			<< "\t" << getTimestamp() << "\t" << fragment->getEventLength()<<"\t"<<std::hex << ntohl(sourceIP);
 			DataDumper::printToFile("unrequestedCreamData", "/tmp/farm-logs", dump.str());
 		}
 
@@ -408,7 +409,8 @@ std::map<uint, std::vector<uint>> Event::getMissingCreams() {
 			if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
 				std::pair<uint8_t, uint8_t> crateAndCream =
 						SourceIDManager::getCrateAndCREAMIDByLocalID(i);
-				missingCratsAndCreams[crateAndCream.first].push_back(crateAndCream.second);
+				missingCratsAndCreams[crateAndCream.first].push_back(
+						crateAndCream.second);
 			}
 		}
 	}

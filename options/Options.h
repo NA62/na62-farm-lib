@@ -9,6 +9,15 @@
 #ifndef Options_H_
 #define Options_H_
 
+/*
+ * Bugfix: see https://svn.boost.org/trac/boost/ticket/8546
+ */
+#if defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)))
+#  define BOOST_ATTRIBUTE_UNUSED __attribute__((unused))
+#else
+#  define BOOST_ATTRIBUTE_UNUSED
+#endif
+
 #include <boost/program_options.hpp>
 #include <string>
 #include <vector>

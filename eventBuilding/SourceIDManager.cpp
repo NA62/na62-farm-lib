@@ -95,7 +95,7 @@ void SourceIDManager::Initialize(const uint16_t timeStampSourceID,
 	L0_DATA_SOURCE_ID_TO_NUM = new uint8_t[LARGEST_L0_DATA_SOURCE_ID + 1];
 	L0_DATA_SOURCE_ID_TO_PACKNUM = new uint16_t[LARGEST_L0_DATA_SOURCE_ID + 1];
 
-	memset(L0_DATA_SOURCE_ID_TO_NUM, 0x255, LARGEST_L0_DATA_SOURCE_ID + 1);
+	memset(L0_DATA_SOURCE_ID_TO_NUM, 0xFF, LARGEST_L0_DATA_SOURCE_ID + 1);
 
 	for (uint8_t i = 0; i < NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0_DATA_SOURCE_ID_TO_NUM[L0_DATA_SOURCE_IDS[i]] = i;
@@ -278,7 +278,7 @@ bool SourceIDManager::checkL0SourceID(const uint8_t sourceID) {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}
-	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != (uint8_t)0x255;
+	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != (uint8_t)0xFF;
 }
 
 std::string SourceIDManager::sourceIdToDetectorName(uint8_t sourceID){
