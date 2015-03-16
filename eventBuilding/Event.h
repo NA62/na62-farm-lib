@@ -159,6 +159,37 @@ public:
 	}
 
 	/**
+	 * Returns true if the L1 trigger word equals the L1 bypass trigger word meaning
+	 * that L1 has not been processed but still the event has been accepted (bypassed)
+	 */
+	bool isL1Bypassed() const {
+		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS) == TRIGGER_L1_BYPASS;
+	}
+
+	/**
+	 * Returns true if the L2 trigger word equals the L2 bypass trigger word meaning
+	 * that L2 has not been processed but still the event has been accepted (bypassed)
+	 */
+	bool isL2Bypassed() const {
+		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS) == TRIGGER_L2_BYPASS;
+	}
+
+
+	/**
+	 * If set to true during the L1 trigger processing  zero suppressed CREAM data will be requested
+	 */
+	void setRrequestZeroSuppressedCreamData(bool doRequestZSData) {
+		requestZeroSuppressedCreamData_ = doRequestZSData;
+	}
+
+	/**
+	 * Returns true if zero suppressed CREAM data should be requested
+	 */
+	bool isRrequestZeroSuppressedCreamData() const {
+		return requestZeroSuppressedCreamData_;
+	}
+
+	/**
 	 * Returns the L0 trigger type word stored in the L0TP data and stores the fineTime. If L0TP is not activated 1 is returned
 	 */
 	uint8_t readTriggerTypeWordAndFineTime();
@@ -361,6 +392,7 @@ public:
 			return false;
 		}
 	}
+
 	/*
 	 * Find the missing sourceIDs
 	 */
@@ -440,6 +472,8 @@ private:
 	uint8_t finetime_;
 	uint32_t SOBtimestamp_;
 	uint32_t processingID_;
+
+	bool requestZeroSuppressedCreamData_;
 
 	l0::Subevent ** L0Subevents;
 

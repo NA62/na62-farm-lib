@@ -34,7 +34,7 @@ std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 Event::Event(uint32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
-				0), SOBtimestamp_(0), processingID_(0), nonZSuppressedDataRequestedNum(
+				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(
 		false)
 #ifdef MEASURE_TIME
@@ -335,6 +335,7 @@ void Event::reset() {
 	timestamp_ = 0;
 	finetime_ = 0;
 	processingID_ = 0;
+	requestZeroSuppressedCreamData_ = false;
 	L1Processed_ = false;
 	L2Accepted_ = false;
 	unfinished_ = false;
