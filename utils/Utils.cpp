@@ -59,7 +59,7 @@ double Utils::StandardDevation(std::vector<double> data) {
 std::string Utils::PrintHex(const char* data, const size_t dataLength) {
 	std::stringstream stream;
 	for (uint32_t i = 0; i < dataLength; i++) {
-		uint8_t byte;
+		uint_fast8_t byte;
 		memcpy(&byte, &((char*) data)[i], 1);
 		stream << std::hex << std::setw(2) << std::setfill('0') << (int) byte << " ";
 		if ((i + 1) % 4 == 0) {

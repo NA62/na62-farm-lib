@@ -9,11 +9,21 @@
 #ifndef Options_H_
 #define Options_H_
 
+/*
+ * Bugfix: see https://svn.boost.org/trac/boost/ticket/8546
+ */
+#if defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)))
+#  define BOOST_ATTRIBUTE_UNUSED __attribute__((unused))
+#else
+#  define BOOST_ATTRIBUTE_UNUSED
+#endif
+
 #include <boost/program_options.hpp>
 #include <string>
 #include <vector>
 
 #include "Logging.h"
+
 
 namespace po = boost::program_options;
 
@@ -88,6 +98,8 @@ public:
 	static void UpdateValue(std::string key, float f, bool notify = true);
 	static void UpdateValue(std::string key, std::string str,
 			bool notify = true);
+
+	static void addOption(std::string optionName, int defaultValue, std::string description);
 
 protected:
 	static po::options_description desc;

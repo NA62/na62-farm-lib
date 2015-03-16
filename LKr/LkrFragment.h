@@ -24,34 +24,34 @@ namespace cream {
  */
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 struct LKR_EVENT_RAW_HDR {
-	uint8_t LKRsourceID;
+	uint_fast8_t LKRsourceID;
 	uint32_t eventNumber :24;
 
-	uint8_t reserved;
+	uint_fast8_t reserved;
 	uint32_t numberOf4BWords :24;
 
 	uint32_t timestamp;
 
-	uint16_t reserved2;
-	uint16_t sourceCrateCREAMID;
-//	uint16_t reserved3 :5;
+	uint_fast16_t reserved2;
+	uint_fast16_t sourceCrateCREAMID;
+//	uint_fast16_t reserved3 :5;
 }__attribute__ ((__packed__));
 #else
 struct LKR_EVENT_RAW_HDR {
 	uint32_t eventNumber :24;
-	uint8_t LKRsourceID;
+	uint_fast8_t LKRsourceID;
 	uint32_t numberOf4BWords :24;
-	uint8_t reserved;
+	uint_fast8_t reserved;
 	uint32_t timestamp;
-	uint8_t sourceCREAMID:5;
-	uint16_t sourceCrateID:11;
-	uint16_t reserved2;
+	uint_fast8_t sourceCREAMID:5;
+	uint_fast16_t sourceCrateID:11;
+	uint_fast16_t reserved2;
 }__attribute__ ((__packed__));
 #endif
 
 class LkrFragment: boost::noncopyable {
 public:
-	LkrFragment(const char * data, const uint16_t& dataLength, const char* etherFrame) throw (NA62Error);
+	LkrFragment(const char * data, const uint_fast16_t& dataLength, const char* etherFrame) throw (NA62Error);
 	virtual ~LkrFragment();
 
 	inline uint32_t getEventLength() const {
@@ -81,19 +81,19 @@ public:
 #endif
 	}
 
-	inline uint8_t getCrateID() const {
+	inline uint_fast8_t getCrateID() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// skip the lowest 5 bits as these are the CREMID
-		return (uint8_t) (ntohs(rawData->sourceCrateCREAMID) >> 5) & 63;
+		return (uint_fast8_t) (ntohs(rawData->sourceCrateCREAMID) >> 5) & 63;
 #else
 		return rawData->sourceCrateID;
 #endif
 	}
 
-	inline uint8_t getCREAMID() const {
+	inline uint_fast8_t getCREAMID() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// The CREAMID is in the lowest 5(which is 31) bits
-		return (uint8_t) (ntohs(rawData->sourceCrateCREAMID) & 31);
+		return (uint_fast8_t) (ntohs(rawData->sourceCrateCREAMID) & 31);
 #else
 		return rawData->sourceCREAMID;
 #endif
@@ -122,7 +122,7 @@ public:
 		return data_;
 	}
 
-	inline uint16_t getCrateCREAMID() {
+	inline uint_fast16_t getCrateCREAMID() {
 		return generateCrateCREAMID(getCrateID(), getCREAMID());
 	}
 
@@ -130,7 +130,7 @@ public:
 		return etherFrame_;
 	}
 
-	static inline uint16_t generateCrateCREAMID(const uint8_t crateID, const uint8_t CREAMID) {
+	static inline uint_fast16_t generateCrateCREAMID(const uint_fast8_t crateID, const uint_fast8_t CREAMID) {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		// The CREAMID is in the lowest 5(which is 31) bits
 		return htons((crateID << 8) | CREAMID);

@@ -15,7 +15,7 @@ using namespace na62;
 namespace na62 {
 namespace cream {
 
-LkrFragment::LkrFragment(const char *data, const uint16_t& dataLength,
+LkrFragment::LkrFragment(const char *data, const uint_fast16_t& dataLength,
 		const char* etherFrame) throw (NA62Error) :
 		rawData((const struct LKR_EVENT_RAW_HDR*) data), data_(data), etherFrame_(
 				etherFrame) {
@@ -23,7 +23,7 @@ LkrFragment::LkrFragment(const char *data, const uint16_t& dataLength,
 		throw BrokenPacketReceivedError(
 				"LKR Event with a non 0x24 source field received!");
 	}
-	if (!SourceIDManager::CheckCREAMID(getCrateID(), getCREAMID())) {
+	if (!SourceIDManager::checkCREAMID(getCrateID(), getCREAMID())) {
 		throw UnknownCREAMSourceIDFound(getCrateID(), getCREAMID());
 	}
 }

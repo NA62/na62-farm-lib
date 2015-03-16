@@ -21,6 +21,7 @@
 
 #include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
+#include "../structs/Event.h"
 
 //#define MEASURE_TIME
 
@@ -64,6 +65,10 @@ public:
 	 */
 	void destroy();
 
+	bool isUnfinished() const {
+		return unfinished_;
+	}
+
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
@@ -92,7 +97,7 @@ public:
 	 *
 	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
 	 */
-	void setL1Processed(const uint16_t L0L1TriggerTypeWord) {
+	void setL1Processed(const uint_fast16_t L0L1TriggerTypeWord) {
 #ifdef MEASURE_TIME
 		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
 		- l0BuildingTime_;
@@ -109,7 +114,7 @@ public:
 	 *
 	 * The lower byte is the L0 trigger type word, the upper byte is the one of L1
 	 */
-	void setL2Processed(const uint8_t L2TriggerTypeWord) {
+	void setL2Processed(const uint_fast8_t L2TriggerTypeWord) {
 #ifdef MEASURE_TIME
 		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
 		- l0BuildingTime_;
@@ -118,6 +123,7 @@ public:
 		L2Accepted_ = L2TriggerTypeWord > 0;
 		// Move the L2 trigger type word to the third byte of triggerTypeWord_
 		triggerTypeWord_ |= L2TriggerTypeWord << 16;
+		unfinished_ = false;
 	}
 
 	uint32_t getEventNumber() const {
@@ -132,7 +138,7 @@ public:
 	 * Returns the L0 trigger type word if readTriggerTypeWordAndFineTime has already
 	 * been called. The return value is undefined otherwise!
 	 */
-	uint8_t getL0TriggerTypeWord() const {
+	uint_fast8_t getL0TriggerTypeWord() const {
 		return triggerTypeWord_ & 0xFF;
 	}
 
@@ -140,7 +146,7 @@ public:
 	 * Returns the L1 trigger type word if L1 has already been processed.
 	 * The return value is undefined otherwise!
 	 */
-	uint8_t getL1TriggerTypeWord() const {
+	uint_fast8_t getL1TriggerTypeWord() const {
 		return (triggerTypeWord_ >> 8) & 0xFF;
 	}
 
@@ -153,9 +159,40 @@ public:
 	}
 
 	/**
+	 * Returns true if the L1 trigger word equals the L1 bypass trigger word meaning
+	 * that L1 has not been processed but still the event has been accepted (bypassed)
+	 */
+	bool isL1Bypassed() const {
+		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS) == TRIGGER_L1_BYPASS;
+	}
+
+	/**
+	 * Returns true if the L2 trigger word equals the L2 bypass trigger word meaning
+	 * that L2 has not been processed but still the event has been accepted (bypassed)
+	 */
+	bool isL2Bypassed() const {
+		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS) == TRIGGER_L2_BYPASS;
+	}
+
+
+	/**
+	 * If set to true during the L1 trigger processing  zero suppressed CREAM data will be requested
+	 */
+	void setRrequestZeroSuppressedCreamData(bool doRequestZSData) {
+		requestZeroSuppressedCreamData_ = doRequestZSData;
+	}
+
+	/**
+	 * Returns true if zero suppressed CREAM data should be requested
+	 */
+	bool isRrequestZeroSuppressedCreamData() const {
+		return requestZeroSuppressedCreamData_;
+	}
+
+	/**
 	 * Returns the L0 trigger type word stored in the L0TP data and stores the fineTime. If L0TP is not activated 1 is returned
 	 */
-	uint8_t readTriggerTypeWordAndFineTime();
+	uint_fast8_t readTriggerTypeWordAndFineTime();
 
 	void setTimestamp(const uint32_t time) {
 		timestamp_ = time;
@@ -165,11 +202,11 @@ public:
 		return timestamp_;
 	}
 
-	void setFinetime(const uint8_t finetime) {
+	void setFinetime(const uint_fast8_t finetime) {
 		finetime_ = finetime;
 	}
 
-	uint8_t getFinetime() const {
+	uint_fast8_t getFinetime() const {
 		return finetime_;
 	}
 
@@ -201,52 +238,55 @@ public:
 	 *		...
 	 *	}
 	 */
-	l0::Subevent* getL0SubeventBySourceIDNum(const uint8_t sourceIDNum) const {
+	l0::Subevent* getL0SubeventBySourceIDNum(const uint_fast8_t sourceIDNum) const {
 		return L0Subevents[sourceIDNum];
 	}
 
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline l0::Subevent* getL0SubeventBySourceID(const uint8_t sourceID) const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(std::move(sourceID))];
+	inline l0::Subevent* getL0SubeventBySourceID(const uint_fast8_t sourceID) const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(std::move(sourceID))];
 	}
 	inline l0::Subevent* getCEDARSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CEDAR)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CEDAR)];
 	}
 	inline l0::Subevent* getGTKSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_GTK)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_GTK)];
 	}
 	inline l0::Subevent* getCHANTISubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CHANTI)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHANTI)];
 	}
 	inline l0::Subevent* getLAVSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_LAV)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_LAV)];
 	}
 	inline l0::Subevent* getSTRAWSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_STRAW)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_STRAW)];
 	}
 	inline l0::Subevent* getCHODSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_CHOD)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHOD)];
+	}
+	inline l0::Subevent* getRICHSubevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_RICH)];
 	}
 	inline l0::Subevent* getIRCSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_IRC)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_IRC)];
 	}
 	inline l0::Subevent* getMUV3Subevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_MUV3)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV3)];
 	}
 	inline l0::Subevent* getSACSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_SAC)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_SAC)];
 	}
 	inline l0::Subevent* getL0TPSubevent() const {
-		return L0Subevents[SourceIDManager::SourceIDToNum(SOURCE_ID_L0TP)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L0TP)];
 	}
 
 	/*
 	 * Returns a  zero suppressed event fragment sent by the CREAM with the id [CREAMID] in the crate [crateID
 	 */
-	inline cream::LkrFragment* getZSuppressedLkrFragment(const uint8_t crateID,
-			const uint8_t CREAMID) const {
+	inline cream::LkrFragment* getZSuppressedLkrFragment(const uint_fast8_t crateID,
+			const uint_fast8_t CREAMID) const {
 		return zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
 				crateID, CREAMID)];
 	}
@@ -255,7 +295,7 @@ public:
 	 * Returns a zero suppressed event fragment sent by the CREAM identified by the given local CREAM ID
 	 */
 	inline cream::LkrFragment* getZSuppressedLkrFragment(
-			const uint16_t localCreamID) const {
+			const uint_fast16_t localCreamID) const {
 		return zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
 	}
 
@@ -266,14 +306,14 @@ public:
 		return zSuppressedLkrFragmentsByLocalCREAMID;
 	}
 
-	inline uint16_t getNumberOfZSuppressedLkrFragments() const {
+	inline uint_fast16_t getNumberOfZSuppressedLkrFragments() const {
 		return SourceIDManager::NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS;
 	}
 
 	/**
 	 * Returns the number of MUV1 fragments that are accessible via [getMuv1Fragments] after L2 event building
 	 */
-	inline uint16_t getNumberOfMuv1Fragments() const {
+	inline uint_fast16_t getNumberOfMuv1Fragments() const {
 		return SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS;
 	}
 
@@ -290,7 +330,7 @@ public:
 	/**
 	 * Returns the number of MUV2 fragments that are accessible via [getMuv2Fragments] after L2 event building
 	 */
-	inline uint16_t getNumberOfMuv2Fragments() const {
+	inline uint_fast16_t getNumberOfMuv2Fragments() const {
 		return SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS;
 	}
 
@@ -306,7 +346,7 @@ public:
 	}
 
 	inline cream::LkrFragment* getNonZSuppressedLkrFragment(
-			const uint16_t crateID, const uint8_t CREAMID) const {
+			const uint_fast16_t crateID, const uint_fast8_t CREAMID) const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID.at(
 				cream::LkrFragment::generateCrateCREAMID(crateID, CREAMID));
 	}
@@ -315,7 +355,7 @@ public:
 	 * Get the received non zero suppressed LKr Event by the crateCREMID (qsee LkrFragment::generateCrateCREAMID)
 	 */
 	inline cream::LkrFragment* getNonZSuppressedLkrFragment(
-			const uint16_t crateCREAMID) const {
+			const uint_fast16_t crateCREAMID) const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID.at(crateCREAMID);
 	}
 
@@ -323,7 +363,7 @@ public:
 	 * Returns the map containing all received non zero suppressed LKR Events.
 	 * The keys are the 24-bit crate-ID and CREAM-ID concatenations (@see LKR_EVENT_RAW_HDR::generateCrateCREAMID)
 	 */
-	inline std::map<uint16_t, cream::LkrFragment*> getNonSuppressedLkrFragments() const {
+	inline std::map<uint_fast16_t, cream::LkrFragment*> getNonSuppressedLkrFragments() const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID;
 	}
 
@@ -339,9 +379,26 @@ public:
 	}
 
 	void setNonZSuppressedDataRequestedNum(
-			uint16_t nonZSuppressedDataRequestedNum) {
+			uint_fast16_t nonZSuppressedDataRequestedNum) {
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
+
+	bool isSpecialTriggerEvent() {
+		switch (getL0TriggerTypeWord()) {
+		case TRIGGER_L0_EOB:
+		case TRIGGER_L0_SOB:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	/*
+	 * Find the missing sourceIDs
+	 */
+	std::map<uint, std::vector<uint>> getMissingSourceIDs();
+	std::map<uint, std::vector<uint>> getMissingCreams();
+	std::string getMissingSourceIDsSring();
 
 	static uint64_t getMissingEventsBySourceNum(uint sourceNum) {
 		return MissingEventsBySourceNum_[sourceNum];
@@ -349,10 +406,6 @@ public:
 
 	static uint64_t getNumberOfNonRequestedCreamFragments() {
 		return nonRequestsCreamFramesReceived_;
-	}
-
-	static void setPrintMissingSourceIds(bool doPrint) {
-		printMissingSourceIDs_ = doPrint;
 	}
 
 #ifdef MEASURE_TIME
@@ -392,16 +445,12 @@ public:
 	}
 #endif
 
-	static void initialize(bool writeBrokenCreamInfo);
+	static void initialize(bool printMissingSourceIDs,
+			bool writeBrokenCreamInfo);
 private:
 	void setBurstID(const uint32_t burstID) {
 		burstID_ = burstID;
 	}
-
-	/*
-	 * Find the missing sourceIDs
-	 */
-	std::string getMissingSourceIDs();
 
 	void reset();
 
@@ -411,8 +460,8 @@ private:
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
 	uint32_t eventNumber_;
-	std::atomic<uint8_t> numberOfL0Events_;
-	std::atomic<uint16_t> numberOfCREAMFragments_;
+	std::atomic<uint_fast8_t> numberOfL0Events_;
+	std::atomic<uint_fast16_t> numberOfCREAMFragments_;
 
 	/*
 	 * To be added within L1 trigger process
@@ -420,22 +469,24 @@ private:
 	uint32_t burstID_;
 	uint32_t triggerTypeWord_;
 	uint32_t timestamp_;
-	uint8_t finetime_;
+	uint_fast8_t finetime_;
 	uint32_t SOBtimestamp_;
 	uint32_t processingID_;
 
+	bool requestZeroSuppressedCreamData_;
+
 	l0::Subevent ** L0Subevents;
 
-	uint16_t nonZSuppressedDataRequestedNum;
+	uint_fast16_t nonZSuppressedDataRequestedNum;
 
 	/*
 	 * zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
 	 * corresponding cream/create
 	 */
 	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
-	std::map<uint16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
+	std::map<uint_fast16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	bool L1Processed_;bool L2Accepted_;
+	bool L1Processed_;bool L2Accepted_;bool unfinished_;
 
 	bool lastEventOfBurst_;
 

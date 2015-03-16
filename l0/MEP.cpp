@@ -22,13 +22,13 @@
 namespace na62 {
 namespace l0 {
 
-MEP::MEP(const char *data, const uint16_t & dataLength,
+MEP::MEP(const char *data, const uint_fast16_t & dataLength,
 		const char *originalData) throw (BrokenPacketReceivedError,
 				UnknownSourceIDFound) :
-		etherFrame_(originalData), rawData((struct MEP_HDR*) (data)), checkSumsVarified_(
+		etherFrame_(originalData), rawData_((struct MEP_HDR*) (data)), checkSumsVarified_(
 				false) {
 
-	fragments = new MEPFragment*[rawData->eventCount];
+	fragments_ = new MEPFragment*[rawData_->eventCount];
 	if (getLength() != dataLength) {
 		if (getLength() > dataLength) {
 			throw BrokenPacketReceivedError(
@@ -52,8 +52,8 @@ MEP::MEP(const char *data, const uint16_t & dataLength,
 	 *
 	 * TODO: Do we need to check the sourceID? This is quite expensive!
 	 */
-	if (!SourceIDManager::CheckL0SourceID(getSourceID())) {
-		throw UnknownSourceIDFound(getSourceID());
+	if (!SourceIDManager::checkL0SourceID(getSourceID())) {
+		throw UnknownSourceIDFound(getSourceID(), getSourceSubID());
 	}
 	initializeMEPFragments(data, dataLength);
 }
@@ -65,19 +65,19 @@ MEP::~MEP() {
 		 */
 		throw NA62Error("Deleting non-empty MEP!!!");
 	}
-	delete[] fragments;
+	delete[] fragments_;
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
-void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
+void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLength)
 		throw (BrokenPacketReceivedError) {
 	// The first subevent starts directly after the header -> offset is 12
-	uint16_t offset = sizeof(MEP_HDR);
+	uint_fast16_t offset = sizeof(MEP_HDR);
 
 	MEPFragment* newMEPFragment;
 	uint32_t expectedEventNum = getFirstEventNum();
 
-	for (uint16_t i = 0; i < getNumberOfEvents(); i++) {
+	for (uint_fast16_t i = 0; i < getNumberOfFragments(); i++) {
 		/*
 		 *  Throws exception if the event number LSB has an unexpected value
 		 */
@@ -85,7 +85,7 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 				(MEPFragment_HDR*) (data + offset), expectedEventNum);
 
 		expectedEventNum++;
-		fragments[i] = newMEPFragment;
+		fragments_[i] = newMEPFragment;
 		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEPFragment! Received only "
@@ -106,7 +106,7 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
 						+ " instead of "
 						+ std::to_string(dataLength));
 	}
-	eventCount_ = rawData->eventCount;
+	eventCount_ = rawData_->eventCount;
 }
 
 //bool MEP::verifyChecksums() {

@@ -287,4 +287,11 @@ double Options::GetDouble(char* parameter) {
 const std::type_info& Options::GetOptionType(std::string key) {
 	return vm[key].value().type();
 }
+
+
+void Options::addOption(std::string optionName,
+		int defaultValue,
+		std::string description) {
+	desc.add_options()(optionName.c_str(), po::value<int>()->default_value(defaultValue), description.c_str());
+}
 }

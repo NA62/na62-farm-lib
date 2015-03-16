@@ -31,7 +31,7 @@ public:
 	static void initialize();
 
 private:
-	static std::atomic<uint> InitialEventBufferSize_;
+	static uint InitialEventBufferSize_;
 	static int TotalNumberOfDetectors_;
 
 	static char* writeCreamData(char*& eventBuffer, uint& eventOffset,

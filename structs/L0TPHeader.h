@@ -11,18 +11,18 @@
 #include <stdint.h>
 
 struct L0TpHeader { // 24 bytes
-	uint8_t refFineTime;
-	uint8_t dataType;
-	uint16_t primitives[7];
+	uint_fast8_t refFineTime;
+	uint_fast8_t dataType;
+	uint_fast16_t primitives[7];
 
 	// 3 words primitives
 
-	uint16_t previousTimeStampHigh;
-	uint16_t memoryAddress;
+	uint_fast16_t previousTimeStampHigh;
+	uint_fast16_t memoryAddress;
 
-	uint8_t l0TriggerType;
-	uint8_t previousl0TriggerType;
-	uint16_t previousTimeStampLow;
+	uint_fast8_t l0TriggerType;
+	uint_fast8_t previousl0TriggerType;
+	uint_fast16_t previousTimeStampLow;
 
 }__attribute__ ((__packed__));
 

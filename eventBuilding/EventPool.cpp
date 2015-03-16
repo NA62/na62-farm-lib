@@ -19,8 +19,9 @@ namespace na62 {
 
 std::vector<Event*> EventPool::events_;
 uint32_t EventPool::numberOfEventsStored_;
+uint32_t EventPool::largestEventNumberTouched_;
 
-void EventPool::Initialize(uint numberOfEventsToBeStored) {
+void EventPool::initialize(uint numberOfEventsToBeStored) {
 	numberOfEventsStored_ = numberOfEventsToBeStored;
 	events_.resize(numberOfEventsStored_);
 
@@ -50,7 +51,7 @@ void EventPool::Initialize(uint numberOfEventsToBeStored) {
 #endif
 }
 
-Event* EventPool::GetEvent(uint32_t eventNumber) {
+Event* EventPool::getEvent(uint32_t eventNumber) {
 	if (eventNumber >= numberOfEventsStored_) {
 		LOG_ERROR<<"Received Event with event number " << eventNumber
 		<< " which is higher than configured maximum number of events"
@@ -58,10 +59,13 @@ Event* EventPool::GetEvent(uint32_t eventNumber) {
 
 		return nullptr;
 	}
+	if(eventNumber>largestEventNumberTouched_){
+		largestEventNumberTouched_ = eventNumber;
+	}
 	return events_[eventNumber];
 }
 
-void EventPool::FreeEvent(Event* event) {
+void EventPool::freeEvent(Event* event) {
 	event->destroy();
 }
 

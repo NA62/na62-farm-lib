@@ -23,10 +23,10 @@ class MEP;
  * char* data = MEPFragmentHdr_ptr+sizeof(MEPFragment_HDR);
  */
 struct MEPFragment_HDR {
-	uint16_t eventLength_; // Number of bytes of the following event data,	including this header.
-	uint8_t eventNumberLSB_;
-	uint8_t reserved_ :7;
-	uint8_t lastEventOfBurst_ :1; // don't take bool as it will allocate 8 bits!
+	uint_fast16_t eventLength_; // Number of bytes of the following event data,	including this header.
+	uint_fast8_t eventNumberLSB_;
+	uint_fast8_t reserved_ :7;
+	uint_fast8_t lastEventOfBurst_ :1; // don't take bool as it will allocate 8 bits!
 
 	uint32_t timestamp_;
 }__attribute__ ((__packed__));
@@ -40,14 +40,14 @@ public:
 	/**
 	 * Number of Bytes of the data including the header (sizeof MEPFragment_HDR)
 	 */
-	inline uint16_t getDataWithHeaderLength() const {
+	inline uint_fast16_t getDataWithHeaderLength() const {
 		return rawData->eventLength_;
 	}
 
 	/**
 	 * Number of Bytes of the payload data
 	 */
-	inline uint16_t getPayloadLength() const {
+	inline uint_fast16_t getPayloadLength() const {
 		return rawData->eventLength_ - sizeof(MEPFragment_HDR);
 	}
 
@@ -66,11 +66,11 @@ public:
 		return eventNumber_;
 	}
 
-	uint8_t getSourceID() const;
+	uint_fast8_t getSourceID() const;
 
-	uint8_t getSourceSubID() const;
+	uint_fast8_t getSourceSubID() const;
 
-	uint8_t getSourceIDNum() const;
+	uint_fast8_t getSourceIDNum() const;
 
 	/**
 	 * Returns a pointer to the MEP-Buffer at the position where the data of this event starts (including the MEPFragment_HDR!).

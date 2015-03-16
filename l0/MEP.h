@@ -37,11 +37,11 @@ namespace l0 {
 struct MEP_HDR {
 	// Number of L0 triggers since start of burst
 	uint32_t firstEventNum :24;
-	uint8_t sourceID;
+	uint_fast8_t sourceID;
 
-	uint16_t mepLength; //  Total length of the MEP in bytes including the header
-	uint8_t eventCount;
-	uint8_t sourceSubID;
+	uint_fast16_t mepLength; //  Total length of the MEP in bytes including the header
+	uint_fast8_t eventCount;
+	uint_fast8_t sourceSubID;
 }__attribute__ ((__packed__));
 
 class MEP: private boost::noncopyable {
@@ -49,7 +49,7 @@ public:
 	/**
 	 * Reads the data coming from L0 and initializes the corresponding fields
 	 */
-	MEP(const char *data, const uint16_t & dataLength, const char *originalData)
+	MEP(const char *data, const uint_fast16_t & dataLength, const char *originalData)
 			throw (BrokenPacketReceivedError, UnknownSourceIDFound);
 
 	/**
@@ -59,21 +59,24 @@ public:
 	 */
 	virtual ~MEP();
 
-	void initializeMEPFragments(const char* data, const uint16_t& dataLength)
+	void initializeMEPFragments(const char* data, const uint_fast16_t& dataLength)
 			throw (BrokenPacketReceivedError);
 
 	/**
 	 * Returns a pointer to the n'th event within this MEP where 0<=n<getFirstEventNum()
 	 */
-	inline MEPFragment* getFragment(const uint16_t n) {
+	inline MEPFragment* getFragment(const uint_fast16_t n) {
 		/*
 		 * n may be bigger than <getNumberOfEvents()> as <deleteEvent()> could have been invoked already
 		 */
-		return fragments[n];
+		return fragments_[n];
 	}
 
-	inline uint8_t getSourceID() const {
-		return rawData->sourceID;
+	/**
+	 * Returns the source ID of the detector that has sent this MEP
+	 */
+	inline uint_fast8_t getSourceID() const {
+		return rawData_->sourceID;
 	}
 
 	/**
@@ -81,29 +84,41 @@ public:
 	 * you would probably want to have an array with three entries, one for each source. For this you need a relation like 2->0, 5->1, 7->2.
 	 * This is done by this method!
 	 */
-	inline uint8_t getSourceIDNum() const {
-		return SourceIDManager::SourceIDToNum(rawData->sourceID);
+	inline uint_fast8_t getSourceIDNum() const {
+		return SourceIDManager::sourceIDToNum(rawData_->sourceID);
 	}
 
+	/**
+	 * Returns the event number of the first event fragment
+	 */
 	inline uint32_t getFirstEventNum() const {
-		return rawData->firstEventNum;
+		return rawData_->firstEventNum;
 	}
 
-	inline uint16_t getNumberOfEvents() const {
-		return rawData->eventCount;
+	/**
+	 * Returns the number of MEP event fragments stored in this MEP
+	 */
+	inline uint_fast16_t getNumberOfFragments() const {
+		return rawData_->eventCount;
 	}
 
 	/**
 	 * Total length of the MEP in bytes including the header
 	 */
-	inline uint16_t getLength() const {
-		return rawData->mepLength;
+	inline uint_fast16_t getLength() const {
+		return rawData_->mepLength;
 	}
 
-	inline uint8_t getSourceSubID() const {
-		return rawData->sourceSubID;
+	/**
+	 * Returns the ID of the read out board as provided by the MEP frame header
+	 */
+	inline uint_fast8_t getSourceSubID() const {
+		return rawData_->sourceSubID;
 	}
 
+	/**
+	 * Returns the pointer to the raw UDP frame sotring this MEP
+	 */
 	inline const char* getUDPPack() const {
 		return etherFrame_;
 	}
@@ -117,7 +132,6 @@ public:
 		 * Decrement eventCount. If we reach 0 we can delete this object as all events have been processed.
 		 */
 
-		// TODO: Do we need to lock here? Probably not locking is that much faster that it's worth implementing a garbage collector?!
 		return --eventCount_ == 0;
 	}
 
@@ -134,9 +148,9 @@ private:
 	const char* etherFrame_;
 
 	// Pointer to the payload of the UDP packet
-	struct MEP_HDR * rawData;
+	struct MEP_HDR * rawData_;
 
-	MEPFragment **fragments;
+	MEPFragment **fragments_;
 
 	bool checkSumsVarified_;
 };

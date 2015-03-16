@@ -21,7 +21,7 @@
 namespace na62 {
 
 
-std::atomic<uint> EventSerializer::InitialEventBufferSize_;
+uint EventSerializer::InitialEventBufferSize_;
 int EventSerializer::TotalNumberOfDetectors_;
 
 void EventSerializer::initialize() {
@@ -94,7 +94,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		uint eventOffset32 = eventOffset / 4;
 		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
 		std::memset(eventBuffer + pointerTableOffset + 3,
-				SourceIDManager::SourceNumToID(sourceNum), 1);
+				SourceIDManager::sourceNumToID(sourceNum), 1);
 		pointerTableOffset += 4;
 
 		/*
