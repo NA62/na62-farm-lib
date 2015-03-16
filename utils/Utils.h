@@ -22,12 +22,12 @@ public:
 	static std::string PrintHex(const char* data, const size_t dataLength);
 	static uint64_t ToUInt(std::string str) throw (boost::bad_lexical_cast);
 
-	static inline uint8_t highbit(uint8_t& t) {
-		return t = (((uint8_t) (-1)) >> 1) + 1;
+	static inline uint_fast8_t highbit(uint_fast8_t& t) {
+		return t = (((uint_fast8_t) (-1)) >> 1) + 1;
 	}
 
-	static std::ostream& bin(uint8_t& value, std::ostream &o) {
-		for (uint8_t bit = highbit(bit); bit; bit >>= 1) {
+	static std::ostream& bin(uint_fast8_t& value, std::ostream &o) {
+		for (uint_fast8_t bit = highbit(bit); bit; bit >>= 1) {
 			o << ((value & bit) ? '1' : '0');
 		}
 		return o;

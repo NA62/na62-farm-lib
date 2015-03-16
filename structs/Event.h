@@ -27,7 +27,7 @@ namespace na62 {
  */
 struct EVENT_DATA_PTR {
 	uint32_t offset :24; // Number of 4B-Words from the beginning of the Event
-	uint8_t sourceID;
+	uint_fast8_t sourceID;
 };
 
 /*
@@ -36,18 +36,18 @@ struct EVENT_DATA_PTR {
  */
 struct EVENT_HDR {
 	uint32_t eventNum :24;
-	uint8_t format;
+	uint_fast8_t format;
 
 	uint32_t length; // number of 4B-words
 	uint32_t burstID;
 	uint32_t timestamp;
 
 	uint32_t triggerWord :24;
-	uint8_t reserved1;
+	uint_fast8_t reserved1;
 
-	uint8_t fineTime;
-	uint8_t numberOfDetectors;
-	uint16_t reserved2;
+	uint_fast8_t fineTime;
+	uint_fast8_t numberOfDetectors;
+	uint_fast16_t reserved2;
 
 	uint32_t processingID;
 
@@ -64,15 +64,15 @@ struct EVENT_HDR {
 		return (EVENT_DATA_PTR*) (((char*) this) + sizeof(EVENT_HDR));
 	}
 
-	uint8_t getL0TriggerTypeWord() {
+	uint_fast8_t getL0TriggerTypeWord() {
 		return triggerWord & 0xFF;
 	}
 
-	uint8_t getL1TriggerTypeWord() {
+	uint_fast8_t getL1TriggerTypeWord() {
 		return triggerWord >> 8 & 0xFF;
 	}
 
-	uint8_t getL2TriggerTypeWord() {
+	uint_fast8_t getL2TriggerTypeWord() {
 		return triggerWord >> 16 & 0xFF;
 	}
 
@@ -83,14 +83,14 @@ struct EVENT_HDR {
  * from the electronics is broken
  */
 struct L0_BLOCK_HDR {
-	uint16_t dataBlockSize;
-	uint8_t sourceSubID;
-	uint8_t reserved;
+	uint_fast16_t dataBlockSize;
+	uint_fast8_t sourceSubID;
+	uint_fast8_t reserved;
 }__attribute__ ((__packed__));
 
 struct EVENT_TRAILER {
 	uint32_t eventNum :24;
-	uint8_t reserved;
+	uint_fast8_t reserved;
 }__attribute__ ((__packed__));
 
 }

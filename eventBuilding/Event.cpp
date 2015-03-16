@@ -70,7 +70,7 @@ Event::~Event() {
 //	throw NA62Error(
 //			"An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
 
-	for (uint8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+	for (uint_fast8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 //		L0Subevents[i]->destroy();
 		delete L0Subevents[i];
 	}
@@ -185,7 +185,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 	 * The received LkrFragment should be nonZSuppressed data
 	 */
 
-	const uint16_t crateCREAMID = fragment->getCrateCREAMID();
+	const uint_fast16_t crateCREAMID = fragment->getCrateCREAMID();
 	/*
 	 * We were waiting for non zero suppressed data
 	 */
@@ -214,7 +214,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 		 * Event does not yet exist -> add it to the map
 		 */
 		nonSuppressedLkrFragmentsByCrateCREAMID.insert(lb,
-				std::map<uint16_t, cream::LkrFragment*>::value_type(crateCREAMID,
+				std::map<uint_fast16_t, cream::LkrFragment*>::value_type(crateCREAMID,
 						fragment));
 	}
 	// TODO: this must be synchronized
@@ -269,7 +269,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		/*
 		 * ZSuppressed data received
 		 */
-		uint16_t localCreamID = SourceIDManager::getLocalCREAMID(
+		uint_fast16_t localCreamID = SourceIDManager::getLocalCREAMID(
 				fragment->getCrateID(), fragment->getCREAMID());
 		/*
 		 * This must be a zero suppressed event
@@ -349,7 +349,7 @@ void Event::destroy() {
 	firstEventPartAddedTime_.stop();
 #endif
 
-	for (uint8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+	for (uint_fast8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 		L0Subevents[i]->destroy();
 	}
 
@@ -408,7 +408,7 @@ std::map<uint, std::vector<uint>> Event::getMissingCreams() {
 				i != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 				i++) {
 			if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
-				std::pair<uint8_t, uint8_t> crateAndCream =
+				std::pair<uint_fast8_t, uint_fast8_t> crateAndCream =
 						SourceIDManager::getCrateAndCREAMIDByLocalID(i);
 				missingCratsAndCreams[crateAndCream.first].push_back(
 						crateAndCream.second);
@@ -455,7 +455,7 @@ std::string Event::getMissingSourceIDsSring() {
 							!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 					i++) {
 				if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
-					std::pair<uint8_t, uint8_t> crateAndCream =
+					std::pair<uint_fast8_t, uint_fast8_t> crateAndCream =
 							SourceIDManager::getCrateAndCREAMIDByLocalID(i);
 
 					if (crateID != crateAndCream.first) {
@@ -480,7 +480,7 @@ std::string Event::getMissingSourceIDsSring() {
 	return missingIDs.str();
 }
 
-uint8_t Event::readTriggerTypeWordAndFineTime() {
+uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 	/*
 	 * Read the L0 trigger type word and the fine time from the L0TP data
 	 */

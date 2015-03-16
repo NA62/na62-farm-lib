@@ -24,7 +24,7 @@ namespace l0 {
 
 class Subevent: private boost::noncopyable {
 public:
-	Subevent(const uint16_t expectedPacketsNum);
+	Subevent(const uint_fast16_t expectedPacketsNum);
 	virtual ~Subevent();
 
 	void destroy();
@@ -36,7 +36,7 @@ public:
 	 *
 	 */
 	inline bool addFragment(MEPFragment* fragment) {
-		uint16_t oldNumberOfFragments = fragmentCounter.fetch_add(1);
+		uint_fast16_t oldNumberOfFragments = fragmentCounter.fetch_add(1);
 
 		if (oldNumberOfFragments
 				>= SourceIDManager::getExpectedPacksBySourceID(
@@ -70,7 +70,7 @@ public:
 	 * 						than  getNumberOfParts()
 	 * @return The Nth fragment received
 	 */
-	inline MEPFragment* getFragment(uint16_t eventPartNumber) {
+	inline MEPFragment* getFragment(uint_fast16_t eventPartNumber) {
 		return eventFragments[eventPartNumber];
 	}
 
@@ -100,14 +100,14 @@ public:
 	 *
 	 * @return The number of subevent fragments received
 	 */
-	inline uint16_t getNumberOfFragments() {
+	inline uint_fast16_t getNumberOfFragments() {
 		return fragmentCounter;
 	}
 
 private:
-	const uint16_t ExpectedPacketsNum;
+	const uint_fast16_t ExpectedPacketsNum;
 	MEPFragment ** eventFragments;
-	std::atomic<uint16_t> fragmentCounter;
+	std::atomic<uint_fast16_t> fragmentCounter;
 };
 
 } /* namespace l0 */

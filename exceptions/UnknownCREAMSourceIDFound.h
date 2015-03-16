@@ -17,7 +17,7 @@ namespace na62 {
 
 class UnknownCREAMSourceIDFound: public na62::NA62Error {
 public:
-	UnknownCREAMSourceIDFound(uint8_t crateID, uint8_t creamNum) :
+	UnknownCREAMSourceIDFound(uint_fast8_t crateID, uint_fast8_t creamNum) :
 			na62::NA62Error(
 					"Unknown CREAM source ID: CREAM " + std::to_string((int) creamNum) + " in crate "
 							+ std::to_string((int) crateID) + "\n Check the corresponding field in the Options file!") {

@@ -17,7 +17,7 @@ namespace na62 {
 
 class UnknownSourceIDFound: public na62::NA62Error {
 public:
-	UnknownSourceIDFound(uint8_t sourceID, uint subSourceID) :
+	UnknownSourceIDFound(uint_fast8_t sourceID, uint subSourceID) :
 			na62::NA62Error(
 					"Unknown source ID: " + std::to_string((int) sourceID) + " board " + std::to_string((int)subSourceID)
 							+ "\n Check the corresponding field in the Options file!") {

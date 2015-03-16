@@ -22,7 +22,7 @@
 namespace na62 {
 namespace l0 {
 
-MEP::MEP(const char *data, const uint16_t & dataLength,
+MEP::MEP(const char *data, const uint_fast16_t & dataLength,
 		const char *originalData) throw (BrokenPacketReceivedError,
 				UnknownSourceIDFound) :
 		etherFrame_(originalData), rawData_((struct MEP_HDR*) (data)), checkSumsVarified_(
@@ -69,15 +69,15 @@ MEP::~MEP() {
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
-void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength)
+void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLength)
 		throw (BrokenPacketReceivedError) {
 	// The first subevent starts directly after the header -> offset is 12
-	uint16_t offset = sizeof(MEP_HDR);
+	uint_fast16_t offset = sizeof(MEP_HDR);
 
 	MEPFragment* newMEPFragment;
 	uint32_t expectedEventNum = getFirstEventNum();
 
-	for (uint16_t i = 0; i < getNumberOfFragments(); i++) {
+	for (uint_fast16_t i = 0; i < getNumberOfFragments(); i++) {
 		/*
 		 *  Throws exception if the event number LSB has an unexpected value
 		 */
