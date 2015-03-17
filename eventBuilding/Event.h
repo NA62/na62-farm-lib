@@ -42,7 +42,7 @@ namespace na62 {
 
 class Event: boost::noncopyable {
 public:
-	Event(uint32_t eventNumber_);
+	Event(uint_fast32_t eventNumber_);
 	virtual ~Event();
 	/**
 	 * Add an Event from a new SourceID.
@@ -51,7 +51,7 @@ public:
 	 *
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
-	bool addL0Event(l0::MEPFragment* e, uint32_t burstID);
+	bool addL0Event(l0::MEPFragment* e, uint_fast32_t burstID);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -86,7 +86,7 @@ public:
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
-	void setEventNumber(uint32_t eventNumber) {
+	void setEventNumber(uint_fast32_t eventNumber) {
 		eventNumber_ = eventNumber;
 	}
 
@@ -126,11 +126,11 @@ public:
 		unfinished_ = false;
 	}
 
-	uint32_t getEventNumber() const {
+	uint_fast32_t getEventNumber() const {
 		return eventNumber_;
 	}
 
-	uint32_t getTriggerTypeWord() const {
+	uint_fast32_t getTriggerTypeWord() const {
 		return triggerTypeWord_;
 	}
 
@@ -154,7 +154,7 @@ public:
 	 * Returns the L2 trigger type word if L2 has already been processed.
 	 * The return value is undefined otherwise!
 	 */
-	uint32_t getL2TriggerTypeWord() const {
+	uint_fast32_t getL2TriggerTypeWord() const {
 		return (triggerTypeWord_ >> 16) & 0xFF;
 	}
 
@@ -194,11 +194,11 @@ public:
 	 */
 	uint_fast8_t readTriggerTypeWordAndFineTime();
 
-	void setTimestamp(const uint32_t time) {
+	void setTimestamp(const uint_fast32_t time) {
 		timestamp_ = time;
 	}
 
-	uint32_t getTimestamp() const {
+	uint_fast32_t getTimestamp() const {
 		return timestamp_;
 	}
 
@@ -213,21 +213,21 @@ public:
 	/*
 	 * Should be defined by the trigger algorithms L1 or L2
 	 */
-	void setProcessingID(const uint32_t processingID) {
+	void setProcessingID(const uint_fast32_t processingID) {
 		processingID_ = processingID;
 	}
 
 	/*
 	 * This will return an undefined value before any trigger algorithm has executed setProcessingID()
 	 */
-	uint32_t getProcessingID() const {
+	uint_fast32_t getProcessingID() const {
 		return processingID_;
 	}
 
 	/*
 	 * Will return the bust number at which this event has been taken
 	 */
-	uint32_t getBurstID() const {
+	uint_fast32_t getBurstID() const {
 		return burstID_;
 	}
 
@@ -448,7 +448,7 @@ public:
 	static void initialize(bool printMissingSourceIDs,
 			bool writeBrokenCreamInfo);
 private:
-	void setBurstID(const uint32_t burstID) {
+	void setBurstID(const uint_fast32_t burstID) {
 		burstID_ = burstID;
 	}
 
@@ -459,19 +459,19 @@ private:
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
-	uint32_t eventNumber_;
+	uint_fast32_t eventNumber_;
 	std::atomic<uint_fast8_t> numberOfL0Events_;
 	std::atomic<uint_fast16_t> numberOfCREAMFragments_;
 
 	/*
 	 * To be added within L1 trigger process
 	 */
-	uint32_t burstID_;
-	uint32_t triggerTypeWord_;
-	uint32_t timestamp_;
+	uint_fast32_t burstID_;
+	uint_fast32_t triggerTypeWord_;
+	uint_fast32_t timestamp_;
 	uint_fast8_t finetime_;
-	uint32_t SOBtimestamp_;
-	uint32_t processingID_;
+	uint_fast32_t SOBtimestamp_;
+	uint_fast32_t processingID_;
 
 	bool requestZeroSuppressedCreamData_;
 

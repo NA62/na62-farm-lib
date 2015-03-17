@@ -75,7 +75,7 @@ void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLen
 	uint_fast16_t offset = sizeof(MEP_HDR);
 
 	MEPFragment* newMEPFragment;
-	uint32_t expectedEventNum = getFirstEventNum();
+	uint_fast32_t expectedEventNum = getFirstEventNum();
 
 	for (uint_fast16_t i = 0; i < getNumberOfFragments(); i++) {
 		/*

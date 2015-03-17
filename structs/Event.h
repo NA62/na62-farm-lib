@@ -27,7 +27,7 @@ namespace na62 {
  */
 struct EVENT_DATA_PTR {
 	uint32_t offset :24; // Number of 4B-Words from the beginning of the Event
-	uint_fast8_t sourceID;
+	uint8_t sourceID;
 };
 
 /*
@@ -35,23 +35,23 @@ struct EVENT_DATA_PTR {
  *
  */
 struct EVENT_HDR {
-	uint32_t eventNum :24;
+	uint_fast32_t eventNum :24;
 	uint_fast8_t format;
 
-	uint32_t length; // number of 4B-words
-	uint32_t burstID;
-	uint32_t timestamp;
+	uint_fast32_t length; // number of 4B-words
+	uint_fast32_t burstID;
+	uint_fast32_t timestamp;
 
-	uint32_t triggerWord :24;
+	uint_fast32_t triggerWord :24;
 	uint_fast8_t reserved1;
 
 	uint_fast8_t fineTime;
 	uint_fast8_t numberOfDetectors;
 	uint_fast16_t reserved2;
 
-	uint32_t processingID;
+	uint_fast32_t processingID;
 
-	uint32_t SOBtimestamp;
+	uint_fast32_t SOBtimestamp;
 
 	/**
 	 * Returns the pointers from the pointer table to the data of all source IDs. Use it as following:
@@ -89,7 +89,7 @@ struct L0_BLOCK_HDR {
 }__attribute__ ((__packed__));
 
 struct EVENT_TRAILER {
-	uint32_t eventNum :24;
+	uint_fast32_t eventNum :24;
 	uint_fast8_t reserved;
 }__attribute__ ((__packed__));
 

@@ -18,18 +18,18 @@ class Event;
 class EventPool {
 private:
 	static std::vector<Event*> events_;
-	static uint32_t numberOfEventsStored_;
+	static uint_fast32_t numberOfEventsStored_;
 
 	/*
 	 * Largest eventnumber that was passed to GetEvent
 	 */
-	static uint32_t largestEventNumberTouched_;
+	static uint_fast32_t largestEventNumberTouched_;
 public:
 	static void initialize(uint numberOfEventsToBeStored);
-	static Event* getEvent(uint32_t eventNumber);
+	static Event* getEvent(uint_fast32_t eventNumber);
 	static void freeEvent(Event* event);
 
-	static uint32_t getLargestTouchedEventnumber(){
+	static uint_fast32_t getLargestTouchedEventnumber(){
 		return largestEventNumberTouched_;
 	}
 };

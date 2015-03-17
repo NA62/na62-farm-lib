@@ -31,7 +31,7 @@ bool Event::writeBrokenCreamInfo_ = false;
 std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
 std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
-Event::Event(uint32_t eventNumber) :
+Event::Event(uint_fast32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(
@@ -104,7 +104,7 @@ void Event::initialize(bool printMissingSourceIDs, bool writeBrokenCreamInfo) {
 /**
  * Process data coming from the TEL boards
  */
-bool Event::addL0Event(l0::MEPFragment* fragment, uint32_t burstID) {
+bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 #ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
 		firstEventPartAddedTime_.start();

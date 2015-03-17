@@ -38,7 +38,7 @@ std::map<uint_fast16_t, std::vector<uint_fast16_t>> SourceIDManager::CREAM_IDS_B
 
 uint SourceIDManager::LARGEST_CREAM_CRATE = 0;
 uint64_t SourceIDManager::ENABLED_CREAM_CRATES_LUT = 0;
-uint32_t* SourceIDManager::ENABLED_CREAMS_BY_CRATE_LUT;
+uint_fast32_t* SourceIDManager::ENABLED_CREAMS_BY_CRATE_LUT;
 
 /*
  * LKr
@@ -215,7 +215,7 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 		 * Write the lookup table for the enabled creams/crates
 		 * For every crate set the bit at creamID of ENABLED_CREAMS_BY_CRATE_LUT[crateID] to 1
 		 */
-		ENABLED_CREAMS_BY_CRATE_LUT = new uint32_t[LARGEST_CREAM_CRATE + 1];
+		ENABLED_CREAMS_BY_CRATE_LUT = new uint_fast32_t[LARGEST_CREAM_CRATE + 1];
 		memset(ENABLED_CREAMS_BY_CRATE_LUT, 0,
 				(LARGEST_CREAM_CRATE + 1)
 						* sizeof(ENABLED_CREAMS_BY_CRATE_LUT[0]));

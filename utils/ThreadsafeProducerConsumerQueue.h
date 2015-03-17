@@ -25,12 +25,12 @@ public:
 //	static const int Size_ = 100000;
 //	volatile T Data[Size_];
 
-	volatile uint32_t readPos_;
-	volatile uint32_t writePos_;
-	uint32_t Size_;
+	volatile uint_fast32_t readPos_;
+	volatile uint_fast32_t writePos_;
+	uint_fast32_t Size_;
 	T* Data;
 
-	ThreadsafeProducerConsumerQueue(uint32_t size) :
+	ThreadsafeProducerConsumerQueue(uint_fast32_t size) :
 			Size_(size) {
 		readPos_ = 0;
 		writePos_ = 0;
@@ -49,7 +49,7 @@ public:
 	 * Push a new element into the circular queue. May only be called by one single thread (producer)!
 	 */
 	bool push(T &element) {
-		const uint32_t nextElement = (writePos_ + 1) % Size_;
+		const uint_fast32_t nextElement = (writePos_ + 1) % Size_;
 		if (nextElement != readPos_) {
 			Data[writePos_] = element;
 			writePos_ = nextElement;
@@ -65,18 +65,18 @@ public:
 		if (readPos_ == writePos_) {
 			return false;
 		}
-		const uint32_t nextElement = (readPos_ + 1) % Size_;
+		const uint_fast32_t nextElement = (readPos_ + 1) % Size_;
 
 		element = Data[readPos_];
 		readPos_ = nextElement;
 		return true;
 	}
 
-	uint32_t size() {
+	uint_fast32_t size() {
 		return Size_;
 	}
 
-	uint32_t getCurrentLength() {
+	uint_fast32_t getCurrentLength() {
 		if (readPos_ <= writePos_) {
 			return writePos_ - readPos_;
 		} else {

@@ -24,28 +24,28 @@ namespace cream {
  */
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 struct LKR_EVENT_RAW_HDR {
-	uint_fast8_t LKRsourceID;
+	uint8_t LKRsourceID;
 	uint32_t eventNumber :24;
 
-	uint_fast8_t reserved;
+	uint8_t reserved;
 	uint32_t numberOf4BWords :24;
 
 	uint32_t timestamp;
 
-	uint_fast16_t reserved2;
-	uint_fast16_t sourceCrateCREAMID;
-//	uint_fast16_t reserved3 :5;
+	uint16_t reserved2;
+	uint16_t sourceCrateCREAMID;
+//	uint16_t reserved3 :5;
 }__attribute__ ((__packed__));
 #else
 struct LKR_EVENT_RAW_HDR {
 	uint32_t eventNumber :24;
-	uint_fast8_t LKRsourceID;
+	uint8_t LKRsourceID;
 	uint32_t numberOf4BWords :24;
-	uint_fast8_t reserved;
+	uint8_t reserved;
 	uint32_t timestamp;
-	uint_fast8_t sourceCREAMID:5;
-	uint_fast16_t sourceCrateID:11;
-	uint_fast16_t reserved2;
+	uint8_t sourceCREAMID:5;
+	uint16_t sourceCrateID:11;
+	uint16_t reserved2;
 }__attribute__ ((__packed__));
 #endif
 
@@ -54,7 +54,7 @@ public:
 	LkrFragment(const char * data, const uint_fast16_t& dataLength, const char* etherFrame) throw (NA62Error);
 	virtual ~LkrFragment();
 
-	inline uint32_t getEventLength() const {
+	inline uint_fast32_t getEventLength() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return (ntohl(rawData->numberOf4BWords) >> 8) * 4;
 #else
@@ -62,7 +62,7 @@ public:
 #endif
 	}
 
-	inline uint32_t getEvent4BWords() const {
+	inline uint_fast32_t getEvent4BWords() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return ntohl(rawData->numberOf4BWords >> 8);
 #else
@@ -73,7 +73,7 @@ public:
 	/**
 	 * Absolute event number (MSB & LSB)
 	 */
-	inline uint32_t getEventNumber() const {
+	inline uint_fast32_t getEventNumber() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return ntohl(rawData->eventNumber) >> 8;
 #else
@@ -99,7 +99,7 @@ public:
 #endif
 	}
 
-	inline uint32_t getTimestamp() const {
+	inline uint_fast32_t getTimestamp() const {
 #ifdef __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 		return ntohl(rawData->timestamp);
 #else

@@ -66,7 +66,7 @@ public:
 
 	static uint LARGEST_CREAM_CRATE;
 	static uint64_t ENABLED_CREAM_CRATES_LUT;
-	static uint32_t* ENABLED_CREAMS_BY_CRATE_LUT;
+	static uint_fast32_t* ENABLED_CREAMS_BY_CRATE_LUT;
 
 	/*
 	 * MUV

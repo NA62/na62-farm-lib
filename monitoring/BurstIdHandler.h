@@ -22,17 +22,17 @@ public:
 	BurstIdHandler();
 	virtual ~BurstIdHandler();
 
-	static void setNextBurstID(uint32_t nextBurstID) {
+	static void setNextBurstID(uint_fast32_t nextBurstID) {
 		nextBurstId_ = nextBurstID;
 		EOBReceivedTimer_.start();
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
 	}
 
-	static uint32_t getCurrentBurstId() {
+	static uint_fast32_t getCurrentBurstId() {
 		return currentBurstID_;
 	}
 
-	static uint32_t getNextBurstId() {
+	static uint_fast32_t getNextBurstId() {
 		return nextBurstId_;
 	}
 

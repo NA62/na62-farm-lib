@@ -36,7 +36,7 @@ namespace l0 {
  */
 struct MEP_HDR {
 	// Number of L0 triggers since start of burst
-	uint32_t firstEventNum :24;
+	uint_fast32_t firstEventNum :24;
 	uint_fast8_t sourceID;
 
 	uint_fast16_t mepLength; //  Total length of the MEP in bytes including the header
@@ -91,7 +91,7 @@ public:
 	/**
 	 * Returns the event number of the first event fragment
 	 */
-	inline uint32_t getFirstEventNum() const {
+	inline uint_fast32_t getFirstEventNum() const {
 		return rawData_->firstEventNum;
 	}
 
