@@ -32,7 +32,7 @@ std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
 std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
 Event::Event(uint_fast32_t eventNumber) :
-		eventNumber_(eventNumber), numberOfL0Events_(0), numberOfCREAMFragments_(
+		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(
 				0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(
@@ -112,7 +112,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 #endif
 
 	unfinished_ = true;
-	if (numberOfL0Events_ == 0) {
+	if (numberOfL0Fragments_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
 	} else {
@@ -163,7 +163,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 		return false;
 	}
 
-	int currentValue = numberOfL0Events_.fetch_add(1, std::memory_order_release)
+	int currentValue = numberOfL0Fragments_.fetch_add(1, std::memory_order_release)
 			+ 1;
 
 #ifdef MEASURE_TIME
@@ -328,7 +328,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 }
 
 void Event::reset() {
-	numberOfL0Events_ = 0;
+	numberOfL0Fragments_ = 0;
 	numberOfCREAMFragments_ = 0;
 	burstID_ = 0;
 	triggerTypeWord_ = 0;

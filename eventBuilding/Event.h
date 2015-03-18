@@ -460,7 +460,7 @@ private:
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
 	uint_fast32_t eventNumber_;
-	std::atomic<uint_fast8_t> numberOfL0Events_;
+	std::atomic<uint_fast8_t> numberOfL0Fragments_;
 	std::atomic<uint_fast16_t> numberOfCREAMFragments_;
 
 	/*
