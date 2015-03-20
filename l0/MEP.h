@@ -36,12 +36,12 @@ namespace l0 {
  */
 struct MEP_HDR {
 	// Number of L0 triggers since start of burst
-	uint_fast32_t firstEventNum :24;
-	uint_fast8_t sourceID;
+	uint32_t firstEventNum :24;
+	uint8_t sourceID;
 
-	uint_fast16_t mepLength; //  Total length of the MEP in bytes including the header
-	uint_fast8_t eventCount;
-	uint_fast8_t sourceSubID;
+	uint16_t mepLength; //  Total length of the MEP in bytes including the header
+	uint8_t eventCount;
+	uint8_t sourceSubID;
 }__attribute__ ((__packed__));
 
 class MEP: private boost::noncopyable {
@@ -148,7 +148,7 @@ private:
 	const char* etherFrame_;
 
 	// Pointer to the payload of the UDP packet
-	struct MEP_HDR * rawData_;
+	const MEP_HDR* const rawData_;
 
 	MEPFragment **fragments_;
 

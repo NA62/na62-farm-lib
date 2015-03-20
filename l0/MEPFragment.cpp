@@ -18,7 +18,7 @@ namespace l0 {
 
 MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 		uint_fast32_t& expectedEventNum) :
-		mep_(mep), rawData((const struct MEPFragment_HDR*) data), eventNumber_(
+		mep_(mep), rawData(data), eventNumber_(
 				expectedEventNum) {
 	/*
 	 * Cite from NA62-11-02:

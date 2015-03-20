@@ -17,8 +17,8 @@ namespace cream {
 
 LkrFragment::LkrFragment(const char *data, const uint_fast16_t& dataLength,
 		const char* etherFrame) throw (NA62Error) :
-		rawData((const struct LKR_EVENT_RAW_HDR*) data), data_(data), etherFrame_(
-				etherFrame) {
+		rawData(reinterpret_cast<const struct LKR_EVENT_RAW_HDR*>(data)), data_(
+				data), etherFrame_(etherFrame) {
 	if (rawData->LKRsourceID != 0x24) {
 		throw BrokenPacketReceivedError(
 				"LKR Event with a non 0x24 source field received!");

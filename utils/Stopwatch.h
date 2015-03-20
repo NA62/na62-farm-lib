@@ -34,8 +34,8 @@ namespace na62 {
 class Stopwatch {
 
 private:
-	struct rusage CPUStartTime;
-	struct timeval RealStartTime;
+	rusage CPUStartTime;
+	timeval RealStartTime;
 
 	std::vector<double> realTimes;
 
@@ -85,7 +85,7 @@ public:
 		for (int i = 0; i < 1000000; i++) {
 			sum += rand();
 		}
-		LOG_INFO << "Heated up CPU for frequency measurement: " << sum << ENDL;
+		LOG_INFO<< "Heated up CPU for frequency measurement: " << sum << ENDL;
 
 // cumputing usleep delay
 		uint64_t tick_start = GetTicks();
@@ -95,7 +95,8 @@ public:
 		// cumputing CPU freq
 		tick_start = GetTicks();
 		usleep(1001);
-		cpuFrequency = (GetTicks() - tick_start - ticksForOneUSleep) * 1000 /*kHz -> Hz*/;
+		cpuFrequency = (GetTicks() - tick_start - ticksForOneUSleep)
+				* 1000 /*kHz -> Hz*/;
 
 		return cpuFrequency;
 	}
@@ -120,7 +121,7 @@ public:
 
 	inline double getUserCPUTime() {
 		double sec, usec;
-		struct rusage ruse;
+		rusage ruse;
 
 		getrusage(RUSAGE_SELF, &ruse);
 
@@ -141,7 +142,7 @@ public:
 
 	inline double getSystemCPUTime() {
 		double sec, usec;
-		struct rusage ruse;
+		rusage ruse;
 
 		getrusage(RUSAGE_SELF, &ruse);
 
@@ -154,14 +155,14 @@ public:
 	}
 
 	static inline uint64_t GetCurrentMils() {
-		struct timeval tp;
+		timeval tp;
 
 		gettimeofday(&tp, NULL);
 		return tp.tv_sec * 1000 + tp.tv_usec / 1000;
 	}
 
 	inline double getRealTime() {
-		struct timeval tp;
+		timeval tp;
 		double sec, usec;
 
 		gettimeofday(&tp, NULL);
@@ -173,7 +174,7 @@ public:
 	}
 
 	inline time_t getRealTimeSeconds() {
-		struct timeval tp;
+		timeval tp;
 		gettimeofday(&tp, NULL);
 		return tp.tv_sec - RealStartTime.tv_sec;
 	}

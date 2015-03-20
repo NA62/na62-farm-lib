@@ -37,7 +37,7 @@ void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short thre
 	pthread_t threadID = (pthread_t) (daThread->native_handle());
 	if (scheduler > 0) {
 
-		struct sched_param param;
+		sched_param param;
 		if (pthread_getschedparam(threadID, &policy, &param) != 0) {
 			perror("pthread_getschedparam");
 			exit(EXIT_FAILURE);

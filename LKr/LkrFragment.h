@@ -108,10 +108,10 @@ public:
 	}
 	/**
 	 * Returns a pointer to the LKR-Buffer at the position where the data of this event starts (excluding header!).
-	 * From there on you should read only getEventLength()-sizeof(struct LKR_EVENT_RAW_HDR) bytes!
+	 * From there on you should read only getEventLength()-sizeof(LKR_EVENT_RAW_HDR) bytes!
 	 */
 	inline const char* getData() const {
-		return data_ + sizeof(struct LKR_EVENT_RAW_HDR);
+		return data_ + sizeof(LKR_EVENT_RAW_HDR);
 	}
 
 	/**
@@ -140,7 +140,7 @@ public:
 	}
 
 private:
-	const struct LKR_EVENT_RAW_HDR * rawData;
+	const LKR_EVENT_RAW_HDR * rawData;
 
 	const char *data_;
 	const char* etherFrame_;

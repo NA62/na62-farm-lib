@@ -23,6 +23,7 @@ Subevent::Subevent(const uint_fast16_t expectedPacketsNum) :
 Subevent::~Subevent() {
 //	throw NA62Error("A Subevent-Object should not be deleted! Use Subevent::destroy instead so that it can be reused by the overlaying Event!");
 	destroy();
+	delete[] eventFragments;
 }
 
 void Subevent::destroy() {

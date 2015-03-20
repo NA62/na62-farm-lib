@@ -25,25 +25,21 @@ namespace l0 {
 MEP::MEP(const char *data, const uint_fast16_t & dataLength,
 		const char *originalData) throw (BrokenPacketReceivedError,
 				UnknownSourceIDFound) :
-		etherFrame_(originalData), rawData_((struct MEP_HDR*) (data)), checkSumsVarified_(
-				false) {
+		etherFrame_(originalData), rawData_(reinterpret_cast<const MEP_HDR*>(data)), checkSumsVarified_(
+		false) {
 
 	fragments_ = new MEPFragment*[rawData_->eventCount];
 	if (getLength() != dataLength) {
 		if (getLength() > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEP! Received only "
-							+ std::to_string(dataLength)
-							+ " of "
-							+ std::to_string(getLength())
-							+ " bytes");
+							+ std::to_string(dataLength) + " of "
+							+ std::to_string(getLength()) + " bytes");
 		} else {
 			throw BrokenPacketReceivedError(
 					"Received MEP longer than 'mep length' field! Received "
-							+ std::to_string(dataLength)
-							+ " instead of "
-							+ std::to_string(getLength())
-							+ " bytes");
+							+ std::to_string(dataLength) + " instead of "
+							+ std::to_string(getLength()) + " bytes");
 		}
 	}
 
@@ -69,8 +65,8 @@ MEP::~MEP() {
 	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
-void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLength)
-		throw (BrokenPacketReceivedError) {
+void MEP::initializeMEPFragments(const char * data,
+		const uint_fast16_t& dataLength) throw (BrokenPacketReceivedError) {
 	// The first subevent starts directly after the header -> offset is 12
 	uint_fast16_t offset = sizeof(MEP_HDR);
 
@@ -81,7 +77,7 @@ void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLen
 		/*
 		 *  Throws exception if the event number LSB has an unexpected value
 		 */
-		newMEPFragment = new  MEPFragment(this,
+		newMEPFragment = new MEPFragment(this,
 				(MEPFragment_HDR*) (data + offset), expectedEventNum);
 
 		expectedEventNum++;
@@ -89,10 +85,10 @@ void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLen
 		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {
 			throw BrokenPacketReceivedError(
 					"Incomplete MEPFragment! Received only "
-							+ std::to_string(dataLength)
-							+ " of "
+							+ std::to_string(dataLength) + " of "
 							+ std::to_string(
-									offset + newMEPFragment->getDataWithHeaderLength())
+									offset
+											+ newMEPFragment->getDataWithHeaderLength())
 							+ " bytes");
 		}
 		offset += newMEPFragment->getDataWithHeaderLength();
@@ -102,8 +98,7 @@ void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLen
 	if (offset < dataLength) {
 		throw BrokenPacketReceivedError(
 				"Sum of MEP events + MEP Header is smaller than expected: "
-						+ std::to_string(offset)
-						+ " instead of "
+						+ std::to_string(offset) + " instead of "
 						+ std::to_string(dataLength));
 	}
 	eventCount_ = rawData_->eventCount;
@@ -115,7 +110,7 @@ void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLen
 //	}
 //	checkSumsVarified_ = true;
 //
-//	struct UDP_HDR* hdr = (struct UDP_HDR*) getUDPPack();
+//	 UDP_HDR* hdr = ( UDP_HDR*) getUDPPack();
 //	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
 //		LOG_INFO
 //		<< "Packet with broken IP-checksum received" << ENDL;
@@ -123,8 +118,8 @@ void MEP::initializeMEPFragments(const char * data, const uint_fast16_t& dataLen
 //	}
 //
 //	if (!EthernetUtils::CheckUDP(hdr,
-//			(const char *) (&hdr->udp) + sizeof(struct udphdr),
-//			ntohs(hdr->udp.len) - sizeof(struct udphdr))) {
+//			(const char *) (&hdr->udp) + sizeof( udphdr),
+//			ntohs(hdr->udp.len) - sizeof( udphdr))) {
 //		LOG_INFO
 //		<< "Packet with broken UDP-checksum received"<<ENDL;
 //		return false;

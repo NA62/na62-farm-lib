@@ -93,7 +93,7 @@ public:
 	}
 private:
 	MEP* mep_;
-	const struct MEPFragment_HDR * rawData;
+	const MEPFragment_HDR * rawData;
 
 	const uint_fast32_t eventNumber_;
 };
