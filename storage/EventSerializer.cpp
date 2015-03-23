@@ -7,16 +7,15 @@
 
 #include "EventSerializer.h"
 
-#include <sys/types.h>
-#include <atomic>
 #include <cstring>
 
+#include "../eventBuilding/Event.h"
+#include "../eventBuilding/SourceIDManager.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
 #include "../LKr/LkrFragment.h"
 #include "../structs/Event.h"
-#include "Event.h"
-#include "SourceIDManager.h"
+#include "../structs/Versions.h"
 
 namespace na62 {
 
@@ -60,7 +59,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	EVENT_HDR* header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
 
 	header->eventNum = event->getEventNumber();
-	header->format = 0x62; // TODO: update current format
+	header->formatVersion = EVENT_HDR_FORMAT_VERSION; // TODO: update current format
 	// header->length will be written later on
 	header->burstID = event->getBurstID();
 	header->timestamp = event->getTimestamp();

@@ -31,12 +31,12 @@ struct EVENT_DATA_PTR {
 };
 
 /*
- * UDP/IP complete header
+ * Header of a completed event as it will be stored on disk
  *
  */
 struct EVENT_HDR {
 	uint32_t eventNum :24;
-	uint8_t format;
+	uint8_t formatVersion;
 
 	uint32_t length; // number of 4B-words
 	uint32_t burstID;
@@ -55,13 +55,14 @@ struct EVENT_HDR {
 
 	/**
 	 * Returns the pointers from the pointer table to the data of all source IDs. Use it as following:
-	 ' EVENT_DATA_PTR* sourceIdAndOffsets = event->getDataPointer();
-	 ' for(int sourceNum=0; sourceNum!=event->numberOfDetectors; sourceNum++){
-	 ' 	EVENT_DATA_PTR* sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
-	 ' }
+	 * EVENT_DATA_PTR* sourceIdAndOffsets = event->getDataPointer();
+	 * for(int sourceNum=0; sourceNum!=event->numberOfDetectors; sourceNum++){
+	 * 	EVENT_DATA_PTR* sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
+	 * }
 	 */
 	EVENT_DATA_PTR* getDataPointer() {
-		return (EVENT_DATA_PTR*) (((char*) this) + sizeof(EVENT_HDR));
+		return reinterpret_cast<EVENT_DATA_PTR*>(((char*) this)
+				+ sizeof(EVENT_HDR));
 	}
 
 	uint_fast8_t getL0TriggerTypeWord() {

@@ -9,7 +9,6 @@
 #define EVENTBUILDING_EVENTSERIALIZER_H_
 
 #include <sys/types.h>
-#include <atomic>
 
 namespace na62 {
 
