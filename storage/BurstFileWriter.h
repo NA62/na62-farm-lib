@@ -34,7 +34,7 @@ public:
 
 	~BurstFileWriter();
 
-	void writeEvent(EVENT_HDR* event);
+	void writeEvent(const EVENT_HDR* event);
 
 	void writeBkmFile(const std::string bkmDir);
 

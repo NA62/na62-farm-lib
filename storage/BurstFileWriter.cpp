@@ -78,10 +78,11 @@ BurstFileWriter::~BurstFileWriter() {
 //	chownCommand << "chown na62cdr:vl " << filePath;
 //	system(chownCommand.str().c_str());
 
-	struct passwd *pwd = getpwnam("na62cdr"); /* don't free, see getpwnam() for details */
-	uint ownerID = pwd->pw_uid;
-	uint groupID = pwd->pw_gid;
-	chown(filePath_.c_str(), ownerID, groupID);
+//	struct passwd *pwd = getpwnam("na62cdr"); /* don't free, see getpwnam() for details */
+//	uint ownerID = pwd->pw_uid;
+//	uint groupID = pwd->pw_gid;
+//	chown(filePath_.c_str(), ownerID, groupID);
+	system(std::string("chown na62cdr:vl " + filePath_).data());
 
 	LOG_INFO<< "Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with "
 	<< Utils::FormatSize(dataRate) << "B/s";
@@ -89,8 +90,8 @@ BurstFileWriter::~BurstFileWriter() {
 	delete[] hdr_;
 }
 
-void BurstFileWriter::writeEvent(EVENT_HDR* event) {
-	myFile_.write(reinterpret_cast<char*>(event), event->length * 4);
+void BurstFileWriter::writeEvent(const EVENT_HDR* event) {
+	myFile_.write(reinterpret_cast<const char*>(event), event->length * 4);
 	bytesWritten_ += event->length * 4;
 
 	eventNumbers_[eventID_] = event->eventNum;

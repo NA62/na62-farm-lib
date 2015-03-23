@@ -27,7 +27,7 @@ struct BURST_HDR {
 	 * The Nth entry stores the event number of the Nth event stored
 	 */
 	uint32_t* getEventNumbers() {
-		return reinterpret_cast<uint32_t*>(this + sizeof(BURST_HDR));
+		return reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(this) + sizeof(BURST_HDR));
 	}
 
 	/*
@@ -35,7 +35,7 @@ struct BURST_HDR {
 	 * The Nth entry stores the trigger type word of the Nth event stored
 	 */
 	uint32_t* getEventTriggerTypeWords() {
-		return reinterpret_cast<uint32_t*>(this + sizeof(BURST_HDR)
+		return reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(this) + sizeof(BURST_HDR)
 				+ numberOfEvents * sizeof(uint32_t));
 	}
 
@@ -45,7 +45,7 @@ struct BURST_HDR {
 	 * to reach the beginning of the Nth event stored
 	 */
 	uint32_t* getEventOffsets() {
-		return reinterpret_cast<uint32_t*>(this + sizeof(BURST_HDR)
+		return reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(this) + sizeof(BURST_HDR)
 				+ 2 * (numberOfEvents * sizeof(uint32_t)));
 	}
 
