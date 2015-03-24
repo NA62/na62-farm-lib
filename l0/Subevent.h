@@ -86,7 +86,7 @@ public:
 		}
 
 		// Check which subIDs are missing
-		for (uint i = 0; i != ExpectedPacketsNum; i++) {
+		for (uint i = 0; i != expectedPacketsNum; i++) {
 			if (receivedSubIDs.find(i) == receivedSubIDs.end()) {
 				missingSubIDs.push_back(i);
 			}
@@ -104,8 +104,12 @@ public:
 		return fragmentCounter;
 	}
 
+	uint_fast16_t getNumberOfExpectedFragments() const {
+		return expectedPacketsNum;
+	}
+
 private:
-	const uint_fast16_t ExpectedPacketsNum;
+	const uint_fast16_t expectedPacketsNum;
 	MEPFragment ** eventFragments;
 	std::atomic<uint_fast16_t> fragmentCounter;
 };

@@ -69,7 +69,6 @@ void BurstIdHandler::onBurstFinished() {
 					dump.str());
 		}
 	}
-	exit(0);
 }
 
 } /* namespace na62 */

@@ -398,7 +398,6 @@ public:
 	 */
 	std::map<uint, std::vector<uint>> getMissingSourceIDs();
 	std::map<uint, std::vector<uint>> getMissingCreams();
-	std::string getMissingSourceIDsSring();
 
 	static uint64_t getMissingEventsBySourceNum(uint sourceNum) {
 		return MissingEventsBySourceNum_[sourceNum];
