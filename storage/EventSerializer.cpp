@@ -75,10 +75,13 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint pointerTableOffset = sizeof(EVENT_HDR);
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
 
+	/*
+	 * Write all L0 data sources
+	 */
 	for (int sourceNum = 0;
 			sourceNum != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
 			sourceNum++) {
-		l0::Subevent* subevent = event->getL0SubeventBySourceIDNum(sourceNum);
+		const l0::Subevent* const subevent = event->getL0SubeventBySourceIDNum(sourceNum);
 
 		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
@@ -87,7 +90,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		}
 
 		/*
-		 * Put the sub-detector  into the pointer table
+		 * Put the sub-detector into the pointer table
 		 */
 		uint eventOffset32 = eventOffset / 4;
 		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
@@ -96,11 +99,11 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		pointerTableOffset += 4;
 
 		/*
-		 * Write the L0 data
+		 * Write all fragments
 		 */
 		int payloadLength;
 		for (uint i = 0; i != subevent->getNumberOfFragments(); i++) {
-			l0::MEPFragment* fragment = subevent->getFragment(i);
+			const l0::MEPFragment* const fragment = subevent->getFragment(i);
 			payloadLength = fragment->getPayloadLength() + sizeof(L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
@@ -127,6 +130,10 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 				eventOffset += eventOffset % 4;
 			}
 		}
+
+		/*
+		 * Write Timestamps of all sources in the L0TP data
+		 */
 	}
 
 	/*

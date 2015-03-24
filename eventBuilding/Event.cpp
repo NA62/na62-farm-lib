@@ -34,8 +34,9 @@ std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 Event::Event(uint_fast32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfCREAMFragments_(
 				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
-				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(
-				0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(
+				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
+				false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(
+				false), unfinished_(false), lastEventOfBurst_(
 		false)
 #ifdef MEASURE_TIME
 , l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
@@ -70,7 +71,8 @@ Event::~Event() {
 //	throw NA62Error(
 //			"An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
 
-	for (uint_fast8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+	for (uint_fast8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
+			i++) {
 //		L0Subevents[i]->destroy();
 		delete L0Subevents[i];
 	}
@@ -163,8 +165,8 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 		return false;
 	}
 
-	int currentValue = numberOfL0Fragments_.fetch_add(1, std::memory_order_release)
-			+ 1;
+	int currentValue = numberOfL0Fragments_.fetch_add(1,
+			std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
 	if (currentValue
@@ -251,8 +253,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 	}
 
 	if (eventNumber_ != fragment->getEventNumber()) {
-		LOG_ERROR
-		<< "Trying to add LkrFragment with eventNumber "
+		LOG_ERROR<< "Trying to add LkrFragment with eventNumber "
 		+ std::to_string(
 				fragment->getEventNumber())
 		+ " to an Event with eventNumber "
@@ -275,13 +276,12 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		 * This must be a zero suppressed event
 		 */
 		cream::LkrFragment* oldEvent =
-		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
+				zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
 
 		if (oldEvent != NULL) {
 			if (unfinishedEventMutex_.try_lock()) {
 				if (printMissingSourceIDs_) {
-					LOG_ERROR
-					<< "LKr event with EventNumber "
+					LOG_ERROR<< "LKr event with EventNumber "
 					+ std::to_string(
 							(int) fragment->getEventNumber())
 					+ ", crateID "
@@ -311,7 +311,8 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1, std::memory_order_release) + 1;
+		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1,
+				std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
 		if (numberOfStoredCreamFragments == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
@@ -322,7 +323,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 #else
 
 		return numberOfStoredCreamFragments
-		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}
 }
@@ -349,7 +350,8 @@ void Event::destroy() {
 	firstEventPartAddedTime_.stop();
 #endif
 
-	for (uint_fast8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
+	for (uint_fast8_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
+			i++) {
 		L0Subevents[i]->destroy();
 	}
 
@@ -470,13 +472,14 @@ std::string Event::getMissingSourceIDsSring() {
 			missingIDs << "\n";
 		}
 	}
-
-//	std::stringstream dump;
-//	dump << "Burst:\t" << getBurstID() << "\tEvent:\t" << getEventNumber()
-//			<< "\tTS:\t" << getTimestamp() << "\tMissing:\t";
-//	dump << missingIDs.str();
-//	DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs", dump.str());
-
+	if (printMissingSourceIDs_) {
+		std::stringstream dump;
+		dump << "Burst:\t" << getBurstID() << "\tEvent:\t" << getEventNumber()
+				<< "\tTS:\t" << getTimestamp() << "\tMissing:\t";
+		dump << missingIDs.str();
+		DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
+				dump.str());
+	}
 	return missingIDs.str();
 }
 
