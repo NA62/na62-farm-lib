@@ -223,7 +223,6 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
  * Process data coming from the CREAMs
  */
 bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
-	std::cout << getTimestamp() << std::endl;
 	if (!L1Processed_) {
 		if (printMissingSourceIDs_) {
 			LOG_ERROR<< "Received LKR data with EventNumber "
