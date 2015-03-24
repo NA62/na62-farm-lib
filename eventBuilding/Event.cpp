@@ -78,7 +78,7 @@ Event::~Event() {
 	}
 	delete[] L0Subevents;
 
-	for (int ID = 0;
+	for (uint ID = 0;
 			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 			ID++) {
 		cream::LkrFragment* event = zSuppressedLkrFragmentsByLocalCREAMID[ID];
@@ -305,7 +305,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		}
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1,
+		uint numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1,
 				std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
@@ -349,7 +349,7 @@ void Event::destroy() {
 		L0Subevents[i]->destroy();
 	}
 
-	for (int ID = 0;
+	for (uint ID = 0;
 			ID != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 			ID++) {
 		cream::LkrFragment* fragment = zSuppressedLkrFragmentsByLocalCREAMID[ID];
@@ -380,7 +380,7 @@ std::map<uint, std::vector<uint>> Event::getMissingSourceIDs() {
 				missingIds[SourceIDManager::sourceNumToID(sourceNum)] =
 						subevent->getMissingSourceSubIds();
 
-				for (int f = 0; f != subevent->getNumberOfFragments(); f++) {
+				for (uint f = 0; f != subevent->getNumberOfFragments(); f++) {
 					UnfinishedEventsCollector::addReceivedSubSourceIdFromUnfinishedEvent(
 							sourceNum,
 							subevent->getFragment(f)->getSourceSubID());
@@ -399,8 +399,7 @@ std::map<uint, std::vector<uint>> Event::getMissingCreams() {
 		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
 				1, std::memory_order_relaxed);
 
-		uint crateID = 0xFFFFFFFF;
-		for (int i = 0;
+		for (uint i = 0;
 				i != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 				i++) {
 			if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {

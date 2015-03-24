@@ -8,10 +8,10 @@
 #ifndef BURSTIDHANDLER_H_
 #define BURSTIDHANDLER_H_
 
-#include <boost/timer/timer.hpp>
 #include <cstdint>
 #include <iostream>
 #include <mutex>
+#include <boost/timer/timer.hpp>
 
 #include "../options/Logging.h"
 
