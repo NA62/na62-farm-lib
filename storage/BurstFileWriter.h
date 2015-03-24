@@ -15,6 +15,9 @@
 #include <chrono>
 #include <fstream>
 
+
+#define WRITE_HDR
+
 namespace na62 {
 struct EVENT_HDR;
 } /* namespace na62 */

@@ -56,12 +56,19 @@ BurstFileWriter::BurstFileWriter(const std::string filePath,
 
 	bytesWritten_ = headerLength;
 
+#ifdef WRITE_HDR
 	// jump to the first byte behind the header
 	myFile_.seekp(headerLength);
+#endif
 }
 
 BurstFileWriter::~BurstFileWriter() {
-
+#ifdef WRITE_HDR
+	// Write the header to the beginning
+	myFile_.seekp(0);
+	myFile_.write(reinterpret_cast<const char*>(hdr_), hdr_->getHeaderSize());
+	myFile_.close();
+#endif
 	boost::posix_time::ptime stop(
 			boost::posix_time::microsec_clock::local_time());
 	std::chrono::milliseconds durationMs = std::chrono::duration_cast<
