@@ -19,8 +19,6 @@ namespace na62 {
 
 class BurstIdHandler {
 public:
-	BurstIdHandler();
-	virtual ~BurstIdHandler();
 
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
 		nextBurstId_ = nextBurstID;
@@ -59,6 +57,7 @@ public:
 	static void checkBurstFinished() {
 		if (!isInBurst() && lastFinishedBurst_ != currentBurstID_) {
 			if (burstFinishedMutex_.try_lock()) {
+				sleep(2);
 				onBurstFinished();
 				lastFinishedBurst_ = currentBurstID_;
 				burstFinishedMutex_.unlock();

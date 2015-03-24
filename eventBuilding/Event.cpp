@@ -239,7 +239,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 			std::stringstream dump;
 			dump << getBurstID() << "\t" << getEventNumber()
 			<< "\t" << getTimestamp() << "\t" << fragment->getEventLength()<<"\t"<<std::hex << ntohl(sourceIP);
-			DataDumper::printToFile("unrequestedCreamData", "/tmp/farm-logs", dump.str());
+			DataDumper::printToFile("nonRequestedCreamData", "/tmp/farm-logs", dump.str());
 		}
 
 		delete fragment;

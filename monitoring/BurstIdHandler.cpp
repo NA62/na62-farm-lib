@@ -56,17 +56,19 @@ void BurstIdHandler::onBurstFinished() {
 			}
 			dump << std::endl;
 
-			dump << "\tMissing CREAMs (crate: cream IDs): " << std::endl;
-			for (auto& crateAndCreams : event->getMissingCreams()) {
-				dump << "\t\t" << crateAndCreams.first << ":\t";
-				for (auto& creamID : crateAndCreams.second) {
-					dump << creamID << "\t";
+			if (event->isL1Processed()) {
+				dump << "\tMissing CREAMs (crate: cream IDs): " << std::endl;
+				for (auto& crateAndCreams : event->getMissingCreams()) {
+					dump << "\t\t" << crateAndCreams.first << ":\t";
+					for (auto& creamID : crateAndCreams.second) {
+						dump << creamID << "\t";
+					}
+					dump << std::endl;
 				}
 				dump << std::endl;
+				DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
+						dump.str());
 			}
-			dump << std::endl;
-			DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
-					dump.str());
 		}
 	}
 }
