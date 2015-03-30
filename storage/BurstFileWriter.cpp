@@ -29,8 +29,7 @@ BurstFileWriter::BurstFileWriter(const std::string filePath,
 		const uint runNumber, const uint burstID) :
 		myFile_(filePath.data(),
 				std::ios::out | std::ios::trunc | std::ios::binary), filePath_(
-				filePath), fileName_(fileName), eventID_(0), startTime_(
-				std::chrono::high_resolution_clock::now()) {
+				filePath), fileName_(fileName), eventID_(0) {
 
 	if (!myFile_.good()) {
 		LOG_ERROR<<"Unable to write to file " << filePath;
@@ -56,6 +55,7 @@ BurstFileWriter::BurstFileWriter(const std::string filePath,
 
 	bytesWritten_ = headerLength;
 
+	stopWatch_.start();
 #ifdef WRITE_HDR
 	// jump to the first byte behind the header
 	myFile_.seekp(headerLength);
@@ -71,11 +71,8 @@ BurstFileWriter::~BurstFileWriter() {
 #endif
 	boost::posix_time::ptime stop(
 			boost::posix_time::microsec_clock::local_time());
-	std::chrono::milliseconds durationMs = std::chrono::duration_cast<
-			std::chrono::milliseconds>(
-			std::chrono::high_resolution_clock::now() - startTime_);
 
-	long msec = durationMs.count();
+	long msec = stopWatch_.elapsed().wall / 1E6;
 	long dataRate = 0;
 	if (msec != 0) {
 		dataRate = bytesWritten_ / msec * 1000; // B/s

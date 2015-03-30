@@ -12,8 +12,8 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
-#include <chrono>
 #include <fstream>
+#include <boost/timer/timer.hpp>
 
 
 #define WRITE_HDR
@@ -52,7 +52,7 @@ private:
 	size_t bytesWritten_;
 	uint eventID_;
 
-	std::chrono::system_clock::time_point startTime_;
+	boost::timer::cpu_timer stopWatch_;
 };
 
 } /* namespace na62 */
