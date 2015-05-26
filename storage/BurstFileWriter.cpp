@@ -96,11 +96,12 @@ BurstFileWriter::~BurstFileWriter() {
 
 void BurstFileWriter::writeEvent(const EVENT_HDR* event) {
 	myFile_.write(reinterpret_cast<const char*>(event), event->length * 4);
-	bytesWritten_ += event->length * 4;
+//	bytesWritten_ += event->length * 4;
 
 	eventNumbers_[eventID_] = event->eventNum;
 	triggerWords_[eventID_] = event->triggerWord;
 	offsets_[eventID_] = bytesWritten_ / 4;
+	bytesWritten_ += event->length * 4;
 	eventID_++;
 }
 

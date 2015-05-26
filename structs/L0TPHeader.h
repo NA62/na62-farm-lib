@@ -10,19 +10,20 @@
 
 #include <stdint.h>
 
-struct L0TpHeader { // 24 bytes
+struct L0TpHeader { // 32 bytes
 	uint8_t refFineTime;
 	uint8_t dataType;
 	uint16_t primitives[7];
 
 	// 3 words primitives
 
-	uint16_t previousTimeStampHigh;
-	uint16_t memoryAddress;
-
+	uint32_t previousTimeStamp;
 	uint8_t l0TriggerType;
 	uint8_t previousl0TriggerType;
-	uint16_t previousTimeStampLow;
+	uint16_t l0TriggerFlags;
+
+	uint8_t primFineTime[7];
+	uint8_t l0dummy;
 
 }__attribute__ ((__packed__));
 

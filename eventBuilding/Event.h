@@ -210,6 +210,9 @@ public:
 		return finetime_;
 	}
 
+	void setl0TriggerTypeWord(const uint_fast8_t l0triggertype) {
+		triggerTypeWord_ = (triggerTypeWord_ & 0xFFFFFF00) | l0triggertype;
+		}
 	/*
 	 * Should be defined by the trigger algorithms L1 or L2
 	 */

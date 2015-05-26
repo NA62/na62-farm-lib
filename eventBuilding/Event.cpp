@@ -270,7 +270,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		 * This must be a zero suppressed event
 		 */
 		cream::LkrFragment* oldEvent =
-				zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
+		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
 
 		if (oldEvent != NULL) {
 			if (unfinishedEventMutex_.try_lock()) {
@@ -317,7 +317,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 #else
 
 		return numberOfStoredCreamFragments
-				== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
 #endif
 	}
 }
@@ -422,7 +422,7 @@ uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 		l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
 		L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
 		setFinetime(L0TPData->refFineTime);
-
+		setl0TriggerTypeWord(L0TPData->l0TriggerType);
 		return L0TPData->l0TriggerType;
 	}
 	return 1;
