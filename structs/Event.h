@@ -87,6 +87,7 @@ struct L0_BLOCK_HDR {
 	uint16_t dataBlockSize;
 	uint8_t sourceSubID;
 	uint8_t reserved;
+	uint32_t timestamp;
 }__attribute__ ((__packed__));
 
 struct EVENT_TRAILER {
