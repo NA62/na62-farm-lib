@@ -29,6 +29,7 @@
 #define SOURCE_ID_SAC 0x34
 #define SOURCE_ID_L0TP 0x40
 #define SOURCE_ID_L1 0x44
+#define SOURCE_ID_L2 0x48
 
 namespace na62 {
 
@@ -198,6 +199,13 @@ public:
 	 */
 	static inline bool isL1Active() {
 		return checkL0SourceID(SOURCE_ID_L1);
+	}
+
+	/**
+	 * Returns true if the L2  is activated so that it's data is stored in every event from L1 on
+	 */
+	static inline bool isL2Active() {
+		return checkL0SourceID(SOURCE_ID_L2);
 	}
 
 	/*
