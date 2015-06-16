@@ -297,6 +297,7 @@ std::string SourceIDManager::sourceIdToDetectorName(uint_fast8_t sourceID){
 		case SOURCE_ID_MUV3: return "MUV3";
 		case SOURCE_ID_SAC: return "SAC";
 		case SOURCE_ID_L0TP: return "L0TP";
+		case SOURCE_ID_L1: return "L1";
 		default: return "UNKNOWN SOURCE ID!";
 	}
 }
