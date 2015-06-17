@@ -235,11 +235,9 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 
 		MUV_CREAM_CRATE = muvCrate;
 		if (muvCrate >= 0) {
-			MUV2_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muvCrate].size();
-			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS -= MUV2_NUMBER_OF_FRAGMENTS;
-			/*
-			 * TODO: Impelment the separation of MUV1/MUV2
-			 */
+			MUV1_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muvCrate].size();
+			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS -= MUV1_NUMBER_OF_FRAGMENTS;
+
 			if (allCratesVector[allCratesVector.size() - 1] != muvCrate) {
 				throw NA62Error(
 						"The MUV crate ID must be the largest crateID available which is "
@@ -247,6 +245,11 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 										allCratesVector[allCratesVector.size()
 												- 1]));
 			}
+			uint minMUV2CreamID = 13;
+			for (auto cID : CREAM_IDS_BY_CRATE[muvCrate]) {
+				if (cID >= minMUV2CreamID) MUV2_NUMBER_OF_FRAGMENTS++;
+			}
+            MUV1_NUMBER_OF_FRAGMENTS -= MUV2_NUMBER_OF_FRAGMENTS;
 		}
 
 		std::stringstream sstream;
