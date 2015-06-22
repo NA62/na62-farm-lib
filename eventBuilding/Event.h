@@ -400,7 +400,6 @@ public:
 	}
 
 	bool isSpecialTriggerEvent() {
-		if(getL0TriggerTypeWord()!=1) std::cout << (int)getL0TriggerTypeWord() << std::endl;
 		switch (getL0TriggerTypeWord()) {
 		case TRIGGER_L0_EOB:
 		case TRIGGER_L0_SOB:
