@@ -23,6 +23,8 @@
 #include "SourceIDManager.h"
 #include "../structs/Event.h"
 
+#include <iostream>
+
 //#define MEASURE_TIME
 
 namespace na62 {
@@ -163,7 +165,8 @@ public:
 	 * that L1 has not been processed but still the event has been accepted (bypassed)
 	 */
 	bool isL1Bypassed() const {
-		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS) == TRIGGER_L1_BYPASS;
+		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS)
+				== TRIGGER_L1_BYPASS;
 	}
 
 	/**
@@ -171,9 +174,9 @@ public:
 	 * that L2 has not been processed but still the event has been accepted (bypassed)
 	 */
 	bool isL2Bypassed() const {
-		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS) == TRIGGER_L2_BYPASS;
+		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS)
+				== TRIGGER_L2_BYPASS;
 	}
-
 
 	/**
 	 * If set to true during the L1 trigger processing  zero suppressed CREAM data will be requested
@@ -212,7 +215,7 @@ public:
 
 	void setl0TriggerTypeWord(const uint_fast8_t l0triggertype) {
 		triggerTypeWord_ = (triggerTypeWord_ & 0xFFFFFF00) | l0triggertype;
-		}
+	}
 	/*
 	 * Should be defined by the trigger algorithms L1 or L2
 	 */
@@ -241,14 +244,16 @@ public:
 	 *		...
 	 *	}
 	 */
-	l0::Subevent* getL0SubeventBySourceIDNum(const uint_fast8_t sourceIDNum) const {
+	l0::Subevent* getL0SubeventBySourceIDNum(
+			const uint_fast8_t sourceIDNum) const {
 		return L0Subevents[sourceIDNum];
 	}
 
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline const l0::Subevent* getL0SubeventBySourceID(const uint_fast8_t sourceID) const {
+	inline const l0::Subevent* getL0SubeventBySourceID(
+			const uint_fast8_t sourceID) const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(std::move(sourceID))];
 	}
 	inline const l0::Subevent* getCEDARSubevent() const {
@@ -284,12 +289,20 @@ public:
 	inline const l0::Subevent* getL0TPSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L0TP)];
 	}
-
+	inline const l0::Subevent* getL1Subevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L1)];
+	}
+	inline const l0::Subevent* getL2Subevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L2)];
+	}
+	inline const l0::Subevent* getNSTDSubevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NSTD)];
+	}
 	/*
 	 * Returns a  zero suppressed event fragment sent by the CREAM with the id [CREAMID] in the crate [crateID
 	 */
-	inline cream::LkrFragment* getZSuppressedLkrFragment(const uint_fast8_t crateID,
-			const uint_fast8_t CREAMID) const {
+	inline cream::LkrFragment* getZSuppressedLkrFragment(
+			const uint_fast8_t crateID, const uint_fast8_t CREAMID) const {
 		return zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
 				crateID, CREAMID)];
 	}
@@ -387,6 +400,7 @@ public:
 	}
 
 	bool isSpecialTriggerEvent() {
+		if(getL0TriggerTypeWord()!=1) std::cout << (int)getL0TriggerTypeWord() << std::endl;
 		switch (getL0TriggerTypeWord()) {
 		case TRIGGER_L0_EOB:
 		case TRIGGER_L0_SOB:
@@ -448,7 +462,7 @@ public:
 #endif
 
 	static void initialize(bool printMissingSourceIDs,
-			bool writeBrokenCreamInfo);
+	bool writeBrokenCreamInfo);
 private:
 	void setBurstID(const uint_fast32_t burstID) {
 		burstID_ = burstID;

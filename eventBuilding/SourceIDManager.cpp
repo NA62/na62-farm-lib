@@ -302,6 +302,7 @@ std::string SourceIDManager::sourceIdToDetectorName(uint_fast8_t sourceID){
 		case SOURCE_ID_L0TP: return "L0TP";
 		case SOURCE_ID_L1: return "L1";
 		case SOURCE_ID_L2: return "L2";
+		case SOURCE_ID_NSTD: return "NSTD";
 		default: return "UNKNOWN SOURCE ID!";
 	}
 }
