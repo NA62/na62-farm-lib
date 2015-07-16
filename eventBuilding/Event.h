@@ -399,14 +399,19 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+//	bool isSpecialTriggerEvent() {
+//		switch (getL0TriggerTypeWord()) {
+//		case TRIGGER_L0_EOB:
+//		case TRIGGER_L0_SOB:
+//			return true;
+//		default:
+//			return false;
+//		}
+//	}
+
 	bool isSpecialTriggerEvent() {
-		switch (getL0TriggerTypeWord()) {
-		case TRIGGER_L0_EOB:
-		case TRIGGER_L0_SOB:
-			return true;
-		default:
-			return false;
-		}
+		uint_fast8_t specialTriggerMask = 0x20;
+		return ((getL0TriggerTypeWord() & specialTriggerMask) != 0);
 	}
 
 	/*
