@@ -40,7 +40,7 @@ void BurstIdHandler::onBurstFinished() {
 
 			std::stringstream dump;
 
-			dump << "Unfinished event " << event->getEventNumber()
+			dump << "Unfinished event " << event->getEventNumber() << " burstID " << (uint) event->getBurstID()
 					<< " with TS " << event->getTimestamp() << ": "
 					<< std::endl;
 			dump << "\tMissing L0: " << std::endl;

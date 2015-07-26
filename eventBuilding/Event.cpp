@@ -152,7 +152,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 		 */
 		if (printMissingSourceIDs_) {
 			LOG_ERROR<< "Already received all fragments from sourceID "
-			<< ((int) fragment->getSourceID())
+			<< ((int) fragment->getSourceID()) << " sourceSubID " << ((int) fragment->getSourceSubID())
 			<< ENDL;
 		}
 
