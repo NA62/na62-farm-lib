@@ -415,6 +415,10 @@ public:
 	}
 
 	/*
+	 * List the received sourceIDs, sourceSubIDs and stats
+	 */
+//	std::map<uint, std::map<uint, uint>> getReceivedSourceIDsSourceSubIds();
+	/*
 	 * Find the missing sourceIDs
 	 */
 	std::map<uint, std::vector<uint>> getMissingSourceIDs();
@@ -424,6 +428,10 @@ public:
 		return MissingEventsBySourceNum_[sourceNum];
 	}
 
+//	static uint64_t getReceivedEventsBySourceNumBySubId(uint sourceNum,
+//			uint SubId) {
+//		return ReceivedEventsBySourceNumBySubId_[sourceNum][SubId];
+//	}
 	static uint64_t getNumberOfNonRequestedCreamFragments() {
 		return nonRequestsCreamFramesReceived_;
 	}
@@ -513,6 +521,7 @@ private:
 	tbb::spin_mutex destroyMutex_;
 	tbb::spin_mutex unfinishedEventMutex_;
 
+//	static std::atomic<uint64_t>** ReceivedEventsBySourceNumBySubId_;
 	static std::atomic<uint64_t>* MissingEventsBySourceNum_;
 	static std::atomic<uint64_t> nonRequestsCreamFramesReceived_;
 	static bool printMissingSourceIDs_;

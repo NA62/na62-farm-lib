@@ -17,6 +17,9 @@
 #include "../eventBuilding/EventPool.h"
 #include "../eventBuilding/SourceIDManager.h"
 #include "../utils/DataDumper.h"
+#include "../l0/MEPFragment.h"
+#include "../l0/Subevent.h"
+#include "../structs/L0TPHeader.h"
 
 namespace na62 {
 boost::timer::cpu_timer BurstIdHandler::EOBReceivedTimer_;
@@ -33,16 +36,34 @@ void BurstIdHandler::onBurstFinished() {
 			eventNumber++) {
 
 		Event* event = EventPool::getEvent(eventNumber);
+//		for (auto& sourceIDSubIds : event->getReceivedSourceIDsSourceSubIds()) {
+//			LOG_INFO<< " +++++++++++MAP.first " << SourceIDManager::sourceIdToDetectorName(sourceIDSubIds.first) << ":" << ENDL;
+//			for (auto& subId : sourceIDSubIds.second) {
+//				LOG_INFO << "\t" << subId.first << ", " << (uint)subId.second << ENDL;
+//			}
+//			LOG_INFO << ENDL;
+//		}
 		if (event->isUnfinished()) {
 			if (maxNumOfPrintouts-- == 0) {
 				break;
 			}
 
 			std::stringstream dump;
+			/*
+			 * Print the global event timestamp and trigger word taken from the reference detector
+			 */
+			l0::MEPFragment* tsFragment = event->getL0SubeventBySourceIDNum(
+					SourceIDManager::TS_SOURCEID_NUM)->getFragment(0);
 
-			dump << "Unfinished event " << event->getEventNumber() << " burstID " << (uint) event->getBurstID()
-					<< " with TS " << event->getTimestamp() << ": "
-					<< std::endl;
+			l0::MEPFragment* L0TPEvent = event->getL0TPSubevent()->getFragment(0);
+			L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
+
+			dump << "Unfinished event " << event->getEventNumber()
+					<< " burstID " << (uint) getCurrentBurstId()
+					<< " with TS " << std::hex << tsFragment->getTimestamp()
+					<< " and Trigword " << (uint) L0TPData->l0TriggerType
+					<< std::dec << ": " << std::endl;
+
 			dump << "\tMissing L0: " << std::endl;
 			for (auto& sourceIDAndSubIds : event->getMissingSourceIDs()) {
 				dump << "\t"
@@ -50,7 +71,7 @@ void BurstIdHandler::onBurstFinished() {
 								sourceIDAndSubIds.first) << ":" << std::endl;
 
 				for (auto& subID : sourceIDAndSubIds.second) {
-					dump << "\t\t" << subID << ", ";
+					dump << "\t" << subID << ", ";
 				}
 				dump << std::endl;
 			}
@@ -66,9 +87,9 @@ void BurstIdHandler::onBurstFinished() {
 					dump << std::endl;
 				}
 				dump << std::endl;
-				DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
-						dump.str());
 			}
+			DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
+					dump.str());
 		}
 	}
 }

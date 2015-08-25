@@ -29,6 +29,7 @@ bool Event::printMissingSourceIDs_ = true;
 bool Event::writeBrokenCreamInfo_ = false;
 
 std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
+//std::atomic<uint64_t>** Event::ReceivedEventsBySourceNumBySubId_;
 std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
 Event::Event(uint_fast32_t eventNumber) :
@@ -93,9 +94,20 @@ void Event::initialize(bool printMissingSourceIDs, bool writeBrokenCreamInfo) {
 	MissingEventsBySourceNum_ =
 			new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
 					+ 1];
+//	ReceivedEventsBySourceNumBySubId_ =
+//			new std::atomic<uint64_t>*[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
+//					+ 1];
 
-	for (int i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + 1; i++) {
+	for (int i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
 		MissingEventsBySourceNum_[i] = 0;
+
+//		ReceivedEventsBySourceNumBySubId_[i] =
+//				new std::atomic<uint64_t>[SourceIDManager::getExpectedPacksBySourceNum(
+//						i)];
+//		for (int f = 0; f != SourceIDManager::getExpectedPacksBySourceNum(i);
+//				f++) {
+//			ReceivedEventsBySourceNumBySubId_[i][f] = 0;
+//		}
 	}
 
 	printMissingSourceIDs_ = printMissingSourceIDs;
@@ -214,7 +226,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 				std::map<uint_fast16_t, cream::LkrFragment*>::value_type(crateCREAMID,
 						fragment));
 	}
-	// TODO: this must be synchronized
+// TODO: this must be synchronized
 	return nonSuppressedLkrFragmentsByCrateCREAMID.size()
 			== nonZSuppressedDataRequestedNum;
 }
@@ -367,12 +379,46 @@ void Event::destroy() {
 	reset();
 }
 
+//std::map<uint, std::map<uint, uint>> Event::getReceivedSourceIDsSourceSubIds() {
+//	std::map<uint, std::map<uint, uint>> receivedSourceIdsSubIds;
+//
+//	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+//			sourceNum >= 0; sourceNum--) {
+//
+//		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+////		LOG_INFO<< "+++++++++RECEIVED SOURCEIDs   " << " " << std::hex << (int) SourceIDManager::sourceNumToID(sourceNum)
+////		<< std::dec << " " << (int) SourceIDManager::getExpectedPacksBySourceNum(sourceNum) << " "
+////		<< (int) subevent->getNumberOfFragments() << ENDL;
+//
+//		for (int f = 0; f != subevent->getNumberOfFragments(); f++) {
+//			receivedSourceIdsSubIds[SourceIDManager::sourceNumToID(sourceNum)][subevent->getFragment(
+//					f)->getSourceSubID()] = 1;
+//			ReceivedEventsBySourceNumBySubId_[sourceNum][subevent->getFragment(
+//					f)->getSourceSubID()].fetch_add(1,
+//					std::memory_order_relaxed);
+//
+////			LOG_INFO<< "SETTO (" << std::hex << (int)SourceIDManager::sourceNumToID(sourceNum)<< std::dec
+////			<< "," << (uint)subevent->getFragment(f)->getSourceSubID()
+////			<< ") a " << receivedSourceIdsSubIds[SourceIDManager::sourceNumToID(sourceNum)][subevent->getFragment(f)->getSourceSubID()] <<ENDL;
+////			LOG_INFO<< "INCREMENTO (" << std::hex << (int)SourceIDManager::sourceNumToID(sourceNum)<< std::dec
+////			<< "," << (uint)subevent->getFragment(f)->getSourceSubID() << ") a "
+////			<< ReceivedEventsBySourceNumBySubId_[sourceNum][subevent->getFragment(f)->getSourceSubID()] <<ENDL;
+//		}
+//	}
+//	return receivedSourceIdsSubIds;
+//}
+
 std::map<uint, std::vector<uint>> Event::getMissingSourceIDs() {
 	std::map<uint, std::vector<uint>> missingIds;
 	if (!L1Processed_) {
 		for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
 				sourceNum >= 0; sourceNum--) {
 			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+//			LOG_INFO<< "+++++++++ MISSING SOURCEIDs   " << " " << std::hex
+//			<< (int) SourceIDManager::sourceNumToID(sourceNum) << std::dec
+//			<< " " << (int) SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
+//			<< " " << (int) subevent->getNumberOfFragments() << ENDL;
+
 			if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
 					!= subevent->getNumberOfFragments()) {
 				MissingEventsBySourceNum_[sourceNum].fetch_add(1,
