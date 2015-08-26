@@ -322,7 +322,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 
 #ifdef MEASURE_TIME
 		if (numberOfStoredCreamFragments == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
-			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-l1ProcessingTime_;
+			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-(l1ProcessingTime_+l0BuildingTime_);
 			return true;
 		}
 		return false;

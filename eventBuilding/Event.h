@@ -9,6 +9,8 @@
 #ifndef EVENT_H_
 #define EVENT_H_
 
+//#define MEASURE_TIME
+
 #include <algorithm>
 #include <cstdint>
 #include <map>
@@ -22,10 +24,11 @@
 #include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
 #include "../structs/Event.h"
+#include "../options/Logging.h"
 
 #include <iostream>
 
-//#define MEASURE_TIME
+
 
 namespace na62 {
 namespace cream {
@@ -101,8 +104,7 @@ public:
 	 */
 	void setL1Processed(const uint_fast16_t L0L1TriggerTypeWord) {
 #ifdef MEASURE_TIME
-		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- l0BuildingTime_;
+		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3- l0BuildingTime_;
 #endif
 
 		triggerTypeWord_ = L0L1TriggerTypeWord;
@@ -119,7 +121,7 @@ public:
 	void setL2Processed(const uint_fast8_t L2TriggerTypeWord) {
 #ifdef MEASURE_TIME
 		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- l0BuildingTime_;
+		- (l1BuildingTime_+l1ProcessingTime_+l0BuildingTime_);
 #endif
 
 		L2Accepted_ = L2TriggerTypeWord > 0;

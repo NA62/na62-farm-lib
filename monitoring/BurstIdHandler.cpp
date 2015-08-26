@@ -55,12 +55,13 @@ void BurstIdHandler::onBurstFinished() {
 			l0::MEPFragment* tsFragment = event->getL0SubeventBySourceIDNum(
 					SourceIDManager::TS_SOURCEID_NUM)->getFragment(0);
 
-			l0::MEPFragment* L0TPEvent = event->getL0TPSubevent()->getFragment(0);
+			l0::MEPFragment* L0TPEvent = event->getL0TPSubevent()->getFragment(
+					0);
 			L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
 
 			dump << "Unfinished event " << event->getEventNumber()
-					<< " burstID " << (uint) getCurrentBurstId()
-					<< " with TS " << std::hex << tsFragment->getTimestamp()
+					<< " burstID " << (uint) getCurrentBurstId() << " with TS "
+					<< std::hex << tsFragment->getTimestamp()
 					<< " and Trigword " << (uint) L0TPData->l0TriggerType
 					<< std::dec << ": " << std::endl;
 
