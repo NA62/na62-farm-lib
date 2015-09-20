@@ -80,6 +80,11 @@ void MEP::initializeMEPFragments(const char * data,
 		newMEPFragment = new MEPFragment(this,
 				(MEPFragment_HDR*) (data + offset), expectedEventNum);
 
+//		if ((((MEPFragment_HDR*) (data + offset))->eventNumberLSB_
+//				!= (expectedEventNum & 0x000000FF)) || newMEPFragment==0 || (((uint64_t)newMEPFragment->getPayload())==sizeof(MEPFragment_HDR))) {
+//			LOG_INFO<< "***********MEPFragment " << newMEPFragment << ENDL;
+//			LOG_INFO<< "***********MEP data " << std::hex <<(MEPFragment_HDR*) (data + offset) << std::dec<< ENDL;
+//		}
 		expectedEventNum++;
 		fragments_[i] = newMEPFragment;
 		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {

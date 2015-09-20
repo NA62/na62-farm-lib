@@ -9,7 +9,7 @@
 #ifndef EVENT_H_
 #define EVENT_H_
 
-//#define MEASURE_TIME
+#define MEASURE_TIME
 
 #include <algorithm>
 #include <cstdint>
@@ -27,8 +27,6 @@
 #include "../options/Logging.h"
 
 #include <iostream>
-
-
 
 namespace na62 {
 namespace cream {
@@ -104,7 +102,9 @@ public:
 	 */
 	void setL1Processed(const uint_fast16_t L0L1TriggerTypeWord) {
 #ifdef MEASURE_TIME
-		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3- l0BuildingTime_;
+		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+				- l0BuildingTime_;
+		//LOG_INFO<< "*******************l1ProcessingTime_ " << l1ProcessingTime_ << ENDL;
 #endif
 
 		triggerTypeWord_ = L0L1TriggerTypeWord;
@@ -121,7 +121,8 @@ public:
 	void setL2Processed(const uint_fast8_t L2TriggerTypeWord) {
 #ifdef MEASURE_TIME
 		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-		- (l1BuildingTime_+l1ProcessingTime_+l0BuildingTime_);
+				- (l1BuildingTime_ + l1ProcessingTime_ + l0BuildingTime_);
+//		LOG_INFO<< "*******************l2ProcessingTime_ " << l2ProcessingTime_ << ENDL;
 #endif
 
 		L2Accepted_ = L2TriggerTypeWord > 0;
@@ -195,7 +196,7 @@ public:
 	}
 
 	/**
-	 * Returns the L0 trigger type word stored in the L0TP data and stores the fineTime. If L0TP is not activated 1 is returned
+	 * Returns the L0 trigger type word and trigger flags stored in the L0TP data and stores the fineTime. If L0TP is not activated 1 is returned
 	 */
 	uint_fast8_t readTriggerTypeWordAndFineTime();
 
@@ -213,6 +214,14 @@ public:
 
 	uint_fast8_t getFinetime() const {
 		return finetime_;
+	}
+
+	void setTriggerFlags(const uint_fast16_t triggerFlags) {
+		triggerFlags_ = triggerFlags;
+	}
+
+	uint_fast8_t getTriggerFlags() const {
+		return triggerFlags_;
 	}
 
 	void setl0TriggerTypeWord(const uint_fast8_t l0triggertype) {
@@ -498,6 +507,7 @@ private:
 	 */
 	uint_fast32_t burstID_;
 	uint_fast32_t triggerTypeWord_;
+	uint_fast16_t triggerFlags_;
 	uint_fast32_t timestamp_;
 	uint_fast8_t finetime_;
 	uint_fast32_t SOBtimestamp_;

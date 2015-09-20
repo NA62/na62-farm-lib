@@ -21,6 +21,9 @@ std::vector<Event*> EventPool::events_;
 uint_fast32_t EventPool::numberOfEventsStored_;
 uint_fast32_t EventPool::largestEventNumberTouched_;
 
+std::atomic<uint16_t>* EventPool::L0PacketCounter_;
+std::atomic<uint16_t>* EventPool::CREAMPacketCounter_;
+
 void EventPool::initialize(uint numberOfEventsToBeStored) {
 	numberOfEventsStored_ = numberOfEventsToBeStored;
 	events_.resize(numberOfEventsStored_);
@@ -49,6 +52,8 @@ void EventPool::initialize(uint numberOfEventsToBeStored) {
 		events_[eventNumber] = new Event(eventNumber);
 	}
 #endif
+	L0PacketCounter_= new std::atomic<uint16_t>[numberOfEventsStored_];
+	CREAMPacketCounter_= new std::atomic<uint16_t>[numberOfEventsStored_];
 }
 
 Event* EventPool::getEvent(uint_fast32_t eventNumber) {

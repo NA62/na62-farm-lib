@@ -24,6 +24,15 @@ public:
 		nextBurstId_ = nextBurstID;
 		EOBReceivedTimer_.start();
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
+		resetCounter_=true;
+	}
+
+	static void setResetCounters(bool reset) {
+		resetCounter_ = reset;
+	}
+
+	static bool getResetCounters(){
+		return resetCounter_;
 	}
 
 	static uint_fast32_t getCurrentBurstId() {
@@ -83,6 +92,7 @@ private:
 	static uint currentBurstID_;
 	static uint lastFinishedBurst_;
 	static std::mutex burstFinishedMutex_;
+	static bool resetCounter_;
 };
 
 }

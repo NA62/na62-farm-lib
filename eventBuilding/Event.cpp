@@ -34,7 +34,7 @@ std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
 Event::Event(uint_fast32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfCREAMFragments_(
-				0), burstID_(0), triggerTypeWord_(0), timestamp_(0), finetime_(
+				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), timestamp_(0), finetime_(
 				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
 		false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(
 		false), unfinished_(false), lastEventOfBurst_(
@@ -176,13 +176,19 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
+	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
-
-		return true;
+//		LOG_INFO<< "l0BuildingTime_ " << l0BuildingTime_ << ENDL;
+//		return true;
+		if(currentValue > SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT)
+			LOG_INFO << "Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << ENDL;
 	}
-	return false;
+	if (result)
+		return true;
+	else
+	    return false;
 #else
 	return currentValue
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
@@ -308,13 +314,23 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 					<< "\t" << getTimestamp() << "\t" << sourceIP;
 					DataDumper::printToFile("creamDataReceivedTwice", "/tmp/farm-logs", dump.str());
 				}
-
 				EventPool::freeEvent(this);
 				unfinishedEventMutex_.unlock();
+//			}
+				delete fragment;
+				return false;
+			}else{
+				/*
+				 * If we didn't get the lock: wait for the other thread to free the event
+				 */
+				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
 			}
-			delete fragment;
-			return false;
+			/*
+			 * Add the LKrFragment after this or another thread has destroyed this event
+			 */
+			return addLkrFragment(fragment, sourceIP);
 		}
+
 		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
 		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1,
@@ -323,6 +339,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 #ifdef MEASURE_TIME
 		if (numberOfStoredCreamFragments == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
 			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-(l1ProcessingTime_+l0BuildingTime_);
+//			LOG_INFO<< "l1BuildingTime_ " << l1BuildingTime_ << ENDL;
 			return true;
 		}
 		return false;
@@ -339,6 +356,7 @@ void Event::reset() {
 	numberOfCREAMFragments_ = 0;
 	burstID_ = 0;
 	triggerTypeWord_ = 0;
+	triggerFlags_ = 0;
 	timestamp_ = 0;
 	finetime_ = 0;
 	processingID_ = 0;
@@ -462,13 +480,14 @@ std::map<uint, std::vector<uint>> Event::getMissingCreams() {
 
 uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 	/*
-	 * Read the L0 trigger type word and the fine time from the L0TP data
+	 * Read the L0 trigger type word, trigger flags and the fine time from the L0TP data
 	 */
 	if (SourceIDManager::L0TP_ACTIVE) {
 		l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
 		L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
 		setFinetime(L0TPData->refFineTime);
 		setl0TriggerTypeWord(L0TPData->l0TriggerType);
+		setTriggerFlags(L0TPData->l0TriggerFlags);
 		return L0TPData->l0TriggerType;
 	}
 	return 1;
