@@ -36,39 +36,39 @@ void BurstIdHandler::onBurstFinished() {
 //	int NL0ExpectedMEPs = SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	int NCREAMExpectedFragments =
 			SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-	for (uint eventNumber = 0;
-			eventNumber != EventPool::getnumberOfEventsStored() + 1;
-			eventNumber++) {
+	for (uint eventIndex = 0;
+			eventIndex != EventPool::getnumberOfEventsStored() + 1;
+			eventIndex++) {
 
-		if (EventPool::getL0PacketCounter()[eventNumber] != 0
-				&& EventPool::getL0PacketCounter()[eventNumber]
+		if (EventPool::getL0PacketCounter()[eventIndex] != 0
+				&& EventPool::getL0PacketCounter()[eventIndex]
 						% NL0ExpectedMEPs != 0
-				|| EventPool::getCREAMPacketCounter()[eventNumber] != 0
-						&& EventPool::getCREAMPacketCounter()[eventNumber]
+				|| EventPool::getCREAMPacketCounter()[eventIndex] != 0
+						&& EventPool::getCREAMPacketCounter()[eventIndex]
 								% NCREAMExpectedFragments != 0) {
 
-			if (EventPool::getL0PacketCounter()[eventNumber] < NL0ExpectedMEPs
-					|| EventPool::getCREAMPacketCounter()[eventNumber]
+			if (EventPool::getL0PacketCounter()[eventIndex] < NL0ExpectedMEPs
+					|| EventPool::getCREAMPacketCounter()[eventIndex]
 							< NCREAMExpectedFragments) {
-				LOG_INFO<< " EventPool Unreconstructed location: " << eventNumber
-				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventNumber] << "/" << NL0ExpectedMEPs
-				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventNumber]<< "/" << NCREAMExpectedFragments << ENDL;
+				LOG_INFO<< " EventPool Unreconstructed location: " << eventIndex << "(" << EventPool::getEventNumber(eventIndex) << ") "
+				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventIndex] << "/" << NL0ExpectedMEPs
+				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventIndex]<< "/" << NCREAMExpectedFragments << ENDL;
 			} else {
-				LOG_INFO<< " EventPool Fail location: " << eventNumber
-				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventNumber] << "/" << NL0ExpectedMEPs
-				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventNumber]<< "/" << NCREAMExpectedFragments << ENDL;
+				LOG_INFO<< " EventPool Fail location: " << eventIndex << "(" << EventPool::getEventNumber(eventIndex) << ") "
+				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventIndex] << "/" << NL0ExpectedMEPs
+				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventIndex]<< "/" << NCREAMExpectedFragments << ENDL;
 			}
 		}
 		//Reset
-		EventPool::getL0PacketCounter()[eventNumber] = 0;
-		EventPool::getCREAMPacketCounter()[eventNumber] = 0;
+		EventPool::getL0PacketCounter()[eventIndex] = 0;
+		EventPool::getCREAMPacketCounter()[eventIndex] = 0;
 	}
 
-	for (uint eventNumber = 0;
-			eventNumber != EventPool::getLargestTouchedEventnumber() + 1;
-			eventNumber++) {
+	for (uint eventIndex = 0;
+			eventIndex != EventPool::getLargestEventIndexTouched() + 1;
+			eventIndex++) {
 
-		Event* event = EventPool::getEvent(eventNumber);
+		Event* event = EventPool::getEventByIdx(eventIndex);
 //		for (auto& sourceIDSubIds : event->getReceivedSourceIDsSourceSubIds()) {
 //			LOG_INFO<< " +++++++++++MAP.first " << SourceIDManager::sourceIdToDetectorName(sourceIDSubIds.first) << ":" << ENDL;
 //			for (auto& subId : sourceIDSubIds.second) {
@@ -127,6 +127,7 @@ void BurstIdHandler::onBurstFinished() {
 			EventPool::freeEvent(event);
 		}
 	}
+	EventPool::resetLargestEventIndexTouched();
 }
 
 } /* namespace na62 */
