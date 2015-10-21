@@ -11,26 +11,37 @@
 #include <sys/types.h>
 #include <cstdint>
 #include <vector>
+#include <atomic>
 
 namespace na62 {
 class Event;
-
 class EventPool {
 private:
 	static std::vector<Event*> events_;
-	static uint32_t numberOfEventsStored_;
+	static uint_fast32_t poolSize_;
 
+	static std::atomic<uint16_t>* L0PacketCounter_;
+	static std::atomic<uint16_t>* CREAMPacketCounter_;
 	/*
 	 * Largest eventnumber that was passed to GetEvent
 	 */
-	static uint32_t largestEventNumberTouched_;
+	static uint_fast32_t largestEventNumberTouched_;
 public:
 	static void initialize(uint numberOfEventsToBeStored);
-	static Event* getEvent(uint32_t eventNumber);
+	static Event* getEvent(uint_fast32_t eventNumber);
 	static void freeEvent(Event* event);
 
-	static uint32_t getLargestTouchedEventnumber(){
+	static uint_fast32_t getLargestTouchedEventnumber(){
 		return largestEventNumberTouched_;
+	}
+	static uint_fast32_t getPoolSize(){
+			return poolSize_;
+	}
+	static std::atomic<uint16_t>* getL0PacketCounter(){
+		return L0PacketCounter_;
+	}
+	static std::atomic<uint16_t>* getCREAMPacketCounter(){
+		return CREAMPacketCounter_;
 	}
 };
 

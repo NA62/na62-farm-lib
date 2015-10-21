@@ -7,19 +7,17 @@
 
 #include "EventSerializer.h"
 
-#include <sys/types.h>
-#include <atomic>
 #include <cstring>
 
+#include "../eventBuilding/Event.h"
+#include "../eventBuilding/SourceIDManager.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
 #include "../LKr/LkrFragment.h"
 #include "../structs/Event.h"
-#include "Event.h"
-#include "SourceIDManager.h"
+#include "../structs/Versions.h"
 
 namespace na62 {
-
 
 uint EventSerializer::InitialEventBufferSize_;
 int EventSerializer::TotalNumberOfDetectors_;
@@ -58,10 +56,10 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
-	struct EVENT_HDR* header = (struct EVENT_HDR*) eventBuffer;
+	EVENT_HDR* header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
 
 	header->eventNum = event->getEventNumber();
-	header->format = 0x62; // TODO: update current format
+	header->formatVersion = EVENT_HDR_FORMAT_VERSION; // TODO: update current format
 	// header->length will be written later on
 	header->burstID = event->getBurstID();
 	header->timestamp = event->getTimestamp();
@@ -74,13 +72,16 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	header->SOBtimestamp = 0; // Will be set by the merger
 
 	uint sizeOfPointerTable = 4 * TotalNumberOfDetectors_;
-	uint pointerTableOffset = sizeof(struct EVENT_HDR);
-	uint eventOffset = sizeof(struct EVENT_HDR) + sizeOfPointerTable;
+	uint pointerTableOffset = sizeof(EVENT_HDR);
+	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
 
+	/*
+	 * Write all L0 data sources
+	 */
 	for (int sourceNum = 0;
 			sourceNum != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
 			sourceNum++) {
-		l0::Subevent* subevent = event->getL0SubeventBySourceIDNum(sourceNum);
+		const l0::Subevent* const subevent = event->getL0SubeventBySourceIDNum(sourceNum);
 
 		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
@@ -89,7 +90,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		}
 
 		/*
-		 * Put the sub-detector  into the pointer table
+		 * Put the sub-detector into the pointer table
 		 */
 		uint eventOffset32 = eventOffset / 4;
 		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
@@ -98,27 +99,27 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		pointerTableOffset += 4;
 
 		/*
-		 * Write the L0 data
+		 * Write all fragments
 		 */
 		int payloadLength;
 		for (uint i = 0; i != subevent->getNumberOfFragments(); i++) {
-			l0::MEPFragment* fragment = subevent->getFragment(i);
-			payloadLength = fragment->getPayloadLength() + sizeof(struct L0_BLOCK_HDR);
+			const l0::MEPFragment* const fragment = subevent->getFragment(i);
+			payloadLength = fragment->getPayloadLength() + sizeof(L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
 						eventBufferSize + payloadLength);
 				eventBufferSize += payloadLength;
 			}
 
-			struct L0_BLOCK_HDR* blockHdr = (struct L0_BLOCK_HDR*) (eventBuffer
+			L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
 					+ eventOffset);
 			blockHdr->dataBlockSize = payloadLength;
 			blockHdr->sourceSubID = fragment->getSourceSubID();
 			blockHdr->reserved = 0;
 
-			memcpy(eventBuffer + eventOffset + sizeof(struct L0_BLOCK_HDR),
+			memcpy(eventBuffer + eventOffset + sizeof(L0_BLOCK_HDR),
 					fragment->getPayload(),
-					payloadLength - sizeof(struct L0_BLOCK_HDR));
+					payloadLength - sizeof(L0_BLOCK_HDR));
 			eventOffset += payloadLength;
 
 			/*
@@ -129,6 +130,10 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 				eventOffset += eventOffset % 4;
 			}
 		}
+
+		/*
+		 * Write Timestamps of all sources in the L0TP data
+		 */
 	}
 
 	/*
@@ -168,7 +173,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	/*
 	 * header may have been overwritten -> redefine it
 	 */
-	header = (struct EVENT_HDR*) eventBuffer;
+	header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
 
 	header->length = eventLength / 4;
 

@@ -19,26 +19,26 @@
 #include "../options/Logging.h"
 
 namespace na62 {
-uint_fast8_t SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; // Must be greater than 1!!!
-uint_fast8_t * SourceIDManager::L0_DATA_SOURCE_IDS; // All sourceIDs participating in L1 (not the CREAM 0x24)
-uint_fast8_t * SourceIDManager::L0_DATA_SOURCE_ID_TO_NUM;
-uint_fast8_t SourceIDManager::LARGEST_L0_DATA_SOURCE_ID;
+uint_fast8_t SourceIDManager::NUMBER_OF_L0_DATA_SOURCES = 0; // Must be greater than 1!!!
+uint_fast8_t * SourceIDManager::L0_DATA_SOURCE_IDS = 0; // All sourceIDs participating in L1 (not the CREAM 0x24)
+uint_fast8_t * SourceIDManager::L0_DATA_SOURCE_ID_TO_NUM = 0;
+uint_fast8_t SourceIDManager::LARGEST_L0_DATA_SOURCE_ID = 0;
 
-uint_fast16_t * SourceIDManager::L0_DATA_SOURCE_ID_TO_PACKNUM; // Expected packets per sourceID
-uint_fast16_t * SourceIDManager::L0_DATA_SOURCE_NUM_TO_PACKNUM;
-uint_fast16_t SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT; // The sum of all DATA_SOURCE_ID_TO_PACKNUM entries
+uint_fast16_t * SourceIDManager::L0_DATA_SOURCE_ID_TO_PACKNUM = 0; // Expected packets per sourceID
+uint_fast16_t * SourceIDManager::L0_DATA_SOURCE_NUM_TO_PACKNUM = 0;
+uint_fast16_t SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT = 0; // The sum of all DATA_SOURCE_ID_TO_PACKNUM entries
 
 /*
  * CREAM (LKr and MUV1/2)
  */
-uint_fast16_t SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-uint_fast16_t** SourceIDManager::CRATE_AND_CREAM_IDS_TO_LOCAL_ID;
+uint_fast16_t SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT = 0;
+uint_fast16_t** SourceIDManager::CRATE_AND_CREAM_IDS_TO_LOCAL_ID = 0;
 std::pair<uint_fast16_t, uint_fast16_t>* SourceIDManager::LOCAL_ID_TO_CRATE_AND_CREAM_IDS;
 std::map<uint_fast16_t, std::vector<uint_fast16_t>> SourceIDManager::CREAM_IDS_BY_CRATE;
 
 uint SourceIDManager::LARGEST_CREAM_CRATE = 0;
 uint64_t SourceIDManager::ENABLED_CREAM_CRATES_LUT = 0;
-uint32_t* SourceIDManager::ENABLED_CREAMS_BY_CRATE_LUT;
+uint_fast32_t* SourceIDManager::ENABLED_CREAMS_BY_CRATE_LUT = 0;
 
 /*
  * LKr
@@ -67,7 +67,8 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 	NUMBER_OF_L0_DATA_SOURCES = sourceIDs.size();
 
 	L0_DATA_SOURCE_IDS = new uint_fast8_t[NUMBER_OF_L0_DATA_SOURCES];
-	L0_DATA_SOURCE_NUM_TO_PACKNUM = new uint_fast16_t[NUMBER_OF_L0_DATA_SOURCES];
+	L0_DATA_SOURCE_NUM_TO_PACKNUM =
+			new uint_fast16_t[NUMBER_OF_L0_DATA_SOURCES];
 
 	bool CreamsActive = false;
 
@@ -93,7 +94,8 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 	}
 
 	L0_DATA_SOURCE_ID_TO_NUM = new uint_fast8_t[LARGEST_L0_DATA_SOURCE_ID + 1];
-	L0_DATA_SOURCE_ID_TO_PACKNUM = new uint_fast16_t[LARGEST_L0_DATA_SOURCE_ID + 1];
+	L0_DATA_SOURCE_ID_TO_PACKNUM = new uint_fast16_t[LARGEST_L0_DATA_SOURCE_ID
+			+ 1];
 
 	memset(L0_DATA_SOURCE_ID_TO_NUM, 0xFF, LARGEST_L0_DATA_SOURCE_ID + 1);
 
@@ -135,8 +137,8 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 
 		NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS =
 				NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-		LOCAL_ID_TO_CRATE_AND_CREAM_IDS =
-				new std::pair<uint_fast16_t, uint_fast16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
+		LOCAL_ID_TO_CRATE_AND_CREAM_IDS = new std::pair<uint_fast16_t,
+				uint_fast16_t>[NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
 
 		/*
 		 * Sort by crateID to make sure that the order is LKr->MUV1->MUV2
@@ -180,8 +182,8 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 		/*
 		 * Write the lookup table for crate+creamID to local cream ID
 		 */
-		CRATE_AND_CREAM_IDS_TO_LOCAL_ID =
-				new uint_fast16_t*[LARGEST_CREAM_CRATE + 1];
+		CRATE_AND_CREAM_IDS_TO_LOCAL_ID = new uint_fast16_t*[LARGEST_CREAM_CRATE
+				+ 1];
 		for (uint i = 0; i != LARGEST_CREAM_CRATE + 1; i++) {
 			CRATE_AND_CREAM_IDS_TO_LOCAL_ID[i] = nullptr;
 		}
@@ -215,7 +217,8 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 		 * Write the lookup table for the enabled creams/crates
 		 * For every crate set the bit at creamID of ENABLED_CREAMS_BY_CRATE_LUT[crateID] to 1
 		 */
-		ENABLED_CREAMS_BY_CRATE_LUT = new uint32_t[LARGEST_CREAM_CRATE + 1];
+		ENABLED_CREAMS_BY_CRATE_LUT =
+				new uint_fast32_t[LARGEST_CREAM_CRATE + 1];
 		memset(ENABLED_CREAMS_BY_CRATE_LUT, 0,
 				(LARGEST_CREAM_CRATE + 1)
 						* sizeof(ENABLED_CREAMS_BY_CRATE_LUT[0]));
@@ -235,11 +238,9 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 
 		MUV_CREAM_CRATE = muvCrate;
 		if (muvCrate >= 0) {
-			MUV2_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muvCrate].size();
-			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS -= MUV2_NUMBER_OF_FRAGMENTS;
-			/*
-			 * TODO: Impelment the separation of MUV1/MUV2
-			 */
+			MUV1_NUMBER_OF_FRAGMENTS = CREAM_IDS_BY_CRATE[muvCrate].size();
+			NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS -= MUV1_NUMBER_OF_FRAGMENTS;
+
 			if (allCratesVector[allCratesVector.size() - 1] != muvCrate) {
 				throw NA62Error(
 						"The MUV crate ID must be the largest crateID available which is "
@@ -247,6 +248,12 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 										allCratesVector[allCratesVector.size()
 												- 1]));
 			}
+			uint minMUV2CreamID = 13;
+			for (auto cID : CREAM_IDS_BY_CRATE[muvCrate]) {
+				if (cID >= minMUV2CreamID)
+					MUV2_NUMBER_OF_FRAGMENTS++;
+			}
+			MUV1_NUMBER_OF_FRAGMENTS -= MUV2_NUMBER_OF_FRAGMENTS;
 		}
 
 		std::stringstream sstream;
@@ -278,26 +285,47 @@ bool SourceIDManager::checkL0SourceID(const uint_fast8_t sourceID) {
 	if (sourceID > LARGEST_L0_DATA_SOURCE_ID) {
 		return false;
 	}
-	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != (uint_fast8_t)0xFF;
+	return L0_DATA_SOURCE_ID_TO_NUM[sourceID] != (uint_fast8_t) 0xFF;
 }
 
-std::string SourceIDManager::sourceIdToDetectorName(uint_fast8_t sourceID){
+std::string SourceIDManager::sourceIdToDetectorName(uint_fast8_t sourceID) {
 	switch (sourceID) {
-		case SOURCE_ID_CEDAR: return "CEDAR";
-		case SOURCE_ID_GTK: return "GTK";
-		case SOURCE_ID_CHANTI: return "CHANTI";
-		case SOURCE_ID_LAV: return "LAV";
-		case SOURCE_ID_STRAW: return "STRAW";
-		case SOURCE_ID_CHOD: return "CHOD";
-		case SOURCE_ID_RICH: return "RICH";
-		case SOURCE_ID_IRC: return "IRC";
-		case SOURCE_ID_LKr: return "LKR";
-		case SOURCE_ID_MUV1: return "MUV1";
-		case SOURCE_ID_MUV2: return "MUV2";
-		case SOURCE_ID_MUV3: return "MUV3";
-		case SOURCE_ID_SAC: return "SAC";
-		case SOURCE_ID_L0TP: return "L0TP";
-		default: return "UNKNOWN SOURCE ID!";
+	case SOURCE_ID_CEDAR:
+		return "CEDAR";
+	case SOURCE_ID_GTK:
+		return "GTK";
+	case SOURCE_ID_CHANTI:
+		return "CHANTI";
+	case SOURCE_ID_LAV:
+		return "LAV";
+	case SOURCE_ID_STRAW:
+		return "STRAW";
+	case SOURCE_ID_CHOD:
+		return "CHOD";
+	case SOURCE_ID_RICH:
+		return "RICH";
+	case SOURCE_ID_IRC:
+		return "IRC";
+	case SOURCE_ID_LKr:
+		return "LKR";
+	case SOURCE_ID_MUV1:
+		return "MUV1";
+	case SOURCE_ID_MUV2:
+		return "MUV2";
+	case SOURCE_ID_MUV3:
+		return "MUV3";
+	case SOURCE_ID_SAC:
+		return "SAC";
+	case SOURCE_ID_L0TP:
+		return "L0TP";
+	case SOURCE_ID_L1:
+		return "L1";
+	case SOURCE_ID_L2:
+		return "L2";
+	case SOURCE_ID_NSTD:
+		return "NSTD";
+	default:
+		return "UNKNOWN SOURCE ID!";
 	}
 }
 

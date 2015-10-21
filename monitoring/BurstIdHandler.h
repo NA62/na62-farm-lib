@@ -19,20 +19,27 @@ namespace na62 {
 
 class BurstIdHandler {
 public:
-	BurstIdHandler();
-	virtual ~BurstIdHandler();
 
-	static void setNextBurstID(uint32_t nextBurstID) {
+	static void setNextBurstID(uint_fast32_t nextBurstID) {
 		nextBurstId_ = nextBurstID;
 		EOBReceivedTimer_.start();
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
+		resetCounter_=true;
 	}
 
-	static uint32_t getCurrentBurstId() {
+	static void setResetCounters(bool reset) {
+		resetCounter_ = reset;
+	}
+
+	static bool getResetCounters(){
+		return resetCounter_;
+	}
+
+	static uint_fast32_t getCurrentBurstId() {
 		return currentBurstID_;
 	}
 
-	static uint32_t getNextBurstId() {
+	static uint_fast32_t getNextBurstId() {
 		return nextBurstId_;
 	}
 
@@ -59,6 +66,7 @@ public:
 	static void checkBurstFinished() {
 		if (!isInBurst() && lastFinishedBurst_ != currentBurstID_) {
 			if (burstFinishedMutex_.try_lock()) {
+				sleep(2);
 				onBurstFinished();
 				lastFinishedBurst_ = currentBurstID_;
 				burstFinishedMutex_.unlock();
@@ -84,6 +92,7 @@ private:
 	static uint currentBurstID_;
 	static uint lastFinishedBurst_;
 	static std::mutex burstFinishedMutex_;
+	static bool resetCounter_;
 };
 
 }

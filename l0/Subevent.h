@@ -58,7 +58,7 @@ public:
 	 * Returns all fragments of this Subevent
 	 * @return A pointer to an array of all received MEPFragment pointers
 	 */
-	inline MEPFragment ** getEventFragments() {
+	inline MEPFragment ** getEventFragments() const {
 		return eventFragments;
 	}
 
@@ -70,14 +70,14 @@ public:
 	 * 						than  getNumberOfParts()
 	 * @return The Nth fragment received
 	 */
-	inline MEPFragment* getFragment(uint_fast16_t eventPartNumber) {
+	inline MEPFragment* getFragment(uint_fast16_t eventPartNumber) const {
 		return eventFragments[eventPartNumber];
 	}
 
 	/**
 	 * Returns all missing source sub IDs. This only works correctly if the enabled sub IDs are consecutive numbers from 0 to ExpectedPacketsNum-1
 	 */
-	inline std::vector<uint> getMissingSourceSubIds() {
+	inline std::vector<uint> getMissingSourceSubIds() const {
 		std::vector<uint> missingSubIDs;
 
 		std::set<uint> receivedSubIDs;
@@ -86,7 +86,7 @@ public:
 		}
 
 		// Check which subIDs are missing
-		for (uint i = 0; i != ExpectedPacketsNum; i++) {
+		for (uint i = 0; i != expectedPacketsNum; i++) {
 			if (receivedSubIDs.find(i) == receivedSubIDs.end()) {
 				missingSubIDs.push_back(i);
 			}
@@ -100,12 +100,16 @@ public:
 	 *
 	 * @return The number of subevent fragments received
 	 */
-	inline uint_fast16_t getNumberOfFragments() {
+	inline uint_fast16_t getNumberOfFragments() const {
 		return fragmentCounter;
 	}
 
+	uint_fast16_t getNumberOfExpectedFragments() const {
+		return expectedPacketsNum;
+	}
+
 private:
-	const uint_fast16_t ExpectedPacketsNum;
+	const uint_fast16_t expectedPacketsNum;
 	MEPFragment ** eventFragments;
 	std::atomic<uint_fast16_t> fragmentCounter;
 };

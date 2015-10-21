@@ -23,10 +23,10 @@ class MEP;
  * char* data = MEPFragmentHdr_ptr+sizeof(MEPFragment_HDR);
  */
 struct MEPFragment_HDR {
-	uint_fast16_t eventLength_; // Number of bytes of the following event data,	including this header.
-	uint_fast8_t eventNumberLSB_;
-	uint_fast8_t reserved_ :7;
-	uint_fast8_t lastEventOfBurst_ :1; // don't take bool as it will allocate 8 bits!
+	uint16_t eventLength_; // Number of bytes of the following event data,	including this header.
+	uint8_t eventNumberLSB_;
+	uint8_t reserved_ :7;
+	uint8_t lastEventOfBurst_ :1; // don't take bool as it will allocate 8 bits!
 
 	uint32_t timestamp_;
 }__attribute__ ((__packed__));
@@ -34,7 +34,7 @@ struct MEPFragment_HDR {
 class MEPFragment: private boost::noncopyable {
 public:
 	MEPFragment(MEP* mep, const MEPFragment_HDR * data,
-			uint32_t& expectedEventNum);
+			uint_fast32_t& expectedEventNum);
 	virtual ~MEPFragment();
 
 	/**
@@ -51,7 +51,7 @@ public:
 		return rawData->eventLength_ - sizeof(MEPFragment_HDR);
 	}
 
-	inline uint32_t getTimestamp() const {
+	inline uint_fast32_t getTimestamp() const {
 		return rawData->timestamp_;
 	}
 
@@ -62,7 +62,7 @@ public:
 	/**
 	 * Absolute event number (MSB & LSB)
 	 */
-	inline uint32_t getEventNumber() const {
+	inline uint_fast32_t getEventNumber() const {
 		return eventNumber_;
 	}
 
@@ -84,7 +84,7 @@ public:
 	 * Returns a pointer to the MEP-Buffer at the position where the payload data of this event starts (excluding the MEPFragment_HDR).
 	 * From there on you should read only getPayloadLength() bytes!
 	 */
-	inline char* getPayload() const {
+	inline const char* getPayload() const {
 		return ((char*) rawData) + sizeof(MEPFragment_HDR);
 	}
 
@@ -93,9 +93,9 @@ public:
 	}
 private:
 	MEP* mep_;
-	const struct MEPFragment_HDR * rawData;
+	const MEPFragment_HDR * rawData;
 
-	const uint32_t eventNumber_;
+	const uint_fast32_t eventNumber_;
 };
 
 } /* namespace l0 */
