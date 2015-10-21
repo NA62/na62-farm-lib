@@ -93,9 +93,14 @@ void BurstIdHandler::onBurstFinished() {
 					0);
 
 			dump << "Unfinished event " << event->getEventNumber()
-					<< " burstID " << (uint) getCurrentBurstId() << " with TS "
-					<< std::hex << tsFragment->getTimestamp()
-					<< " and Trigword ";
+					<< " burstID " << (uint) getCurrentBurstId() << " with TS ";
+			if (tsFragment) {
+				dump << std::hex << tsFragment->getTimestamp();
+			} else {
+				dump << "unknown";
+			}
+
+			dump << " and Trigword ";
 
 			if (L0TPEvent) {
 				L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();

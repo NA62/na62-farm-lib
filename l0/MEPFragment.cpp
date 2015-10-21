@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "../options/Logging.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "MEP.h"  // forward declaration
 //#include "../options/Logging.h"
@@ -30,25 +31,26 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 	 * increase by one, possibly wrapping around to zero (in which case the upper 8 bits of the event
 	 * number are those in the MEP header incremented by one).
 	 */
-//	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)
-//			|| ((!(expectedEventNum % 3125)) && (expectedEventNum > 50))) {
-//		LOG_INFO<<"++++++++++++++MEP SourceID " << (uint)(mep->getSourceID()) << ENDL;
-//		LOG_INFO <<"++++++++++++++MEP SourceSubID " << (uint)(mep->getSourceIDNum()) << ENDL;
-//		LOG_INFO <<"++++++++++++++MEP Length " << (uint)(mep->getLength()) << ENDL;
-//		LOG_INFO <<"++++++++++++++MEP FirstEvtNum " << (uint)(mep->getFirstEventNum()) << ENDL;
-//		LOG_INFO <<"++++++++++++++MEP mepFactor " << (uint)(mep->getNumberOfFragments()) << ENDL;
-//		LOG_INFO <<"++++++++++++++MEP RawData " << (mep->getRawData()) << ENDL;
-//		LOG_INFO <<"++++++++++++++ExpEvtNum " << (uint)expectedEventNum << ENDL;
-//
-//		int* d=(int*)data;
-//		for (int ilength = 0; ilength < sizeof(MEPFragment_HDR)/4;
-//				ilength++) {
-//			LOG_INFO<< "++++++++++++MEP fragment (sizeof(MEPFragment_HDR)) " << (int)(sizeof(MEPFragment_HDR))
-//			<< " index " << (int) ilength
-//			<< " data " << std::hex << *d << std::dec << ENDL;
-//			d++;
-//		}
-//	}
+	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)
+        ){
+			//			|| ((!(expectedEventNum % 3125)) && (expectedEventNum > 50))) {
+		LOG_INFO <<"++++++++++++++MEP SourceID " << (uint)(mep->getSourceID()) << ENDL;
+		LOG_INFO <<"++++++++++++++MEP SourceSubID " << (uint)(mep->getSourceIDNum()) << ENDL;
+		LOG_INFO <<"++++++++++++++MEP Length " << (uint)(mep->getLength()) << ENDL;
+		LOG_INFO <<"++++++++++++++MEP FirstEvtNum " << (uint)(mep->getFirstEventNum()) << ENDL;
+		LOG_INFO <<"++++++++++++++MEP mepFactor " << (uint)(mep->getNumberOfFragments()) << ENDL;
+		LOG_INFO <<"++++++++++++++MEP RawData " << (mep->getRawData()) << ENDL;
+		LOG_INFO <<"++++++++++++++ExpEvtNum " << (uint)expectedEventNum << ENDL;
+
+		int* d=(int*)data;
+		for (int ilength = 0; ilength < sizeof(MEPFragment_HDR)/4;
+				ilength++) {
+			LOG_INFO<< "++++++++++++MEP fragment (sizeof(MEPFragment_HDR)) " << (int)(sizeof(MEPFragment_HDR))
+			<< " index " << (int) ilength
+			<< " data " << std::hex << *d << std::dec << ENDL;
+			d++;
+		}
+	}
 	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)) {
 		throw BrokenPacketReceivedError(
 				"MEPFragment with bad event number LSB received: received "
