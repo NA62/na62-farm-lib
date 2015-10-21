@@ -32,7 +32,8 @@ bool BurstIdHandler::resetCounter_ = false;
 void BurstIdHandler::onBurstFinished() {
 	int maxNumOfPrintouts = 100;
 
-	int NL0ExpectedMEPs = SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT - 3; //L1-L2-NSTD packets
+	int NL0ExpectedMEPs =
+			SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT - 3; //L1-L2-NSTD packets
 //	int NL0ExpectedMEPs = SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	int NCREAMExpectedFragments =
 			SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
@@ -90,13 +91,20 @@ void BurstIdHandler::onBurstFinished() {
 
 			l0::MEPFragment* L0TPEvent = event->getL0TPSubevent()->getFragment(
 					0);
-			L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
 
 			dump << "Unfinished event " << event->getEventNumber()
 					<< " burstID " << (uint) getCurrentBurstId() << " with TS "
 					<< std::hex << tsFragment->getTimestamp()
-					<< " and Trigword " << (uint) L0TPData->l0TriggerType
-					<< std::dec << ": " << std::endl;
+					<< " and Trigword ";
+
+			if (L0TPEvent) {
+				L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
+				dump << (uint) L0TPData->l0TriggerType;
+			} else {
+				dump << "unknown";
+			}
+
+			dump << std::dec << ": " << std::endl;
 
 			dump << "\tMissing L0: " << std::endl;
 			for (auto& sourceIDAndSubIds : event->getMissingSourceIDs()) {
