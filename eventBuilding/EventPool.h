@@ -18,7 +18,7 @@ class Event;
 class EventPool {
 private:
 	static std::vector<Event*> events_;
-	static uint_fast32_t numberOfEventsStored_;
+	static uint_fast32_t poolSize_;
 
 	static std::atomic<uint16_t>* L0PacketCounter_;
 	static std::atomic<uint16_t>* CREAMPacketCounter_;
@@ -34,8 +34,8 @@ public:
 	static uint_fast32_t getLargestTouchedEventnumber(){
 		return largestEventNumberTouched_;
 	}
-	static uint_fast32_t getnumberOfEventsStored(){
-			return numberOfEventsStored_;
+	static uint_fast32_t getPoolSize(){
+			return poolSize_;
 	}
 	static std::atomic<uint16_t>* getL0PacketCounter(){
 		return L0PacketCounter_;

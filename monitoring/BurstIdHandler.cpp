@@ -36,33 +36,33 @@ void BurstIdHandler::onBurstFinished() {
 //	int NL0ExpectedMEPs = SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	int NCREAMExpectedFragments =
 			SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-	for (uint eventNumber = 0;
-			eventNumber != EventPool::getnumberOfEventsStored() + 1;
-			eventNumber++) {
-
-		if (EventPool::getL0PacketCounter()[eventNumber] != 0
-				&& EventPool::getL0PacketCounter()[eventNumber]
-						% NL0ExpectedMEPs != 0
-				|| EventPool::getCREAMPacketCounter()[eventNumber] != 0
-						&& EventPool::getCREAMPacketCounter()[eventNumber]
-								% NCREAMExpectedFragments != 0) {
-
-			if (EventPool::getL0PacketCounter()[eventNumber] < NL0ExpectedMEPs
-					|| EventPool::getCREAMPacketCounter()[eventNumber]
-							< NCREAMExpectedFragments) {
-				LOG_INFO<< " EventPool Unreconstructed location: " << eventNumber
-				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventNumber] << "/" << NL0ExpectedMEPs
-				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventNumber]<< "/" << NCREAMExpectedFragments << ENDL;
-			} else {
-				LOG_INFO<< " EventPool Fail location: " << eventNumber
-				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventNumber] << "/" << NL0ExpectedMEPs
-				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventNumber]<< "/" << NCREAMExpectedFragments << ENDL;
-			}
-		}
-		//Reset
-		EventPool::getL0PacketCounter()[eventNumber] = 0;
-		EventPool::getCREAMPacketCounter()[eventNumber] = 0;
-	}
+//	for (uint eventNumber = 0;
+//			eventNumber != EventPool::getPoolSize() + 1;
+//			eventNumber++) {
+//
+//		if (EventPool::getL0PacketCounter()[eventNumber] != 0
+//				&& EventPool::getL0PacketCounter()[eventNumber]
+//						% NL0ExpectedMEPs != 0
+//				|| EventPool::getCREAMPacketCounter()[eventNumber] != 0
+//						&& EventPool::getCREAMPacketCounter()[eventNumber]
+//								% NCREAMExpectedFragments != 0) {
+//
+//			if (EventPool::getL0PacketCounter()[eventNumber] < NL0ExpectedMEPs
+//					|| EventPool::getCREAMPacketCounter()[eventNumber]
+//							< NCREAMExpectedFragments) {
+//				LOG_INFO<< " EventPool Unreconstructed location: " << eventNumber
+//				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventNumber] << "/" << NL0ExpectedMEPs
+//				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventNumber]<< "/" << NCREAMExpectedFragments << ENDL;
+//			} else {
+//				LOG_INFO<< " EventPool Fail location: " << eventNumber
+//				<< " L0 MEPs:" << EventPool::getL0PacketCounter()[eventNumber] << "/" << NL0ExpectedMEPs
+//				<< " CREAM Packets:" << EventPool::getCREAMPacketCounter()[eventNumber]<< "/" << NCREAMExpectedFragments << ENDL;
+//			}
+//		}
+//		//Reset
+//		EventPool::getL0PacketCounter()[eventNumber] = 0;
+//		EventPool::getCREAMPacketCounter()[eventNumber] = 0;
+//	}
 
 	for (uint eventNumber = 0;
 			eventNumber != EventPool::getLargestTouchedEventnumber() + 1;

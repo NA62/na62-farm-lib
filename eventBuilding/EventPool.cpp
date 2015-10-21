@@ -18,17 +18,17 @@
 namespace na62 {
 
 std::vector<Event*> EventPool::events_;
-uint_fast32_t EventPool::numberOfEventsStored_;
+uint_fast32_t EventPool::poolSize_;
 uint_fast32_t EventPool::largestEventNumberTouched_;
 
 std::atomic<uint16_t>* EventPool::L0PacketCounter_;
 std::atomic<uint16_t>* EventPool::CREAMPacketCounter_;
 
 void EventPool::initialize(uint numberOfEventsToBeStored) {
-	numberOfEventsStored_ = numberOfEventsToBeStored;
-	events_.resize(numberOfEventsStored_);
+	poolSize_ = numberOfEventsToBeStored;
+	events_.resize(poolSize_);
 
-	LOG_INFO<< "Initializing EventPool with " << numberOfEventsStored_
+	LOG_INFO<< "Initializing EventPool with " << poolSize_
 	<< " Events" << ENDL;
 
 	/*
@@ -37,8 +37,8 @@ void EventPool::initialize(uint numberOfEventsToBeStored) {
 #ifdef HAVE_TCMALLOC
 	// Do it with parallel_for using tbb if tcmalloc is linked
 	tbb::parallel_for(
-			tbb::blocked_range<uint_fast32_t>(0, numberOfEventsStored_,
-					numberOfEventsStored_
+			tbb::blocked_range<uint_fast32_t>(0, poolSize_,
+					poolSize_
 							/ std::thread::hardware_concurrency()),
 			[](const tbb::blocked_range<uint_fast32_t>& r) {
 				for(size_t eventNumber=r.begin();eventNumber!=r.end(); ++eventNumber) {
@@ -47,17 +47,17 @@ void EventPool::initialize(uint numberOfEventsToBeStored) {
 			});
 # else
 	// The standard malloc blocks-> do it singlethreaded without tcmalloc
-	for (uint_fast32_t eventNumber = 0; eventNumber != numberOfEventsStored_;
+	for (uint_fast32_t eventNumber = 0; eventNumber != poolSize_;
 			++eventNumber) {
 		events_[eventNumber] = new Event(eventNumber);
 	}
 #endif
-	L0PacketCounter_= new std::atomic<uint16_t>[numberOfEventsStored_];
-	CREAMPacketCounter_= new std::atomic<uint16_t>[numberOfEventsStored_];
+	L0PacketCounter_= new std::atomic<uint16_t>[poolSize_];
+	CREAMPacketCounter_= new std::atomic<uint16_t>[poolSize_];
 }
 
 Event* EventPool::getEvent(uint_fast32_t eventNumber) {
-	if (eventNumber >= numberOfEventsStored_) {
+	if (eventNumber >= poolSize_) {
 		LOG_ERROR<<"Received Event with event number " << eventNumber
 		<< " which is higher than configured maximum number of events"
 		<< ENDL;
