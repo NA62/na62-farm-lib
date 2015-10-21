@@ -115,7 +115,8 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 					+ eventOffset);
 			blockHdr->dataBlockSize = payloadLength;
 			blockHdr->sourceSubID = fragment->getSourceSubID();
-			blockHdr->reserved = 0;
+			blockHdr->reserved = 0x01;
+			blockHdr->timestamp = fragment->getTimestamp();			
 
 			memcpy(eventBuffer + eventOffset + sizeof(L0_BLOCK_HDR),
 					fragment->getPayload(),
@@ -130,10 +131,6 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 				eventOffset += eventOffset % 4;
 			}
 		}
-
-		/*
-		 * Write Timestamps of all sources in the L0TP data
-		 */
 	}
 
 	/*
