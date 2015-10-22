@@ -7,23 +7,23 @@
 
 #include "Event.h"
 
-#include <cstdbool>
-#include <sstream>
-
-#include "../exceptions/NA62Error.h"
-#include "EventPool.h"
-
+#include <netinet/in.h>
 #include <sys/types.h>
-#include <iostream>
+#include <cstdbool>
+#include <functional>
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
 
-#include "../structs/L0TPHeader.h"
-#include "../utils/DataDumper.h"
+#include "../l0/MEP.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
-#include "../options/Logging.h"
+#include "../structs/L0TPHeader.h"
+#include "../utils/DataDumper.h"
+#include "EventPool.h"
 #include "UnfinishedEventsCollector.h"
+
 namespace na62 {
 bool Event::printMissingSourceIDs_ = true;
 bool Event::writeBrokenCreamInfo_ = false;
@@ -34,14 +34,14 @@ std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
 
 Event::Event(uint_fast32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfCREAMFragments_(
-				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), timestamp_(0), finetime_(
-				0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
+				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), timestamp_(
+				0), finetime_(0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
 		false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(
 		false), unfinished_(false), lastEventOfBurst_(
 		false)
 #ifdef MEASURE_TIME
-, l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
-		0)
+				, l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
+				0)
 #endif
 {
 #ifdef MEASURE_TIME
@@ -162,10 +162,23 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 		/*
 		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
 		 */
-		if (printMissingSourceIDs_) {
-			LOG_ERROR<< "Already received all fragments from sourceID "
-			<< ((int) fragment->getSourceID()) << " sourceSubID " << ((int) fragment->getSourceSubID())
-			<< ENDL;
+
+		if (unfinishedEventMutex_.try_lock()) {
+			/*
+			 * Event not build during last burst -> destroy it!
+			 */
+			if (printMissingSourceIDs_) {
+				LOG_ERROR<< "Already received all fragments from sourceID "
+				<< ((int) fragment->getSourceID()) << " sourceSubID " << ((int) fragment->getSourceSubID())
+				<< ENDL;
+			}
+			EventPool::freeEvent(this);
+			unfinishedEventMutex_.unlock();
+		} else {
+			/*
+			 * If we didn't get the lock: wait for the other thread to free the event
+			 */
+			tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
 		}
 
 		delete fragment;
@@ -176,22 +189,24 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
-	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+	bool result = currentValue
+			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
 //		LOG_INFO<< "l0BuildingTime_ " << l0BuildingTime_ << ENDL;
 //		return true;
-		if(currentValue > SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT)
-			LOG_INFO << "Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << ENDL;
-	}
+		if (currentValue
+				> SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT)
+			LOG_INFO<< "Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << ENDL;
+		}
 	if (result)
 		return true;
 	else
-	    return false;
+		return false;
 #else
 	return currentValue
-			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+	== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 #endif
 }
 
@@ -319,7 +334,7 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 //			}
 				delete fragment;
 				return false;
-			}else{
+			} else {
 				/*
 				 * If we didn't get the lock: wait for the other thread to free the event
 				 */
