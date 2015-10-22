@@ -39,7 +39,6 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 		LOG_INFO <<"++++++++++++++MEP Length " << (uint)(mep->getLength()) << ENDL;
 		LOG_INFO <<"++++++++++++++MEP FirstEvtNum " << (uint)(mep->getFirstEventNum()) << ENDL;
 		LOG_INFO <<"++++++++++++++MEP mepFactor " << (uint)(mep->getNumberOfFragments()) << ENDL;
-		LOG_INFO <<"++++++++++++++MEP RawData " << (mep->getRawData()) << ENDL;
 		LOG_INFO <<"++++++++++++++ExpEvtNum " << (uint)expectedEventNum << ENDL;
 
 		int* d=(int*)data;

@@ -49,8 +49,9 @@ public:
 	/**
 	 * Reads the data coming from L0 and initializes the corresponding fields
 	 */
-	MEP(const char *data, const uint_fast16_t & dataLength, const char *originalData)
-			throw (BrokenPacketReceivedError, UnknownSourceIDFound);
+	MEP(const char *data, const uint_fast16_t & dataLength,
+			const char *originalData) throw (BrokenPacketReceivedError,
+					UnknownSourceIDFound);
 
 	/**
 	 * Frees the data buffer (orignialData) that was created by the Receiver
@@ -59,8 +60,8 @@ public:
 	 */
 	virtual ~MEP();
 
-	void initializeMEPFragments(const char* data, const uint_fast16_t& dataLength)
-			throw (BrokenPacketReceivedError);
+	void initializeMEPFragments(const char* data,
+			const uint_fast16_t& dataLength) throw (BrokenPacketReceivedError);
 
 	/**
 	 * Returns a pointer to the n'th event within this MEP where 0<=n<getFirstEventNum()
@@ -116,6 +117,10 @@ public:
 		return rawData_->sourceSubID;
 	}
 
+	inline MEP_HDR const* getRawMepData() const {
+		return rawData_;
+	}
+
 	/**
 	 * Returns the pointer to the raw UDP frame sotring this MEP
 	 */
@@ -132,7 +137,7 @@ public:
 		 * Decrement eventCount. If we reach 0 we can delete this object as all events have been processed.
 		 */
 
-		return --eventCount_ == 0;
+		return eventCount_.fetch_sub(1) == 1;
 	}
 
 	const char* getRawData() const {
