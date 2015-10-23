@@ -16,7 +16,7 @@ namespace na62 {
 namespace cream {
 
 LkrFragment::LkrFragment(const char *data, const uint_fast16_t& dataLength,
-		const char* etherFrame) throw (NA62Error) :
+		DataContainer etherFrame) throw (NA62Error) :
 		rawData(reinterpret_cast<const struct LKR_EVENT_RAW_HDR*>(data)), data_(
 				data), etherFrame_(etherFrame) {
 	if (rawData->LKRsourceID != 0x24) {
@@ -29,7 +29,7 @@ LkrFragment::LkrFragment(const char *data, const uint_fast16_t& dataLength,
 }
 
 LkrFragment::~LkrFragment() {
-	delete[] etherFrame_;
+	etherFrame_.free();
 }
 
 } /* namespace cream */

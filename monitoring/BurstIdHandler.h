@@ -66,12 +66,18 @@ public:
 	static void checkBurstFinished() {
 		if (!isInBurst() && lastFinishedBurst_ != currentBurstID_) {
 			if (burstFinishedMutex_.try_lock()) {
-				sleep(2);
+				EOBProcessingIsRunning_ = true;
+				usleep(10000);
 				onBurstFinished();
 				lastFinishedBurst_ = currentBurstID_;
+				EOBProcessingIsRunning_ = false;
 				burstFinishedMutex_.unlock();
 			}
 		}
+	}
+
+	static bool isEobProcessingRunning(){
+		return EOBProcessingIsRunning_;
 	}
 
 private:
@@ -81,6 +87,8 @@ private:
 	static void onBurstFinished();
 
 	static boost::timer::cpu_timer EOBReceivedTimer_;
+
+	static bool EOBProcessingIsRunning_;
 
 	/*
 	 * Store the current Burst ID and the next one separately. As soon as an EOB event is
