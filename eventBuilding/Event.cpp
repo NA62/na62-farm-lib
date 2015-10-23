@@ -19,6 +19,7 @@
 #include "../l0/MEP.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
+#include "../structs/DataContainer.h"
 #include "../structs/L0TPHeader.h"
 #include "../utils/DataDumper.h"
 #include "EventPool.h"
@@ -125,11 +126,12 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 	}
 #endif
 
+
 	unfinished_ = true;
 	if (numberOfL0Fragments_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
-	} else {
+		} else {
 		if (burstID != getBurstID()) {
 			if (unfinishedEventMutex_.try_lock()) {
 				/*
@@ -152,7 +154,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			/*
 			 * Add the event after this or another thread has destroyed this event
 			 */
-			return addL0Event(fragment, burstID);
+					return addL0Event(fragment, burstID);
 		}
 	}
 
@@ -180,8 +182,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			 */
 			tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
 		}
-
-		delete fragment;
+			delete fragment;
 		return false;
 	}
 

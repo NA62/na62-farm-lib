@@ -29,6 +29,8 @@ uint BurstIdHandler::lastFinishedBurst_ = -1;
 std::mutex BurstIdHandler::burstFinishedMutex_;
 bool BurstIdHandler::resetCounter_ = false;
 
+bool BurstIdHandler::EOBProcessingIsRunning_ = false;
+
 void BurstIdHandler::onBurstFinished() {
 	int maxNumOfPrintouts = 100;
 

@@ -23,9 +23,9 @@ namespace na62 {
 namespace l0 {
 
 MEP::MEP(const char *data, const uint_fast16_t & dataLength,
-		const char *originalData) throw (BrokenPacketReceivedError,
+		const DataContainer originalData) throw (BrokenPacketReceivedError,
 				UnknownSourceIDFound) :
-		etherFrame_(originalData), rawData_(reinterpret_cast<const MEP_HDR*>(data)), checkSumsVarified_(
+		originalData_(originalData), rawData_(reinterpret_cast<const MEP_HDR*>(data)), checkSumsVarified_(
 		false) {
 
 	fragments_ = new MEPFragment*[rawData_->eventCount];
@@ -62,7 +62,7 @@ MEP::~MEP() {
 		throw NA62Error("Deleting non-empty MEP!!!");
 	}
 	delete[] fragments_;
-	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
+	originalData_.free(); // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
 void MEP::initializeMEPFragments(const char * data,

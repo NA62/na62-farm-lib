@@ -12,7 +12,12 @@
 #include <boost/noncopyable.hpp>
 #include <netinet/in.h>
 #include <cstdint>
-#include "../exceptions/NA62Error.h"
+
+#include "../structs/DataContainer.h"
+
+namespace na62 {
+class NA62Error;
+} /* namespace na62 */
 
 #define __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 
@@ -51,7 +56,7 @@ struct LKR_EVENT_RAW_HDR {
 
 class LkrFragment: boost::noncopyable {
 public:
-	LkrFragment(const char * data, const uint_fast16_t& dataLength, const char* etherFrame) throw (NA62Error);
+	LkrFragment(const char * data, const uint_fast16_t& dataLength, DataContainer etherFrame) throw (NA62Error);
 	virtual ~LkrFragment();
 
 	inline uint_fast32_t getEventLength() const {
@@ -126,7 +131,7 @@ public:
 		return generateCrateCREAMID(getCrateID(), getCREAMID());
 	}
 
-	inline const char* getEtherFrame(){
+	inline DataContainer getRawData(){
 		return etherFrame_;
 	}
 
@@ -143,7 +148,7 @@ private:
 	const LKR_EVENT_RAW_HDR * rawData;
 
 	const char *data_;
-	const char* etherFrame_;
+	DataContainer etherFrame_;
 };
 
 } /* namespace cream */

@@ -16,6 +16,7 @@
 #include "../eventBuilding/SourceIDManager.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
+#include "../structs/DataContainer.h"
 
 namespace na62 {
 class BrokenPacketReceivedError;
@@ -50,7 +51,7 @@ public:
 	 * Reads the data coming from L0 and initializes the corresponding fields
 	 */
 	MEP(const char *data, const uint_fast16_t & dataLength,
-			const char *originalData) throw (BrokenPacketReceivedError,
+			const DataContainer originalData) throw (BrokenPacketReceivedError,
 					UnknownSourceIDFound);
 
 	/**
@@ -125,7 +126,7 @@ public:
 	 * Returns the pointer to the raw UDP frame sotring this MEP
 	 */
 	inline const char* getUDPPack() const {
-		return etherFrame_;
+		return originalData_.data;
 	}
 
 	/**
@@ -140,8 +141,8 @@ public:
 		return eventCount_.fetch_sub(1) == 1;
 	}
 
-	const char* getRawData() const {
-		return etherFrame_;
+	DataContainer getRawData() const {
+		return originalData_;
 	}
 
 //	bool verifyChecksums();
@@ -150,7 +151,7 @@ private:
 	std::atomic<int> eventCount_;
 
 	// The whole Ethernet frame
-	const char* etherFrame_;
+	DataContainer originalData_;
 
 	// Pointer to the payload of the UDP packet
 	const MEP_HDR* const rawData_;
