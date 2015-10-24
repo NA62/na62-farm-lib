@@ -9,9 +9,8 @@
 
 namespace na62 {
 
-DataContainer::DataContainer(char* _data, uint_fast16_t _length,
-		bool _ownerMayFreeData) :
-		data(_data), length(_length), ownerMayFreeData(_ownerMayFreeData) {
+DataContainer::DataContainer(char* _data, uint_fast16_t _length) :
+		data(_data), length(_length) {
 	checksum = GenerateChecksum(_data, _length, 0);
 }
 

@@ -18,15 +18,14 @@ namespace na62 {
 struct DataContainer {
 	char * data;
 	uint_fast16_t length;
-	bool ownerMayFreeData;
 
 	uint16_t checksum;
 
 	DataContainer() :
-			data(nullptr), length(0), ownerMayFreeData(false), checksum(0) {
+			data(nullptr), length(0), checksum(0) {
 	}
 
-	DataContainer(char* _data, uint_fast16_t _length, bool _ownerMayFreeData);
+	DataContainer(char* _data, uint_fast16_t _length);
 
 	~DataContainer() {
 	}
@@ -35,16 +34,14 @@ struct DataContainer {
 	 * Copy constructor
 	 */
 	DataContainer(const DataContainer& other) :
-			data(other.data), length(std::move(other.length)), ownerMayFreeData(
-					other.ownerMayFreeData), checksum(other.checksum) {
+			data(other.data), length(std::move(other.length)), checksum(other.checksum) {
 	}
 
 	/**
 	 * Copy constructor
 	 */
 	DataContainer(const DataContainer&& other) :
-			data(other.data), length(other.length), ownerMayFreeData(
-					other.ownerMayFreeData), checksum(other.checksum) {
+			data(other.data), length(other.length), checksum(other.checksum) {
 	}
 
 	/**
@@ -54,7 +51,6 @@ struct DataContainer {
 		if (&other != this) {
 			data = other.data;
 			length = other.length;
-			ownerMayFreeData = other.ownerMayFreeData;
 			checksum = other.checksum;
 
 			other.data = nullptr;
@@ -70,7 +66,6 @@ struct DataContainer {
 		if (&other != this) {
 			data = other.data;
 			length = other.length;
-			ownerMayFreeData = other.ownerMayFreeData;
 			checksum = other.checksum;
 		}
 		return *this;
