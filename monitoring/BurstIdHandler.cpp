@@ -80,65 +80,75 @@ void BurstIdHandler::onBurstFinished() {
 //			LOG_INFO << ENDL;
 //		}
 		if (event->isUnfinished()) {
-			if (maxNumOfPrintouts-- == 0) {
-				break;
-			}
+			if (maxNumOfPrintouts-- != 0) {
 
-			std::stringstream dump;
-			/*
-			 * Print the global event timestamp and trigger word taken from the reference detector
-			 */
-			l0::MEPFragment* tsFragment = event->getL0SubeventBySourceIDNum(
-					SourceIDManager::TS_SOURCEID_NUM)->getFragment(0);
-
-			l0::MEPFragment* L0TPEvent = event->getL0TPSubevent()->getFragment(
-					0);
-
-			dump << "Unfinished event " << event->getEventNumber()
-					<< " burstID " << (uint) getCurrentBurstId() << " with TS ";
-			if (tsFragment) {
-				dump << std::hex << tsFragment->getTimestamp();
-			} else {
-				dump << "unknown";
-			}
-
-			dump << " and Trigword ";
-
-			if (L0TPEvent) {
-				L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
-				dump << (uint) L0TPData->l0TriggerType;
-			} else {
-				dump << "unknown";
-			}
-
-			dump << std::dec << ": " << std::endl;
-
-			dump << "\tMissing L0: " << std::endl;
-			for (auto& sourceIDAndSubIds : event->getMissingSourceIDs()) {
-				dump << "\t"
-						<< SourceIDManager::sourceIdToDetectorName(
-								sourceIDAndSubIds.first) << ":" << std::endl;
-
-				for (auto& subID : sourceIDAndSubIds.second) {
-					dump << "\t" << subID << ", ";
+				std::stringstream dump;
+				/*
+				 * Print the global event timestamp and trigger word taken from the reference detector
+				 */
+				l0::MEPFragment* tsFragment = nullptr;
+				auto tsSubevent = event->getL0SubeventBySourceIDNum(
+						SourceIDManager::TS_SOURCEID_NUM);
+				if (tsSubevent->getNumberOfFragments()) {
+					tsFragment = tsSubevent->getFragment(0);
 				}
-				dump << std::endl;
-			}
-			dump << std::endl;
 
-			if (event->isL1Processed()) {
-				dump << "\tMissing CREAMs (crate: cream IDs): " << std::endl;
-				for (auto& crateAndCreams : event->getMissingCreams()) {
-					dump << "\t\t" << crateAndCreams.first << ":\t";
-					for (auto& creamID : crateAndCreams.second) {
-						dump << creamID << "\t";
+				l0::MEPFragment* l0TpEvent = nullptr;
+				auto l0TpSubevent = event->getL0TPSubevent();
+				if (l0TpSubevent->getNumberOfFragments()) {
+					l0TpEvent = l0TpSubevent->getFragment(0);
+				}
+
+				dump << "Unfinished event " << event->getEventNumber()
+						<< " burstID " << (uint) getCurrentBurstId()
+						<< " with TS ";
+				if (tsFragment) {
+					dump << std::hex << tsFragment->getTimestamp();
+				} else {
+					dump << "unknown";
+				}
+
+				dump << " and Trigword ";
+
+				if (l0TpEvent) {
+					L0TpHeader* L0TPData =
+							(L0TpHeader*) l0TpEvent->getPayload();
+					dump << (uint) L0TPData->l0TriggerType;
+				} else {
+					dump << "unknown";
+				}
+
+				dump << std::dec << ": " << std::endl;
+
+				dump << "\tMissing L0: " << std::endl;
+				for (auto& sourceIDAndSubIds : event->getMissingSourceIDs()) {
+					dump << "\t"
+							<< SourceIDManager::sourceIdToDetectorName(
+									sourceIDAndSubIds.first) << ":"
+							<< std::endl;
+
+					for (auto& subID : sourceIDAndSubIds.second) {
+						dump << "\t" << subID << ", ";
 					}
 					dump << std::endl;
 				}
 				dump << std::endl;
+
+				if (event->isL1Processed()) {
+					dump << "\tMissing CREAMs (crate: cream IDs): "
+							<< std::endl;
+					for (auto& crateAndCreams : event->getMissingCreams()) {
+						dump << "\t\t" << crateAndCreams.first << ":\t";
+						for (auto& creamID : crateAndCreams.second) {
+							dump << creamID << "\t";
+						}
+						dump << std::endl;
+					}
+					dump << std::endl;
+				}
+				DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
+						dump.str());
 			}
-			DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
-					dump.str());
 			EventPool::freeEvent(event);
 		}
 	}
