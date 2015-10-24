@@ -11,6 +11,9 @@
 #include <sys/types.h>
 #include <algorithm>
 #include <cstdint>
+#include <stdlib.h>
+#include <time.h>
+#include "../options/Options.h"
 
 #include "../options/Logging.h"
 
@@ -18,14 +21,25 @@ namespace na62 {
 struct DataContainer {
 	char * data;
 	uint_fast16_t length;
-
 	uint16_t checksum;
+	bool isPfRingBuffer;
 
-	DataContainer() :
-			data(nullptr), length(0), checksum(0) {
+	static uint16_t BufferInUseWord;
+
+	static void initialize() {
+		srand(time(NULL));
+		BufferInUseWord = rand();
+		// The value may not be zero as zero always means the buffer is free
+		if (BufferInUseWord == 0)
+			BufferInUseWord = 1;
 	}
 
-	DataContainer(char* _data, uint_fast16_t _length);
+	DataContainer() :
+			data(nullptr), length(0), checksum(0), isPfRingBuffer(false) {
+	}
+
+	DataContainer(char* _data, uint_fast16_t _length, bool isPfRingBuffer =
+			false);
 
 	~DataContainer() {
 	}
@@ -34,14 +48,16 @@ struct DataContainer {
 	 * Copy constructor
 	 */
 	DataContainer(const DataContainer& other) :
-			data(other.data), length(std::move(other.length)), checksum(other.checksum) {
+			data(other.data), length(std::move(other.length)), checksum(
+					other.checksum), isPfRingBuffer(other.isPfRingBuffer) {
 	}
 
 	/**
 	 * Copy constructor
 	 */
 	DataContainer(const DataContainer&& other) :
-			data(other.data), length(other.length), checksum(other.checksum) {
+			data(other.data), length(other.length), checksum(other.checksum), isPfRingBuffer(
+					other.isPfRingBuffer) {
 	}
 
 	/**
@@ -110,13 +126,19 @@ struct DataContainer {
 		return sum;
 	}
 
+	static bool getBufferInUse(char* data) {
+		return *reinterpret_cast<uint16_t*>(data + MTU) == BufferInUseWord;
+	}
+
+	static void setBufferInUse(char* data, bool b) {
+		*reinterpret_cast<uint16_t*>(data + MTU) = b * BufferInUseWord;
+	}
+
 	void inline free() {
 		checkValid();
-//		if (ownerMayFreeData) {
-//			checksum = 0;
-//			delete[] data;
-//			data = nullptr;
-//		}
+		if (isPfRingBuffer) {
+			setBufferInUse(data, false);
+		}
 	}
 };
 

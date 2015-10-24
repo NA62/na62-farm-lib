@@ -8,14 +8,23 @@
 #include "DataContainer.h"
 
 namespace na62 {
-
-DataContainer::DataContainer(char* _data, uint_fast16_t _length) :
-		data(_data), length(_length) {
+uint16_t DataContainer::BufferInUseWord = 0;
+DataContainer::DataContainer(char* _data, uint_fast16_t _length,
+		bool isPfRingBuffer) :
+		data(_data), length(_length), isPfRingBuffer(isPfRingBuffer) {
 	checksum = GenerateChecksum(_data, _length, 0);
+
+	if (isPfRingBuffer) {
+		if (getBufferInUse(_data)) {
+			std::cerr << "Overwriting a used buffer: " << (long long) _data
+					<< std::endl;
+		}
+		setBufferInUse(_data, true);
+	}
 }
 
 bool DataContainer::checkValid() {
-	if(checksum==0 && data == nullptr){
+	if (checksum == 0 && data == nullptr) {
 		return true;
 	}
 

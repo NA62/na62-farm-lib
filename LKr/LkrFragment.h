@@ -12,12 +12,10 @@
 #include <boost/noncopyable.hpp>
 #include <netinet/in.h>
 #include <cstdint>
+#include "../exceptions/NA62Error.h"
 
 #include "../structs/DataContainer.h"
 
-namespace na62 {
-class NA62Error;
-} /* namespace na62 */
 
 #define __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 
