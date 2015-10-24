@@ -62,7 +62,6 @@ MEP::~MEP() {
 		throw NA62Error("Deleting non-empty MEP!!!");
 	}
 	delete[] fragments_;
-	delete[] etherFrame_; // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
 void MEP::initializeMEPFragments(const char * data,
