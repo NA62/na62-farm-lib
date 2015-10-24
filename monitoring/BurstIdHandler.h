@@ -51,11 +51,13 @@ public:
 		return nextBurstId_ == currentBurstID_;
 	}
 
-	static void checkBurstIdChange() {
+	static bool checkBurstIdChange() {
 		if (nextBurstId_ != currentBurstID_
-				&& EOBReceivedTimer_.elapsed().wall / 1E6 > 1000 /*1s*/) {
+				&& EOBReceivedTimer_.elapsed().wall / 1E6 > 2000 /*2s*/) {
 			currentBurstID_ = nextBurstId_;
+			return true;
 		}
+		return false;
 	}
 
 	static void initialize(uint startBurstID) {

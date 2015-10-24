@@ -16,8 +16,8 @@ DataContainer::DataContainer(char* _data, uint_fast16_t _length,
 
 	if (isPfRingBuffer) {
 		if (getBufferInUse(_data)) {
-			std::cerr << "Overwriting a used buffer: " << (long long) _data
-					<< std::endl;
+			LOG_ERROR<< "Overwriting a used buffer: " << (long long) _data
+			<< ENDL;
 		}
 		setBufferInUse(_data, true);
 	}
