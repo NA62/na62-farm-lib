@@ -18,6 +18,8 @@
 #include <time.h>
 #include "../utils/AExecutable.h"
 #include <unistd.h>
+#include <ctime>
+#include <chrono>
 
 #include <boost/timer/timer.hpp>
 #include "FarmStatistics.h"
@@ -29,6 +31,8 @@ std::atomic<uint> FarmStatistics::LP;
 std::vector<statisticTimeStamp> FarmStatistics::recvTimes;
 std::vector<statisticTimeStamp> FarmStatistics::recvTimesBuff;
 boost::timer::cpu_timer FarmStatistics::timer;
+std::chrono::steady_clock::time_point FarmStatistics::t1;
+std::chrono::steady_clock::time_point FarmStatistics::t2;
 bool FarmStatistics::running_;
 char* FarmStatistics::hostname;
 
@@ -41,7 +45,8 @@ FarmStatistics::~FarmStatistics() {
 }
 
 void FarmStatistics::init() {
-	FarmStatistics::timer.start();LOG_INFO<< "started timer" << ENDL;
+//	FarmStatistics::timer.start();LOG_INFO<< "started timer" << std::to_string(timer.elapsed().wall) << ENDL;
+	FarmStatistics::t1 = std::chrono::steady_clock::now();
 	FarmStatistics::hostname = getHostName();LOG_INFO<< "got Hostname: " << hostname << ENDL;
 	FarmStatistics::recvTimes.reserve(200);LOG_INFO<< "reserved memory" << ENDL;
 	FarmStatistics::recvTimesBuff.reserve(200);LOG_INFO<< "reserved buffer" << ENDL;
@@ -59,6 +64,7 @@ void FarmStatistics::thread() {
 			FarmStatistics::recvTimes.clear();
 			for (statisticTimeStamp a : recvTimesBuff) {
 				myfile << getFileOutString(a);
+				std::cout << "wrote statistic" << getFileOutString(a) << std::endl;
 			}
 		}
 
@@ -67,8 +73,11 @@ void FarmStatistics::thread() {
 }
 //I just removed static and i add FarmStatistics in front
  void FarmStatistics::addTime(std::string comment) {
+		std::cout << "recieved statistic" << comment << std::endl;
 	statisticTimeStamp st;
-	st.time = FarmStatistics::timer.elapsed().wall;
+	FarmStatistics::t2 = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::duration time_span = FarmStatistics::t2 - FarmStatistics::t1;
+	st.time = u_int64_t(time_span.count());
 	st.comment = comment;
 	FarmStatistics::recvTimes.push_back(st);
 }
@@ -109,7 +118,7 @@ void FarmStatistics::thread() {
 // Buid the line to be written into the logfile
 std::string FarmStatistics::getFileOutString(statisticTimeStamp sts) {
 	std::string fos(
-			sts.comment + ", \ttime: " + std::to_string(sts.time) + "\n");
+			sts.comment + ", \ttime: " + std::to_string(double(sts.time)/1000000) + "(" + std::to_string(sts.time) + ")" + "\n");
 	return fos;
 }
 

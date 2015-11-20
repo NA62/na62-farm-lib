@@ -14,10 +14,12 @@
 #include <string>
 #include "../utils/AExecutable.h"
 #include <boost/timer/timer.hpp>
+#include <ctime>
+#include <chrono>
 
 struct statisticTimeStamp {
 	std::string comment;
-	u_int32_t time;
+	u_int64_t time;
 };
 
 namespace na62 {
@@ -40,6 +42,8 @@ public:
 	static std::atomic<uint> LP;
 
 	static boost::timer::cpu_timer timer;
+	static std::chrono::steady_clock::time_point t1;
+	static std::chrono::steady_clock::time_point t2;
 	static bool running_;
 	static char* hostname;
 
