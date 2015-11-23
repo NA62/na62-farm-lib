@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iostream>
 #include <mutex>
+#include "FarmStatistics.h"
 
 #include "../options/Logging.h"
 
@@ -21,6 +22,10 @@ class BurstIdHandler {
 public:
 
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
+//		FarmStatistics::addTime("Set burst ID from " + std::to_string(getCurrentBurstId()) + " to " + std::to_string(nextBurstID));
+		//1 Second sleep to prevent premature end of burst
+		//usleep(1000000);
+//		FarmStatistics::addTime("stop sleep");
 		nextBurstId_ = nextBurstID;
 		EOBReceivedTimer_.start();
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
@@ -68,12 +73,15 @@ public:
 	static void checkBurstFinished() {
 		if (!isInBurst() && lastFinishedBurst_ != currentBurstID_) {
 			if (burstFinishedMutex_.try_lock()) {
+//				FarmStatistics::addTime("######## Starting EOBProcessing");
 				EOBProcessingIsRunning_ = true;
 				usleep(10000);
 				onBurstFinished();
+//				FarmStatistics::addTime("######## Finished OnBurstFinished");
 				lastFinishedBurst_ = currentBurstID_;
 				EOBProcessingIsRunning_ = false;
 				burstFinishedMutex_.unlock();
+//				FarmStatistics::addTime("######## Done EOBProcessing");
 			}
 		}
 	}
