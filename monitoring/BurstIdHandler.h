@@ -15,6 +15,7 @@
 #include "FarmStatistics.h"
 
 #include "../options/Logging.h"
+#include "../options/Options.h"
 
 namespace na62 {
 
@@ -23,8 +24,9 @@ public:
 
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
 //		FarmStatistics::addTime("Set burst ID from " + std::to_string(getCurrentBurstId()) + " to " + std::to_string(nextBurstID));
-		//1 Second sleep to prevent premature end of burst
-		//usleep(1000000);
+//		Delay EOB cleanup to finish collect the events
+		uint EOBDelay = Options::GetInt(OPTION_DELAY_EOB_PROCESSING);
+		if (EOBDelay>0) usleep(EOBDelay*1000);
 //		FarmStatistics::addTime("stop sleep");
 		nextBurstId_ = nextBurstID;
 		EOBReceivedTimer_.start();
