@@ -23,13 +23,35 @@
 
 namespace na62 {
 boost::timer::cpu_timer BurstIdHandler::EOBReceivedTimer_;
+std::mutex BurstIdHandler::timerMutex_;
 uint BurstIdHandler::nextBurstId_;
 uint BurstIdHandler::currentBurstID_;
-uint BurstIdHandler::lastFinishedBurst_ = -1;
-std::mutex BurstIdHandler::burstFinishedMutex_;
-bool BurstIdHandler::resetCounter_ = false;
 
-bool BurstIdHandler::EOBProcessingIsRunning_ = false;
+std::atomic<bool> BurstIdHandler::running_(false);
+std::atomic<bool> BurstIdHandler::flushBurst_(false);
+
+void BurstIdHandler::thread(){
+	while(BurstIdHandler::running_) {
+//		LOG_INFO<< "Burst ID Handler thread " << (bool) BurstIdHandler::isInBurst() << " " << (bool)BurstIdHandler::flushBurst() <<  " " << (int) BurstIdHandler::getTimeSinceLastEOB();
+		if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == false && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
+			// Mark that all further data shall be discarded
+			LOG_INFO<< "Preparing end of burst " << (int) BurstIdHandler::getCurrentBurstId();
+			BurstIdHandler::flushBurst_=true;
+		}
+		else if (  BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 7.) {
+			// Flush all events
+			LOG_INFO<< "Cleanup of burst " << (int) BurstIdHandler::getCurrentBurstId();
+			onBurstFinished();
+			BurstIdHandler::currentBurstID_ = BurstIdHandler::nextBurstId_;
+			BurstIdHandler::flushBurst_ = false;
+
+			LOG_INFO<< "Start of burst " << (int) BurstIdHandler::getCurrentBurstId();
+
+		}
+		// Slow down polling
+		boost::this_thread::sleep(boost::posix_time::microsec(1000000));
+	}
+}
 
 void BurstIdHandler::onBurstFinished() {
 	int maxNumOfPrintouts = 100;

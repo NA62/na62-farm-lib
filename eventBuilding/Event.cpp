@@ -70,25 +70,8 @@ Event::Event(uint_fast32_t eventNumber) :
 }
 
 Event::~Event() {
-//	throw NA62Error(
-//			"An Event-Object should not be deleted! Use EventPool::FreeEvent instead so that it can be reused by the EventBuilder!");
+	LOG_INFO << "Destructor of Event "<< (int) this->getEventNumber() << ENDL;
 
-	for (uint_fast8_t i = 0; i < SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
-			i++) {
-//		L0Subevents[i]->destroy();
-		delete L0Subevents[i];
-	}
-	delete[] L0Subevents;
-
-	for (int ID = 0;
-			ID < SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-			ID++) {
-		cream::LkrFragment* event = zSuppressedLkrFragmentsByLocalCREAMID[ID];
-		if (event != NULL) {
-			delete event;
-		}
-	}
-	delete[] zSuppressedLkrFragmentsByLocalCREAMID;
 }
 
 void Event::initialize(bool printMissingSourceIDs, bool writeBrokenCreamInfo) {
@@ -172,6 +155,7 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 //			if (printMissingSourceIDs_) {
 				LOG_ERROR<< "Already received all fragments from sourceID "
 				<< ((int) fragment->getSourceID()) << " sourceSubID " << ((int) fragment->getSourceSubID())
+				<< " for event " << (int)(this->getEventNumber())
 				<< ENDL;
 //			}
 			EventPool::freeEvent(this);
@@ -386,6 +370,7 @@ void Event::reset() {
 
 void Event::destroy() {
 	tbb::spin_mutex::scoped_lock my_lock(destroyMutex_);
+	//std::cout << "Event::destroy() for "<< (int) (this->getEventNumber())<< std::endl;
 #ifdef MEASURE_TIME
 	firstEventPartAddedTime_.stop();
 #endif
