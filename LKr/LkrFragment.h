@@ -14,10 +14,7 @@
 #include <cstdint>
 
 #include "../structs/DataContainer.h"
-
-namespace na62 {
-class NA62Error;
-} /* namespace na62 */
+#include "../exceptions/NA62Error.h"
 
 #define __USE_BIG_ENDIAN_FOR_LKR_EVENTS
 
