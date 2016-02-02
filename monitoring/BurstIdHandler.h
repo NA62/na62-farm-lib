@@ -12,91 +12,63 @@
 #include <cstdint>
 #include <iostream>
 #include <mutex>
+#include <thread>
+#include "../utils/AExecutable.h"
 #include "FarmStatistics.h"
 
 #include "../options/Logging.h"
 
 namespace na62 {
 
-class BurstIdHandler {
+class BurstIdHandler: public AExecutable {
 public:
 
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
-//		FarmStatistics::addTime("Set burst ID from " + std::to_string(getCurrentBurstId()) + " to " + std::to_string(nextBurstID));
-		//1 Second sleep to prevent premature end of burst
-		//usleep(1000000);
-//		FarmStatistics::addTime("stop sleep");
-		nextBurstId_ = nextBurstID;
+		std::lock_guard<std::mutex> lk(timerMutex_);
+		EOBReceivedTimer_.elapsed().clear();
 		EOBReceivedTimer_.start();
+		nextBurstId_ = nextBurstID;
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
-		resetCounter_=true;
-	}
-
-	static void setResetCounters(bool reset) {
-		resetCounter_ = reset;
-	}
-
-	static bool getResetCounters(){
-		return resetCounter_;
+		//resetCounter_=true;
 	}
 
 	static uint_fast32_t getCurrentBurstId() {
 		return currentBurstID_;
 	}
 
-	static uint_fast32_t getNextBurstId() {
-		return nextBurstId_;
-	}
-
 	static long int getTimeSinceLastEOB() {
-		return EOBReceivedTimer_.elapsed().wall;
+		std::lock_guard<std::mutex> lk(timerMutex_);
+		return (EOBReceivedTimer_.elapsed().wall / 1E9);
 	}
 
 	static inline bool isInBurst() {
 		return nextBurstId_ == currentBurstID_;
 	}
 
-	static void checkBurstIdChange() {
-		if (nextBurstId_ != currentBurstID_
-				&& EOBReceivedTimer_.elapsed().wall / 1E6 > 1000 /*1s*/) {
-			currentBurstID_ = nextBurstId_;
-		}
+	static inline bool flushBurst() {
+		return flushBurst_ ;
 	}
 
 	static void initialize(uint startBurstID) {
 		currentBurstID_ = startBurstID;
 		nextBurstId_ = currentBurstID_;
+		running_ = true;
+		flushBurst_ = false;
 	}
 
-	static void checkBurstFinished() {
-		if (!isInBurst() && lastFinishedBurst_ != currentBurstID_) {
-			if (burstFinishedMutex_.try_lock()) {
-//				FarmStatistics::addTime("######## Starting EOBProcessing");
-				EOBProcessingIsRunning_ = true;
-				usleep(10000);
-				onBurstFinished();
-//				FarmStatistics::addTime("######## Finished OnBurstFinished");
-				lastFinishedBurst_ = currentBurstID_;
-				EOBProcessingIsRunning_ = false;
-				burstFinishedMutex_.unlock();
-//				FarmStatistics::addTime("######## Done EOBProcessing");
-			}
-		}
+	static void shutDown() {
+		running_=false;
 	}
-
-	static bool isEobProcessingRunning(){
-		return EOBProcessingIsRunning_;
-	}
+	void thread();
 
 private:
 	/**
 	 * Method is called every time the last event of a burst has been processed
 	 */
-	static void onBurstFinished();
+	void onBurstFinished();
 
 	static boost::timer::cpu_timer EOBReceivedTimer_;
-
-	static bool EOBProcessingIsRunning_;
+	static std::mutex timerMutex_;
 
 	/*
 	 * Store the current Burst ID and the next one separately. As soon as an EOB event is
@@ -106,9 +78,8 @@ private:
 	 */
 	static uint nextBurstId_;
 	static uint currentBurstID_;
-	static uint lastFinishedBurst_;
-	static std::mutex burstFinishedMutex_;
-	static bool resetCounter_;
+	static std::atomic<bool> running_;
+	static std::atomic<bool> flushBurst_;
 };
 
 }

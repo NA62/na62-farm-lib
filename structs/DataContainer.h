@@ -116,12 +116,12 @@ struct DataContainer {
 	}
 
 	void inline free() {
-		checkValid();
-//		if (ownerMayFreeData) {
-//			checksum = 0;
-//			delete[] data;
-//			data = nullptr;
-//		}
+		//checkValid();
+		if (ownerMayFreeData) {
+			checksum = 0;
+			delete[] data;
+			data = nullptr;
+		}
 	}
 };
 
