@@ -67,6 +67,9 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 			po::value<std::string>()->default_value("/var/log/na62-farm"),
 			"Directory where the log files should be written to")
 
+	(OPTION_DELAY_EOB_PROCESSING, po::value<int>()->default_value(2000),
+			"Delay in milliseconds before the EOB cleanup.")
+
 			;
 
 	po::store(po::parse_command_line(argc, argv, desc), vm);

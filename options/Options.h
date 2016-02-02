@@ -40,6 +40,7 @@ namespace po = boost::program_options;
 #define OPTION_LOGTOSTDERR (char*)"logtostderr"
 #define OPTION_VERBOSITY (char*)"verbosity"
 #define OPTION_LOG_FILE (char*)"logDir"
+#define OPTION_DELAY_EOB_PROCESSING (char*)"delayEOBProcessing"
 
 namespace na62 {
 class Options {

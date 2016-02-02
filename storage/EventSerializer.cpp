@@ -75,6 +75,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint pointerTableOffset = sizeof(EVENT_HDR);
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
 
+	// set EOBEvent if the triggerword is 0x23  (with getL0TriggerTypeWord)
 	/*
 	 * Write all L0 data sources
 	 */
@@ -131,6 +132,8 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 				eventOffset += eventOffset % 4;
 			}
 		}
+		//  if (subevent->getNumberOfFragments()!=expected number of fragments)&&EOBevent search for missing ids and copy
+		//  fake content inside the event block
 	}
 
 	/*
@@ -140,6 +143,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 		writeCreamData(eventBuffer, eventOffset, eventBufferSize,
 				pointerTableOffset, event->getZSuppressedLkrFragments(),
 				event->getNumberOfZSuppressedLkrFragments(), SOURCE_ID_LKr);
+		// add EOBEvent to WriteCreamData parameters
 	}
 
 	if (SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS != 0) {
@@ -219,6 +223,7 @@ char* EventSerializer::writeCreamData(char*& eventBuffer, uint& eventOffset,
 			eventOffset += eventOffset % 4;
 		}
 	}
+	// if (numberOfFragments!=fragments for source_id)&&EOBEvent) search for missing creams and put a fake block
 
 	return eventBuffer;
 }

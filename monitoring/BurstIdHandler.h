@@ -17,6 +17,7 @@
 #include "FarmStatistics.h"
 
 #include "../options/Logging.h"
+#include "../options/Options.h"
 
 namespace na62 {
 
@@ -24,6 +25,7 @@ class BurstIdHandler: public AExecutable {
 public:
 
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
+
 		std::lock_guard<std::mutex> lk(timerMutex_);
 		EOBReceivedTimer_.elapsed().clear();
 		EOBReceivedTimer_.start();

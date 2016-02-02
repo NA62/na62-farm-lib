@@ -102,6 +102,7 @@ void BurstIdHandler::onBurstFinished() {
 //			LOG_INFO << ENDL;
 //		}
 		if (event->isUnfinished()) {
+			// retrieve Trigger word here
 			if (maxNumOfPrintouts-- != 0) {
 
 				std::stringstream dump;
@@ -171,6 +172,7 @@ void BurstIdHandler::onBurstFinished() {
 				DataDumper::printToFile("unfinishedEvents", "/tmp/farm-logs",
 						dump.str());
 			}
+			// if EOB send event to merger as in L2Builder.cpp
 			EventPool::freeEvent(event);
 		}
 	}
