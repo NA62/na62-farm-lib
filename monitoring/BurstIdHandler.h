@@ -27,7 +27,7 @@ public:
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
 
 		std::lock_guard<std::mutex> lk(timerMutex_);
-		EOBReceivedTimer_.elapsed().clear();
+		//EOBReceivedTimer_.elapsed().clear();
 		EOBReceivedTimer_.start();
 		nextBurstId_ = nextBurstID;
 		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;

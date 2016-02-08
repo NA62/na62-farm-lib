@@ -32,13 +32,13 @@ std::atomic<bool> BurstIdHandler::flushBurst_(false);
 
 void BurstIdHandler::thread(){
 	while(BurstIdHandler::running_) {
-//		LOG_INFO<< "Burst ID Handler thread " << (bool) BurstIdHandler::isInBurst() << " " << (bool)BurstIdHandler::flushBurst() <<  " " << (int) BurstIdHandler::getTimeSinceLastEOB();
-		if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == false && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
+		//LOG_INFO<< "Burst ID Handler thread " << (bool) BurstIdHandler::isInBurst() << " " << (bool)BurstIdHandler::flushBurst() <<  " " << (int) BurstIdHandler::getTimeSinceLastEOB();
+		if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == false && BurstIdHandler::getTimeSinceLastEOB() > 3.) {
 			// Mark that all further data shall be discarded
 			LOG_INFO<< "Preparing end of burst " << (int) BurstIdHandler::getCurrentBurstId();
 			BurstIdHandler::flushBurst_=true;
 		}
-		else if (  BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 7.) {
+		else if (  BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
 			// Flush all events
 			LOG_INFO<< "Cleanup of burst " << (int) BurstIdHandler::getCurrentBurstId();
 			onBurstFinished();
