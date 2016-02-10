@@ -49,12 +49,13 @@ void BurstIdHandler::thread(){
 
 		}
 		// Slow down polling
-		boost::this_thread::sleep(boost::posix_time::microsec(1000000));
+		boost::this_thread::sleep(boost::posix_time::microsec(100000));
 	}
 }
 
 void BurstIdHandler::onBurstFinished() {
 	int maxNumOfPrintouts = 100;
+	int incompleteEvts = 0;
 
 	int NL0ExpectedMEPs =
 			SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT - 3; //L1-L2-NSTD packets
@@ -102,6 +103,7 @@ void BurstIdHandler::onBurstFinished() {
 //			LOG_INFO << ENDL;
 //		}
 		if (event->isUnfinished()) {
+			++incompleteEvts;
 			// retrieve Trigger word here
 			if (maxNumOfPrintouts-- != 0) {
 
@@ -175,6 +177,9 @@ void BurstIdHandler::onBurstFinished() {
 			// if EOB send event to merger as in L2Builder.cpp
 			EventPool::freeEvent(event);
 		}
+	}
+	if(incompleteEvts > 0) {
+		LOG_ERROR << "Dropped " << incompleteEvts << " events.";
 	}
 }
 
