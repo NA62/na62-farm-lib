@@ -20,8 +20,6 @@
 #endif
 #include <boost/noncopyable.hpp>
 #include <tbb/spin_mutex.h>
-
-#include "../LKr/LkrFragment.h"
 #include "SourceIDManager.h"
 #include "../structs/Event.h"
 #include "../options/Logging.h"
@@ -29,14 +27,13 @@
 #include <iostream>
 
 namespace na62 {
-namespace cream {
-class LkrFragment;
-
-} /* namespace cream */
-namespace l0 {
-
+namespace l1 {
 class MEPFragment;
+class Subevent;
+} /* namespace l1 */
 
+namespace l0 {
+class MEPFragment;
 class Subevent;
 } /* namespace l0 */
 } /* namespace na62 */
@@ -54,14 +51,14 @@ public:
 	 *
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 */
-	bool addL0Event(l0::MEPFragment* e, uint_fast32_t burstID);
+	bool addL0Fragment(l0::MEPFragment* e, uint_fast32_t burstID);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 *
-	 * @return [true] if the given LKr event fragment was the last one to complete the event
+	 * @return [true] if the given L1 event fragment was the last one to complete the event
 	 */
-	bool addLkrFragment(cream::LkrFragment* fragment, uint sourceIP);
+	bool addL1Fragment(l1::MEPFragment* fragment);
 
 	/*
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -86,12 +83,6 @@ public:
 		return L2Accepted_;
 	}
 
-	/*
-	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
-	 */
-	void setEventNumber(uint_fast32_t eventNumber) {
-		eventNumber_ = eventNumber;
-	}
 
 	/**
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
@@ -249,7 +240,7 @@ public:
 	}
 
 	/*
-	 * Can be used for itaration over all subevents like following:
+	 * Can be used for iteration over all L0 subevents like following:
 	 * for (int i = Options::Instance()->NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
 	 *		Subevent* subevent = event->getL0SubeventBySourceIDNum(i);
 	 *		...
@@ -267,10 +258,33 @@ public:
 			const uint_fast8_t sourceID) const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(std::move(sourceID))];
 	}
+
+
+	/*
+	 * Can be used for iteration over all L1 subevents like following:
+	 * for (int i = Options::Instance()->NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
+	 *		Subevent* subevent = event->getL0SubeventBySourceIDNum(i);
+	 *		...
+	 *	}
+	 */
+	l1::Subevent* getL1SubeventBySourceIDNum(
+			const uint_fast8_t sourceIDNum) const {
+		return L1Subevents[sourceIDNum];
+	}
+
+	/*
+	 *	See table 50 in the TDR for the source IDs.
+	 */
+	inline const l1::Subevent* getL1SubeventBySourceID(
+			const uint_fast8_t sourceID) const {
+		return L1Subevents[SourceIDManager::l1SourceIDToNum(std::move(sourceID))];
+	}
+
+
 	inline const l0::Subevent* getCEDARSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CEDAR)];
 	}
-	inline const l0::Subevent* getGTKSubevent() const {
+	inline const l0::Subevent* getL0GTKSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_GTK)];
 	}
 	inline const l0::Subevent* getCHANTISubevent() const {
@@ -300,97 +314,44 @@ public:
 	inline const l0::Subevent* getL0TPSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L0TP)];
 	}
-	inline const l0::Subevent* getL1Subevent() const {
+	inline const l0::Subevent* getL1ResultSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L1)];
 	}
-	inline const l0::Subevent* getL2Subevent() const {
+	inline const l0::Subevent* getL2ResultSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_L2)];
 	}
 	inline const l0::Subevent* getNSTDSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NSTD)];
 	}
-	/*
-	 * Returns a  zero suppressed event fragment sent by the CREAM with the id [CREAMID] in the crate [crateID
-	 */
-	inline cream::LkrFragment* getZSuppressedLkrFragment(
-			const uint_fast8_t crateID, const uint_fast8_t CREAMID) const {
-		return zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID(
-				crateID, CREAMID)];
+
+// L1 dets
+	inline const l1::Subevent* getL1GTKSubevent() const {
+		return L1Subevents[SourceIDManager::l1SourceIDToNum(SOURCE_ID_GTK)];
+	}
+	inline const l1::Subevent* getLKrSubevent() const {
+		return L1Subevents[SourceIDManager::l1SourceIDToNum(SOURCE_ID_LKr)];
 	}
 
-	/*
-	 * Returns a zero suppressed event fragment sent by the CREAM identified by the given local CREAM ID
-	 */
-	inline cream::LkrFragment* getZSuppressedLkrFragment(
-			const uint_fast16_t localCreamID) const {
-		return zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
+	inline l1::Subevent* getMuv1Subevent() const {
+		return L1Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV1)] ;
 	}
 
-	/**
-	 * Returns a pointer to an array of LkrFragments with [getNumberOfZSuppressedLkrFragments] elements storing the zero suppressed LKr data
-	 */
-	inline cream::LkrFragment** getZSuppressedLkrFragments() const {
-		return zSuppressedLkrFragmentsByLocalCREAMID;
-	}
-
-	inline uint_fast16_t getNumberOfZSuppressedLkrFragments() const {
-		return SourceIDManager::NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS;
+	inline l1::Subevent* getMuv2Subevent() const {
+		return L1Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV2)] ;
 	}
 
 	/**
-	 * Returns the number of MUV1 fragments that are accessible via [getMuv1Fragments] after L2 event building
+	 * Get the received non zero suppressed LKr Event by the crateCREAMID
 	 */
-	inline uint_fast16_t getNumberOfMuv1Fragments() const {
-		return SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS;
-	}
-
-	/**
-	 * Returns a pointer to an array of LkrFragments with [getNumberOfMuv1Fragments] elements storing the data of MUV1
-	 */
-	inline cream::LkrFragment** getMuv1Fragments() const {
-		/*
-		 * MUV1 is the largest crate and therefore the fragments are stored behind the LKr fragments.
-		 */
-		return &zSuppressedLkrFragmentsByLocalCREAMID[getNumberOfZSuppressedLkrFragments()];
-	}
-
-	/**
-	 * Returns the number of MUV2 fragments that are accessible via [getMuv2Fragments] after L2 event building
-	 */
-	inline uint_fast16_t getNumberOfMuv2Fragments() const {
-		return SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS;
-	}
-
-	/**
-	 * Returns a pointer to an array of LkrFragments with [getNumberOfMuv2Fragments] elements storing the data of MUV2
-	 */
-	inline cream::LkrFragment** getMuv2Fragments() const {
-		/*
-		 * MUV2 fragments are stored behind the MUV1 fragments.
-		 */
-		return &zSuppressedLkrFragmentsByLocalCREAMID[getNumberOfZSuppressedLkrFragments()
-				+ getNumberOfMuv1Fragments()];
-	}
-
-	inline cream::LkrFragment* getNonZSuppressedLkrFragment(
-			const uint_fast16_t crateID, const uint_fast8_t CREAMID) const {
-		return nonSuppressedLkrFragmentsByCrateCREAMID.at(
-				cream::LkrFragment::generateCrateCREAMID(crateID, CREAMID));
-	}
-
-	/**
-	 * Get the received non zero suppressed LKr Event by the crateCREMID (qsee LkrFragment::generateCrateCREAMID)
-	 */
-	inline cream::LkrFragment* getNonZSuppressedLkrFragment(
-			const uint_fast16_t crateCREAMID) const {
+	inline l1::MEPFragment* getNonZSuppressedLkrFragment(const uint_fast16_t crateCREAMID) const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID.at(crateCREAMID);
 	}
 
 	/**
 	 * Returns the map containing all received non zero suppressed LKR Events.
-	 * The keys are the 24-bit crate-ID and CREAM-ID concatenations (@see LKR_EVENT_RAW_HDR::generateCrateCREAMID)
+	 * The keys are the 16-bit crate-ID and CREAM-ID concatenations
 	 */
-	inline std::map<uint_fast16_t, cream::LkrFragment*> getNonSuppressedLkrFragments() const {
+	inline std::map<uint_fast16_t, l1::MEPFragment*> getNonSuppressedLkrFragments() const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID;
 	}
 
@@ -410,42 +371,28 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
-//	bool isSpecialTriggerEvent() {
-//		switch (getL0TriggerTypeWord()) {
-//		case TRIGGER_L0_EOB:
-//		case TRIGGER_L0_SOB:
-//			return true;
-//		default:
-//			return false;
-//		}
-//	}
-
 	bool isSpecialTriggerEvent() {
 		uint_fast8_t specialTriggerMask = 0x20;
 		return ((getL0TriggerTypeWord() & specialTriggerMask) != 0);
 	}
 
 	/*
-	 * List the received sourceIDs, sourceSubIDs and stats
-	 */
-//	std::map<uint, std::map<uint, uint>> getReceivedSourceIDsSourceSubIds();
-	/*
 	 * Find the missing sourceIDs
 	 */
-	std::map<uint, std::vector<uint>> getMissingSourceIDs();
-	std::map<uint, std::vector<uint>> getMissingCreams();
-
-	static uint64_t getMissingEventsBySourceNum(uint sourceNum) {
+	void updateMissingEventsStats();
+	static uint_fast64_t getMissingL0EventsBySourceNum(const uint_fast16_t sourceNum) {
 		return MissingEventsBySourceNum_[sourceNum];
 	}
-
-//	static uint64_t getReceivedEventsBySourceNumBySubId(uint sourceNum,
-//			uint SubId) {
-//		return ReceivedEventsBySourceNumBySubId_[sourceNum][SubId];
-//	}
-	static uint64_t getNumberOfNonRequestedCreamFragments() {
-		return nonRequestsCreamFramesReceived_;
+	static uint_fast64_t getMissingL1EventsBySourceNum(const uint_fast16_t sourceNum) {
+		return MissingL1EventsBySourceNum_[sourceNum];
 	}
+
+	std::map<uint, std::vector<uint>> getFilledL0SourceIDs();
+	std::map<uint, std::vector<uint>> getFilledL1SourceIDs();
+
+    static uint64_t getNumberOfNonRequestedL1Fragments() {
+            return nonRequestsL1FramesReceived_;
+    }
 
 #ifdef MEASURE_TIME
 	/*
@@ -484,23 +431,27 @@ public:
 	}
 #endif
 
-	static void initialize(bool printMissingSourceIDs,
-	bool writeBrokenCreamInfo);
+	static void initialize(bool printCompletedSourceIDs);
+
 private:
 	void setBurstID(const uint_fast32_t burstID) {
 		burstID_ = burstID;
 	}
 
+	void setEventNumber(uint_fast32_t eventNumber) {
+		eventNumber_ = eventNumber;
+	}
+
 	void reset();
 
-	bool storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment);
+	bool storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment);
 
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
 	uint_fast32_t eventNumber_;
 	std::atomic<uint_fast8_t> numberOfL0Fragments_;
-	std::atomic<uint_fast16_t> numberOfCREAMFragments_;
+	std::atomic<uint_fast16_t> numberOfMEPFragments_;
 
 	/*
 	 * To be added within L1 trigger process
@@ -516,6 +467,7 @@ private:
 	bool requestZeroSuppressedCreamData_;
 
 	l0::Subevent ** L0Subevents;
+	l1::Subevent ** L1Subevents;
 
 	uint_fast16_t nonZSuppressedDataRequestedNum;
 
@@ -523,21 +475,25 @@ private:
 	 * zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
 	 * corresponding cream/create
 	 */
-	cream::LkrFragment** zSuppressedLkrFragmentsByLocalCREAMID;
-	std::map<uint_fast16_t, cream::LkrFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	bool L1Processed_;bool L2Accepted_;bool unfinished_;
+	std::map<uint_fast16_t, l1::MEPFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	bool lastEventOfBurst_;
+	std::atomic<bool> L1Processed_; /// ATOMICCCCC !!!!
+
+	std::atomic<bool> L2Accepted_;
+	std::atomic<bool> unfinished_;
+
+	std::atomic<bool> lastEventOfBurst_;
 
 	tbb::spin_mutex destroyMutex_;
 	tbb::spin_mutex unfinishedEventMutex_;
 
-//	static std::atomic<uint64_t>** ReceivedEventsBySourceNumBySubId_;
 	static std::atomic<uint64_t>* MissingEventsBySourceNum_;
-	static std::atomic<uint64_t> nonRequestsCreamFramesReceived_;
-	static bool printMissingSourceIDs_;
-	static bool writeBrokenCreamInfo_;
+	static std::atomic<uint64_t>* MissingL1EventsBySourceNum_;
+
+	static std::atomic<uint64_t> nonRequestsL1FramesReceived_;
+	static bool printCompletedSourceIDs_;
+
 #ifdef MEASURE_TIME
 	boost::timer::cpu_timer firstEventPartAddedTime_;
 

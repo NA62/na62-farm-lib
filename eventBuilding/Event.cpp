@@ -19,6 +19,10 @@
 #include "../l0/MEP.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
+#include "../l1/MEP.h"
+#include "../l1/MEPFragment.h"
+#include "../l1/Subevent.h"
+
 #include "../structs/DataContainer.h"
 #include "../structs/L0TPHeader.h"
 #include "../utils/DataDumper.h"
@@ -26,15 +30,15 @@
 #include "UnfinishedEventsCollector.h"
 
 namespace na62 {
-bool Event::printMissingSourceIDs_ = true;
-bool Event::writeBrokenCreamInfo_ = false;
 
-std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
 //std::atomic<uint64_t>** Event::ReceivedEventsBySourceNumBySubId_;
-std::atomic<uint64_t> Event::nonRequestsCreamFramesReceived_;
+std::atomic<uint64_t>* Event::MissingEventsBySourceNum_;
+std::atomic<uint64_t>* Event::MissingL1EventsBySourceNum_;
+std::atomic<uint64_t> Event::nonRequestsL1FramesReceived_;
+bool Event::printCompletedSourceIDs_ = false;
 
 Event::Event(uint_fast32_t eventNumber) :
-		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfCREAMFragments_(
+		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfMEPFragments_(
 				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), timestamp_(
 				0), finetime_(0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
 		false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(
@@ -56,16 +60,15 @@ Event::Event(uint_fast32_t eventNumber) :
 		/*
 		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
 		 */
-		L0Subevents[i] = new l0::Subevent(
-				SourceIDManager::getExpectedPacksBySourceNum(i));
+		L0Subevents[i] = new l0::Subevent(SourceIDManager::getExpectedPacksBySourceNum(i));
 	}
 
-	zSuppressedLkrFragmentsByLocalCREAMID =
-			new cream::LkrFragment*[SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT];
-
-	for (int i = SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT
-			- 1; i >= 0; i--) {
-		zSuppressedLkrFragmentsByLocalCREAMID[i] = nullptr;
+	L1Subevents = new l1::Subevent*[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
+	for (int i = SourceIDManager::NUMBER_OF_L1_DATA_SOURCES - 1; i >= 0; i--) {
+		/*
+		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
+		 */
+		L1Subevents[i] = new l1::Subevent(SourceIDManager::getExpectedL1PacksBySourceNum(i));
 	}
 }
 
@@ -74,58 +77,36 @@ Event::~Event() {
 
 }
 
-void Event::initialize(bool printMissingSourceIDs, bool writeBrokenCreamInfo) {
-	MissingEventsBySourceNum_ =
-			new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
-					+ 1];
-//	ReceivedEventsBySourceNumBySubId_ =
-//			new std::atomic<uint64_t>*[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
-//					+ 1];
+void Event::initialize(bool printCompletedSourceIDs) {
 
-	for (int i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; i++) {
-		MissingEventsBySourceNum_[i] = 0;
+	Event::printCompletedSourceIDs_ = printCompletedSourceIDs;
+	Event::MissingEventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES] ;
+	Event::MissingL1EventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
 
-//		ReceivedEventsBySourceNumBySubId_[i] =
-//				new std::atomic<uint64_t>[SourceIDManager::getExpectedPacksBySourceNum(
-//						i)];
-//		for (int f = 0; f != SourceIDManager::getExpectedPacksBySourceNum(i);
-//				f++) {
-//			ReceivedEventsBySourceNumBySubId_[i][f] = 0;
-//		}
-	}
-
-	printMissingSourceIDs_ = printMissingSourceIDs;
-
-	writeBrokenCreamInfo_ = writeBrokenCreamInfo;
+	for (size_t i=0; i!= SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; ++i)
+		MissingEventsBySourceNum_[i];
+	for (size_t i=0; i!= SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; ++i)
+		MissingL1EventsBySourceNum_[i];
 }
 
 /**
  * Process data coming from the TEL boards
  */
-bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
+bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 #ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
 		firstEventPartAddedTime_.start();
 	}
 #endif
-
-
 	unfinished_ = true;
 	if (numberOfL0Fragments_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
 		} else {
-		if (burstID != getBurstID()) {
+		if (!lastEventOfBurst_) lastEventOfBurst_ = fragment->isLastEventOfBurst(); // work around STRAWs bug
+		if (burstID > getBurstID()) {
 			if (unfinishedEventMutex_.try_lock()) {
-				/*
-				 * Event not build during last burst -> destroy it!
-				 */
-				if (printMissingSourceIDs_) {
-					LOG_INFO<< "Overwriting unfinished event from Burst "
-					<< (int) getBurstID() << " Eventnumber "
-					<< (int) getEventNumber()
-					<< ENDL;
-				}
+				LOG_ERROR << "Identified non cleared event " << (uint) getEventNumber() << " from previous burst!" ;
 				EventPool::freeEvent(this);
 				unfinishedEventMutex_.unlock();
 			} else {
@@ -137,7 +118,12 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			/*
 			 * Add the event after this or another thread has destroyed this event
 			 */
-					return addL0Event(fragment, burstID);
+				return addL0Fragment(fragment, burstID);
+		}
+		else if (burstID < getBurstID()) {
+			LOG_ERROR << "Received fragment from a previous burst for event " << (uint) getEventNumber() ;
+			delete fragment;
+			return false;
 		}
 	}
 
@@ -145,28 +131,14 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 
 	if (!subevent->addFragment(fragment)) {
 		/*
-		 * Already received enough packets from that sourceID! It seems like this is an old event from the last burst -> destroy it!
+		 * Already received enough packets from that sourceID! Eliminate fragment
 		 */
 
-		if (unfinishedEventMutex_.try_lock()) {
-			/*
-			 * Event not build during last burst -> destroy it!
-			 */
-//			if (printMissingSourceIDs_) {
-				LOG_ERROR<< "Already received all fragments from sourceID "
+		LOG_ERROR<< "Already received all fragments from sourceID "
 				<< ((int) fragment->getSourceID()) << " sourceSubID " << ((int) fragment->getSourceSubID())
 				<< " for event " << (int)(this->getEventNumber())
 				<< ENDL;
-//			}
-			EventPool::freeEvent(this);
-			unfinishedEventMutex_.unlock();
-		} else {
-			/*
-			 * If we didn't get the lock: wait for the other thread to free the event
-			 */
-			tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
-		}
-			delete fragment;
+		delete fragment;
 		return false;
 	}
 
@@ -174,33 +146,29 @@ bool Event::addL0Event(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
-	bool result = currentValue
-			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
+	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue
 			== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
-//		LOG_INFO<< "l0BuildingTime_ " << l0BuildingTime_ << ENDL;
-//		return true;
 		if (currentValue
 				> SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT)
 			LOG_INFO<< "Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << ENDL;
 		}
-	if (result)
-		return true;
-	else
-		return false;
+	return result;
+
 #else
 	return currentValue
 	== SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 #endif
 }
 
-bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
+bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
 	/*
 	 * The received LkrFragment should be nonZSuppressed data
 	 */
 
-	const uint_fast16_t crateCREAMID = fragment->getCrateCREAMID();
+	const uint_fast16_t crateCREAMID = fragment->getSourceSubID();
+
 	/*
 	 * We were waiting for non zero suppressed data
 	 */
@@ -210,14 +178,12 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
 					crateCREAMID, lb->first))) {
 		if (unfinishedEventMutex_.try_lock()) {
-			if (printMissingSourceIDs_) {
 				LOG_INFO<< "Non zero suppressed LKr event with EventNumber "
-				<< (int) fragment->getEventNumber() << ", crateID "
-				<< (int) fragment->getCrateID() << " and CREAMID "
-				<< (int) fragment->getCREAMID()
+				<< (int) fragment->getEventNumber() << ", crate/creamID "
+				<< std::hex << (int) fragment->getSourceSubID()
+				<< std::dec
 				<< " received twice! Will delete the whole event!" << ENDL;
-			}
-			nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
+			nonRequestsL1FramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
 			EventPool::freeEvent(this);
 			unfinishedEventMutex_.unlock();
@@ -229,7 +195,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 		 * Event does not yet exist -> add it to the map
 		 */
 		nonSuppressedLkrFragmentsByCrateCREAMID.insert(lb,
-				std::map<uint_fast16_t, cream::LkrFragment*>::value_type(crateCREAMID,
+				std::map<uint_fast16_t, l1::MEPFragment*>::value_type(crateCREAMID,
 						fragment));
 	}
 // TODO: this must be synchronized
@@ -240,38 +206,15 @@ bool Event::storeNonZSuppressedLkrFragemnt(cream::LkrFragment* fragment) {
 /**
  * Process data coming from the CREAMs
  */
-bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
+bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 	if (!L1Processed_) {
-		if (printMissingSourceIDs_) {
-			LOG_ERROR<< "Received LKR data with EventNumber "
-			<< (int) fragment->getEventNumber() << ", crateID "
-			<< (int) fragment->getCrateID() << " and CREAMID "
-			<< (int) fragment->getCREAMID()
-			<< " before requesting it. Will ignore it as it seems to come from last burst ( current burst is "
-			<< getBurstID() << ")"
+			LOG_ERROR<< "Received L1 data from "
+					<< std::hex << (int) fragment->getSourceID() << ":"<< (int) fragment->getSourceSubID() << " with EventNumber "
+			<< 	std::dec << (int) fragment->getEventNumber()
+			<< " before requesting it. Will ignore it as it may come from last burst"
 			<< ENDL;
-		}
-		nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
+		nonRequestsL1FramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
-		if(writeBrokenCreamInfo_) {
-			std::stringstream dump;
-			dump << getBurstID() << "\t" << getEventNumber()
-			<< "\t" << fragment->getTimestamp() << "\t" << fragment->getEventLength()<<"\t"<<std::hex << ntohl(sourceIP);
-			DataDumper::printToFile("nonRequestedCreamData", "/tmp/farm-logs", dump.str());
-		}
-
-		delete fragment;
-		return false;
-	}
-
-	if (eventNumber_ != fragment->getEventNumber()) {
-		LOG_ERROR<< "Trying to add LkrFragment with eventNumber "
-		+ std::to_string(
-				fragment->getEventNumber())
-		+ " to an Event with eventNumber "
-		+ std::to_string(eventNumber_)
-		+ ". Will ignore the LkrFragment!"
-		<< ENDL;
 		delete fragment;
 		return false;
 	}
@@ -279,65 +222,24 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 	if (nonZSuppressedDataRequestedNum != 0) {
 		return storeNonZSuppressedLkrFragemnt(fragment);
 	} else {
-		/*
-		 * ZSuppressed data received
-		 */
-		uint_fast16_t localCreamID = SourceIDManager::getLocalCREAMID(
-				fragment->getCrateID(), fragment->getCREAMID());
-		/*
-		 * This must be a zero suppressed event
-		 */
-		cream::LkrFragment* oldEvent =
-		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID];
+		l1::Subevent* subevent = L1Subevents[fragment->getSourceIDNum()];
 
-		if (oldEvent != NULL) {
-			if (unfinishedEventMutex_.try_lock()) {
-				if (printMissingSourceIDs_) {
-					LOG_ERROR<< "LKr event with EventNumber "
-					+ std::to_string(
-							(int) fragment->getEventNumber())
-					+ ", crateID "
-					+ std::to_string(
-							(int) fragment->getCrateID())
-					+ " and CREAMID "
-					+ std::to_string(
-							(int) fragment->getCREAMID())
-					+ " received twice! Will delete the whole event!"<<ENDL;
-
-				}
-
-				nonRequestsCreamFramesReceived_.fetch_add(1, std::memory_order_relaxed);
-
-				if(writeBrokenCreamInfo_) {
-					std::stringstream dump;
-					dump << getBurstID() << "\t" << getEventNumber()
-					<< "\t" << getTimestamp() << "\t" << sourceIP;
-					DataDumper::printToFile("creamDataReceivedTwice", "/tmp/farm-logs", dump.str());
-				}
-				EventPool::freeEvent(this);
-				unfinishedEventMutex_.unlock();
-//			}
-				delete fragment;
-				return false;
-			} else {
-				/*
-				 * If we didn't get the lock: wait for the other thread to free the event
-				 */
-				tbb::spin_mutex::scoped_lock my_lock(unfinishedEventMutex_);
-			}
-			/*
-			 * Add the LKrFragment after this or another thread has destroyed this event
-			 */
-			return addLkrFragment(fragment, sourceIP);
+		if (!subevent->addFragment(fragment)) {
+		// don't know what to do with this fragment....
+			LOG_ERROR<< "Already received all fragments from sourceID "
+                                << ((int) fragment->getSourceID()) << " sourceSubID " << ((int) fragment->getSourceSubID())
+                        	<< " for event " << (int)(this->getEventNumber())
+                                << ENDL;
+	
+			delete fragment;
+			return false;
 		}
 
-		zSuppressedLkrFragmentsByLocalCREAMID[localCreamID] = fragment;
 
-		int numberOfStoredCreamFragments = numberOfCREAMFragments_.fetch_add(1,
-				std::memory_order_release) + 1;
+		int numberOfMEPFragments = numberOfMEPFragments_.fetch_add(1, std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
-		if (numberOfStoredCreamFragments == SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
+		if (numberOfMEPFragments == SourceIDManager::NUMBER_OF_EXPECTED_L1_PACKETS_PER_EVENT) {
 			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-(l1ProcessingTime_+l0BuildingTime_);
 //			LOG_INFO<< "l1BuildingTime_ " << l1BuildingTime_ << ENDL;
 			return true;
@@ -345,15 +247,15 @@ bool Event::addLkrFragment(cream::LkrFragment* fragment, uint sourceIP) {
 		return false;
 #else
 
-		return numberOfStoredCreamFragments
-		== SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
+		return numberOfMEPFragments
+		== SourceIDManager::NUMBER_OF_EXPECTED_L1_PACKETS_PER_EVENT;
 #endif
 	}
 }
 
 void Event::reset() {
 	numberOfL0Fragments_ = 0;
-	numberOfCREAMFragments_ = 0;
+	numberOfMEPFragments_ = 0;
 	burstID_ = 0;
 	triggerTypeWord_ = 0;
 	triggerFlags_ = 0;
@@ -379,15 +281,9 @@ void Event::destroy() {
 			i++) {
 		L0Subevents[i]->destroy();
 	}
-
-	for (int ID = 0;
-			ID != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-			ID++) {
-		cream::LkrFragment* fragment = zSuppressedLkrFragmentsByLocalCREAMID[ID];
-		if (fragment != nullptr) {
-			delete fragment;
-			zSuppressedLkrFragmentsByLocalCREAMID[ID] = nullptr;
-		}
+	for (uint_fast8_t i = 0; i != SourceIDManager::NUMBER_OF_L1_DATA_SOURCES;
+			i++) {
+		L1Subevents[i]->destroy();
 	}
 
 	for (auto& pair : nonSuppressedLkrFragmentsByCrateCREAMID) {
@@ -396,87 +292,6 @@ void Event::destroy() {
 	nonSuppressedLkrFragmentsByCrateCREAMID.clear();
 
 	reset();
-}
-
-//std::map<uint, std::map<uint, uint>> Event::getReceivedSourceIDsSourceSubIds() {
-//	std::map<uint, std::map<uint, uint>> receivedSourceIdsSubIds;
-//
-//	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-//			sourceNum >= 0; sourceNum--) {
-//
-//		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
-////		LOG_INFO<< "+++++++++RECEIVED SOURCEIDs   " << " " << std::hex << (int) SourceIDManager::sourceNumToID(sourceNum)
-////		<< std::dec << " " << (int) SourceIDManager::getExpectedPacksBySourceNum(sourceNum) << " "
-////		<< (int) subevent->getNumberOfFragments() << ENDL;
-//
-//		for (int f = 0; f != subevent->getNumberOfFragments(); f++) {
-//			receivedSourceIdsSubIds[SourceIDManager::sourceNumToID(sourceNum)][subevent->getFragment(
-//					f)->getSourceSubID()] = 1;
-//			ReceivedEventsBySourceNumBySubId_[sourceNum][subevent->getFragment(
-//					f)->getSourceSubID()].fetch_add(1,
-//					std::memory_order_relaxed);
-//
-////			LOG_INFO<< "SETTO (" << std::hex << (int)SourceIDManager::sourceNumToID(sourceNum)<< std::dec
-////			<< "," << (uint)subevent->getFragment(f)->getSourceSubID()
-////			<< ") a " << receivedSourceIdsSubIds[SourceIDManager::sourceNumToID(sourceNum)][subevent->getFragment(f)->getSourceSubID()] <<ENDL;
-////			LOG_INFO<< "INCREMENTO (" << std::hex << (int)SourceIDManager::sourceNumToID(sourceNum)<< std::dec
-////			<< "," << (uint)subevent->getFragment(f)->getSourceSubID() << ") a "
-////			<< ReceivedEventsBySourceNumBySubId_[sourceNum][subevent->getFragment(f)->getSourceSubID()] <<ENDL;
-//		}
-//	}
-//	return receivedSourceIdsSubIds;
-//}
-
-std::map<uint, std::vector<uint>> Event::getMissingSourceIDs() {
-	std::map<uint, std::vector<uint>> missingIds;
-	if (!L1Processed_) {
-		for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-				sourceNum >= 0; sourceNum--) {
-			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
-//			LOG_INFO<< "+++++++++ MISSING SOURCEIDs   " << " " << std::hex
-//			<< (int) SourceIDManager::sourceNumToID(sourceNum) << std::dec
-//			<< " " << (int) SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
-//			<< " " << (int) subevent->getNumberOfFragments() << ENDL;
-
-			if (SourceIDManager::getExpectedPacksBySourceNum(sourceNum)
-					!= subevent->getNumberOfFragments()) {
-				MissingEventsBySourceNum_[sourceNum].fetch_add(1,
-						std::memory_order_relaxed);
-				missingIds[SourceIDManager::sourceNumToID(sourceNum)] =
-						subevent->getMissingSourceSubIds();
-
-				for (int f = 0; f != subevent->getNumberOfFragments(); f++) {
-					UnfinishedEventsCollector::addReceivedSubSourceIdFromUnfinishedEvent(
-							sourceNum,
-							subevent->getFragment(f)->getSourceSubID());
-				}
-			}
-		}
-	}
-	return missingIds;
-}
-
-std::map<uint, std::vector<uint>> Event::getMissingCreams() {
-	std::map<uint, std::vector<uint>> missingCratsAndCreams;
-	if (L1Processed_
-			&& numberOfCREAMFragments_
-					!= SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT) {
-		MissingEventsBySourceNum_[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES].fetch_add(
-				1, std::memory_order_relaxed);
-
-		uint crateID = 0xFFFFFFFF;
-		for (int i = 0;
-				i != SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT;
-				i++) {
-			if (zSuppressedLkrFragmentsByLocalCREAMID[i] == nullptr) {
-				std::pair<uint_fast8_t, uint_fast8_t> crateAndCream =
-						SourceIDManager::getCrateAndCREAMIDByLocalID(i);
-				missingCratsAndCreams[crateAndCream.first].push_back(
-						crateAndCream.second);
-			}
-		}
-	}
-	return missingCratsAndCreams;
 }
 
 uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
@@ -492,6 +307,25 @@ uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 		return L0TPData->l0TriggerType;
 	}
 	return 1;
+}
+
+void Event::updateMissingEventsStats() {
+
+	if (!L1Processed_) {
+		for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+				sourceNum >= 0; sourceNum--) {
+			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+			MissingEventsBySourceNum_[sourceNum].fetch_add(1, std::memory_order_relaxed);
+		}
+	}
+	else {
+		for (int sourceNum = SourceIDManager::NUMBER_OF_L1_DATA_SOURCES - 1;
+				sourceNum >= 0; sourceNum--) {
+			l1::Subevent* subevent = getL1SubeventBySourceIDNum(sourceNum);
+			MissingL1EventsBySourceNum_[sourceNum].fetch_add(1,std::memory_order_relaxed);
+		}
+	}
+	return;
 }
 
 } /* namespace na62 */
