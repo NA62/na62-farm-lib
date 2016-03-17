@@ -19,20 +19,29 @@ class EventPool {
 private:
 	static std::vector<Event*> events_;
 	static uint_fast32_t poolSize_;
+    static uint_fast32_t mepFactor_;
+     static uint_fast32_t mepFactorxNodeID_;
+     static uint_fast32_t mepFactorxNodes_;
+
 
 	static std::atomic<uint16_t>* L0PacketCounter_;
-	static std::atomic<uint16_t>* CREAMPacketCounter_;
+	static std::atomic<uint16_t>* L1PacketCounter_;
 	/*
 	 * Largest eventnumber that was passed to GetEvent
 	 */
-	static uint_fast32_t largestEventNumberTouched_;
+	static uint_fast32_t largestIndexTouched_;
 public:
-	static void initialize(uint numberOfEventsToBeStored);
+	static void initialize(uint numberOfEventsToBeStored, uint numberOfNodes=1, uint logicalNodeID=0, uint mepFactor=0);
 	static Event* getEvent(uint_fast32_t eventNumber);
-	static void freeEvent(Event* event);
+    static Event* getEventByIndex(uint_fast32_t index){
+            if (index>=poolSize_) return nullptr;
+            return events_[index];
+    }
 
-	static uint_fast32_t getLargestTouchedEventnumber(){
-		return largestEventNumberTouched_;
+    static void freeEvent(Event* event);
+
+	static uint_fast32_t getLargestTouchedEventnumberIndex(){
+		return largestIndexTouched_;
 	}
 	static uint_fast32_t getPoolSize(){
 			return poolSize_;
@@ -40,8 +49,8 @@ public:
 	static std::atomic<uint16_t>* getL0PacketCounter(){
 		return L0PacketCounter_;
 	}
-	static std::atomic<uint16_t>* getCREAMPacketCounter(){
-		return CREAMPacketCounter_;
+	static std::atomic<uint16_t>* getL1PacketCounter(){
+		return L1PacketCounter_;
 	}
 };
 

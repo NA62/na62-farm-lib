@@ -82,6 +82,7 @@ private:
 	static uint currentBurstID_;
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;
+	static std::atomic<uint> incompleteEvents_;
 };
 
 }

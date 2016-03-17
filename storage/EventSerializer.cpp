@@ -13,7 +13,8 @@
 #include "../eventBuilding/SourceIDManager.h"
 #include "../l0/MEPFragment.h"
 #include "../l0/Subevent.h"
-#include "../LKr/LkrFragment.h"
+#include "../l1/MEPFragment.h"
+#include "../l1/Subevent.h"
 #include "../structs/Event.h"
 #include "../structs/Versions.h"
 
@@ -24,23 +25,9 @@ int EventSerializer::TotalNumberOfDetectors_;
 
 void EventSerializer::initialize() {
 	/*
-	 * L0 sources + LKr
+	 * L0 + L1 sources
 	 */
-	if (SourceIDManager::NUMBER_OF_EXPECTED_CREAM_PACKETS_PER_EVENT == 0) {
-		TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
-	} else {
-		TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES
-				+ 1;
-	}
-
-	if (SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS != 0) {
-		TotalNumberOfDetectors_++;
-	}
-
-	if (SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS != 0) {
-		TotalNumberOfDetectors_++;
-	}
-
+	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
 	InitialEventBufferSize_ = 1000;
 }
 
@@ -75,13 +62,41 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint pointerTableOffset = sizeof(EVENT_HDR);
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
 
-	// set EOBEvent if the triggerword is 0x23  (with getL0TriggerTypeWord)
+	writeL0Data(event, eventBuffer, eventOffset, eventBufferSize,
+			pointerTableOffset);
+
+	writeL1Data(event, eventBuffer, eventOffset, eventBufferSize,
+			pointerTableOffset);
+
+	/*
+	 * Trailer
+	 */
+	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
+	trailer->eventNum = event->getEventNumber();
+	trailer->reserved = 0;
+
+	const int eventLength = eventOffset + 4/*trailer*/;
+
+	if (eventBufferSize > InitialEventBufferSize_) {
+		InitialEventBufferSize_ = eventBufferSize;
+	}
+
+	/*
+	 * header may have been overwritten -> redefine it
+	 */
+	header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
+
+	header->length = eventLength / 4;
+
+	return header;
+}
+
+char* EventSerializer::writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
+uint& eventBufferSize, uint& pointerTableOffset) {
 	/*
 	 * Write all L0 data sources
 	 */
-	for (int sourceNum = 0;
-			sourceNum != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES;
-			sourceNum++) {
+	for (int sourceNum = 0; sourceNum != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; sourceNum++) {
 		const l0::Subevent* const subevent = event->getL0SubeventBySourceIDNum(sourceNum);
 
 		if (eventOffset + 4 > eventBufferSize) {
@@ -133,98 +148,55 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 			}
 		}
 		//  if (subevent->getNumberOfFragments()!=expected number of fragments)&&EOBevent search for missing ids and copy
-		//  fake content inside the event block
+		//  fake content inside the event block -> why not only sending real data???
 	}
 
-	/*
-	 * Write the LKr data
-	 */
-	if (SourceIDManager::NUMBER_OF_EXPECTED_LKR_CREAM_FRAGMENTS != 0) {
-		writeCreamData(eventBuffer, eventOffset, eventBufferSize,
-				pointerTableOffset, event->getZSuppressedLkrFragments(),
-				event->getNumberOfZSuppressedLkrFragments(), SOURCE_ID_LKr);
-		// add EOBEvent to WriteCreamData parameters
-	}
-
-	if (SourceIDManager::MUV1_NUMBER_OF_FRAGMENTS != 0) {
-		writeCreamData(eventBuffer, eventOffset, eventBufferSize,
-				pointerTableOffset, event->getMuv1Fragments(),
-				event->getNumberOfMuv1Fragments(), SOURCE_ID_MUV1);
-	}
-
-	if (SourceIDManager::MUV2_NUMBER_OF_FRAGMENTS != 0) {
-		writeCreamData(eventBuffer, eventOffset, eventBufferSize,
-				pointerTableOffset, event->getMuv2Fragments(),
-				event->getNumberOfMuv2Fragments(), SOURCE_ID_MUV2);
-	}
-
-	/*
-	 * Trailer
-	 */
-	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
-	trailer->eventNum = event->getEventNumber();
-	trailer->reserved = 0;
-
-	const int eventLength = eventOffset + 4/*trailer*/;
-
-	if (eventBufferSize > InitialEventBufferSize_) {
-		InitialEventBufferSize_ = eventBufferSize;
-	}
-
-	/*
-	 * header may have been overwritten -> redefine it
-	 */
-	header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
-
-	header->length = eventLength / 4;
-
-	return header;
+	return eventBuffer;
 }
 
-char* EventSerializer::writeCreamData(char*& eventBuffer, uint& eventOffset,
-		uint& eventBufferSize, uint& pointerTableOffset,
-		cream::LkrFragment** fragments, uint numberOfFragments, uint sourceID) {
-	/*
-	 * Write the LKr data
-	 */
-	if (eventOffset + 4 > eventBufferSize) {
-		eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-				eventBufferSize + 1000);
-		eventBufferSize += 1000;
-	}
+char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint& eventOffset,
+		uint& eventBufferSize, uint& pointerTableOffset) {
 
-	uint eventOffset32 = eventOffset / 4;
-	/*
-	 * Put the LKr into the pointer table
-	 */
-	std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
-	std::memset(eventBuffer + pointerTableOffset + 3, sourceID, 1);
-	pointerTableOffset += 4;
+	for (int sourceNum = 0; sourceNum != SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; sourceNum++) {
+		const l1::Subevent* const subevent = event->getL1SubeventBySourceIDNum(sourceNum);
 
-	for (uint fragmentNum = 0; fragmentNum != numberOfFragments;
-			fragmentNum++) {
-		cream::LkrFragment* e = fragments[fragmentNum];
-
-		if (eventOffset + e->getEventLength() > eventBufferSize) {
+		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-					eventBufferSize + e->getEventLength());
-			eventBufferSize += e->getEventLength();
+					eventBufferSize + 1000);
+			eventBufferSize += 1000;
 		}
 
-		memcpy(eventBuffer + eventOffset, e->getDataWithHeader(),
-				e->getEventLength());
-		eventOffset += e->getEventLength();
-
+		uint eventOffset32 = eventOffset / 4;
 		/*
-		 * 32-bit alignment
+		 * Put the LKr into the pointer table
 		 */
-		if (eventOffset % 4 != 0) {
-			memset(eventBuffer + eventOffset, 0, eventOffset % 4);
-			eventOffset += eventOffset % 4;
-		}
-	}
-	// if (numberOfFragments!=fragments for source_id)&&EOBEvent) search for missing creams and put a fake block
+		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
+		std::memset(eventBuffer + pointerTableOffset + 3, SourceIDManager::l1SourceNumToID(sourceNum), 1);
+		pointerTableOffset += 4;
 
+		for (uint fragmentNum = 0; fragmentNum != subevent->getNumberOfFragments(); fragmentNum++) {
+			l1::MEPFragment* e = subevent->getFragment(fragmentNum);
+
+			if (eventOffset + e->getEventLength() > eventBufferSize) {
+				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+						eventBufferSize + e->getEventLength());
+				eventBufferSize += e->getEventLength();
+			}
+
+			memcpy(eventBuffer + eventOffset, e->getDataWithHeader(),
+					e->getEventLength());
+			eventOffset += e->getEventLength();
+
+			/*
+			 * 32-bit alignment
+			 */
+			if (eventOffset % 4 != 0) {
+				memset(eventBuffer + eventOffset, 0, eventOffset % 4);
+				eventOffset += eventOffset % 4;
+			}
+		}
+		// if (numberOfFragments!=fragments for source_id)&&EOBEvent) search for missing creams and put a fake block
+	}
 	return eventBuffer;
 }
 
