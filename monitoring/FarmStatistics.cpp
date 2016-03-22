@@ -83,7 +83,7 @@ void FarmStatistics::thread() {
 }
 
  uint FarmStatistics::getID(int source) {
-	uint idNo;
+	uint idNo=0;
 	switch (source) {
 	case 1:
 		FarmStatistics::PH.fetch_add(1, std::memory_order_relaxed);
