@@ -25,13 +25,13 @@ AExecutable::~AExecutable() {
 	delete thread_;
 }
 
-void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, short CPUToBind, int scheduler) {
+void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority, short CPUToBind, int scheduler) {
 	std::vector<short> CPUsToBind;
 	CPUsToBind.push_back(CPUToBind);
 	SetThreadAffinity(daThread, threadPriority, CPUsToBind, scheduler);
 }
 
-void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, std::vector<short> CPUsToBind, int scheduler) {
+void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority, std::vector<short> CPUsToBind, int scheduler) {
 #ifndef __APPLE__
 	int policy;
 	pthread_t threadID = (pthread_t) (daThread->native_handle());
