@@ -52,7 +52,7 @@ public:
         }
 
         inline uint16_t getNumberOfEvents() const {
-                return eventNum;
+                return eventNum_;
         }
 
     	/**
@@ -82,7 +82,7 @@ public:
             /*
              * Decrement eventCount. If we reach 0 we can delete this object as all events have been processed.
              */
-            return --eventNum == 0;
+            return --eventNum_ == 0;
     }
 
         DataContainer getRawData() {
@@ -94,7 +94,7 @@ private:
     DataContainer dataContainer_;
     // Pointers to the payload of the UDP packet
      std::vector<MEPFragment*> events;
-     std::atomic<int> eventNum;
+     std::atomic<int> eventNum_;
      uint_fast8_t sourceID_;
 
 

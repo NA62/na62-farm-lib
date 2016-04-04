@@ -33,7 +33,7 @@ public:
 	}
 
 	void startThread(unsigned short threadNum, const std::string threadName,
-			std::vector<short> CPUMask, unsigned threadPrio,
+			std::vector<short> CPUMask, int threadPrio,
 			int scheduler = 1) {
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
@@ -45,22 +45,22 @@ public:
 	}
 
 	void startThread(unsigned short threadNum, const std::string threadName,
-			short CPUMask = -1, unsigned short threadPrio = 15, int scheduler =
+			short CPUMask = -1, int threadPrio = 15, int scheduler =
 					1) {
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
 				boost::bind(&AExecutable::runThread, this));
-
-		SetThreadAffinity(thread_, 15, CPUMask, scheduler);
+//		LOG_ERROR << "tprio " << threadPrio << " thread name " << threadName;
+		SetThreadAffinity(thread_, threadPrio, CPUMask, scheduler);
 		threadName_ = threadName;
 //		pthread_setname_np(thread_->native_handle(), threadName.c_str());
 	}
 
 	static void SetThreadAffinity(boost::thread* daThread,
-			unsigned short threadPriority, short CPUToBind, int scheduler);
+			int threadPriority, short CPUToBind, int scheduler);
 
 	static void SetThreadAffinity(boost::thread* daThread,
-			unsigned short threadPriority, std::vector<short> CPUsToBind,
+			int threadPriority, std::vector<short> CPUsToBind,
 			int scheduler);
 
 	void join() {

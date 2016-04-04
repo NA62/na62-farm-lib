@@ -29,7 +29,7 @@ MEP::MEP(const char * data, const uint16_t& dataLength,
 }
 
 MEP::~MEP() {
-        if (eventNum != 0) {
+        if (eventNum_ != 0) {
                 /*
                  * TODO: Just for testing. Should be deleted later to boost performance!
                  */
@@ -40,16 +40,27 @@ MEP::~MEP() {
 
 void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) {
 
+		eventNum_ = 0 ;
+		events.clear();
         uint16_t offset = 0;
 
-        MEPFragment* newEvent;
+        MEPFragment* newEvent = nullptr;
+
+        if(dataLength == 0) {
+        	LOG_ERROR << "Received EMPTY UDP packet!";
+        	return;
+        }
+        if(dataLength < sizeof(L1_EVENT_RAW_HDR)) {
+               	LOG_ERROR << "Received UDP packet with less data than a single L1 header!";
+               	return;
+        }
 
         while (offset < dataLength) {
-                newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset), dataLength);
+                newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset));
 
                 if (newEvent->getEventLength() + offset > dataLength) {
                         throw BrokenPacketReceivedError(
-                                        "Incomplete MEPFragment! Received only "
+                                        "Incomplete MEPFragment! Received only  "
                                                         + boost::lexical_cast<std::string>(dataLength)
                                                         + " instead of "
                                                         + boost::lexical_cast<std::string>(
@@ -59,8 +70,9 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) 
                 offset += newEvent->getEventLength();
                 events.push_back(std::move(newEvent));
         }
-        sourceID_ = newEvent->getSourceID();
-        eventNum = events.size();
+        if (newEvent)
+        	sourceID_ = newEvent->getSourceID();
+        eventNum_ = events.size();
 }
 
 
