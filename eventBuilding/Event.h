@@ -449,27 +449,27 @@ private:
 	/*
 	 * Don't forget to reset new variables in Event::reset()!
 	 */
-	uint_fast32_t eventNumber_;
+	std::atomic<uint_fast32_t> eventNumber_;
 	std::atomic<uint_fast8_t> numberOfL0Fragments_;
 	std::atomic<uint_fast16_t> numberOfMEPFragments_;
 
 	/*
 	 * To be added within L1 trigger process
 	 */
-	uint_fast32_t burstID_;
-	uint_fast32_t triggerTypeWord_;
-	uint_fast16_t triggerFlags_;
-	uint_fast32_t timestamp_;
-	uint_fast8_t finetime_;
-	uint_fast32_t SOBtimestamp_;
-	uint_fast32_t processingID_;
+	std::atomic<uint_fast32_t> burstID_;
+	std::atomic<uint_fast32_t> triggerTypeWord_;
+	std::atomic<uint_fast16_t> triggerFlags_;
+	std::atomic<uint_fast32_t> timestamp_;
+	std::atomic<uint_fast8_t> finetime_;
+	std::atomic<uint_fast32_t> SOBtimestamp_;
+	std::atomic<uint_fast32_t> processingID_;
 
-	bool requestZeroSuppressedCreamData_;
+	std::atomic<bool> requestZeroSuppressedCreamData_;
 
 	l0::Subevent ** L0Subevents;
 	l1::Subevent ** L1Subevents;
 
-	uint_fast16_t nonZSuppressedDataRequestedNum;
+	std::atomic<uint_fast16_t>  nonZSuppressedDataRequestedNum;
 
 	/*
 	 * zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the
@@ -500,10 +500,10 @@ private:
 	/*
 	 * Times in microseconds
 	 */
-	u_int32_t l0BuildingTime_;
-	u_int32_t l1ProcessingTime_;
-	u_int32_t l1BuildingTime_;
-	u_int32_t l2ProcessingTime_;
+	std::atomic<uint_fast32_t> l0BuildingTime_;
+	std::atomic<uint_fast32_t> l1ProcessingTime_;
+	std::atomic<uint_fast32_t> l1BuildingTime_;
+	std::atomic<uint_fast32_t> l2ProcessingTime_;
 #endif
 };
 

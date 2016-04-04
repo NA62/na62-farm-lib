@@ -67,7 +67,7 @@ void FarmStatistics::thread() {
 				std::cout << "wrote statistic" << getFileOutString(a) << std::endl;
 			}
 		}
-
+		boost::this_thread::sleep(boost::posix_time::microsec(1000));
 	}
 	myfile.close();
 }
@@ -83,7 +83,7 @@ void FarmStatistics::thread() {
 }
 
  uint FarmStatistics::getID(int source) {
-	uint idNo;
+	uint idNo=0;
 	switch (source) {
 	case 1:
 		FarmStatistics::PH.fetch_add(1, std::memory_order_relaxed);
@@ -108,11 +108,14 @@ void FarmStatistics::thread() {
 // gethostname seems to crash
  char* FarmStatistics::getHostName() {
 //	20 chars should fit all hostnames
-	if (!(hostname = std::getenv("HOSTNAME"))) {
-		LOG_INFO<< "error at hostname retrieval" << ENDL;
-		return nullptr;
-	}
-	return hostname;
+	 char* host = new char[32];
+	 gethostname(host,sizeof(host));
+	 return host;
+	//if (!(hostname = std::getenv("HOSTNAME"))) {
+	//	LOG_INFO<< "error at hostname retrieval" << ENDL;
+	//	return nullptr;
+	//}
+	//return hostname;
 }
 
 // Buid the line to be written into the logfile

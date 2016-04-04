@@ -18,8 +18,10 @@ using namespace na62;
 namespace na62 {
 namespace l1 {
 
-MEPFragment::MEPFragment(MEP* mep, const L1_EVENT_RAW_HDR * data, const uint16_t& dataLength) :
-		mep_(mep), rawData_(data), dataLength_(dataLength) {}
+MEPFragment::MEPFragment(MEP* mep, const L1_EVENT_RAW_HDR * data) :
+		mep_(mep), rawData_(data) {
+	dataLength_ = rawData_->numberOf4BWords * 4;
+}
 
 
 MEPFragment::~MEPFragment() {

@@ -13,6 +13,7 @@
 #include <iostream>
 #include <mutex>
 #include <thread>
+#include <functional>
 #include "../utils/AExecutable.h"
 #include "FarmStatistics.h"
 
@@ -51,11 +52,12 @@ public:
 		return flushBurst_ ;
 	}
 
-	static void initialize(uint startBurstID) {
+	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction) {
 		currentBurstID_ = startBurstID;
 		nextBurstId_ = currentBurstID_;
 		running_ = true;
 		flushBurst_ = false;
+		burstCleanupFunction_ = burstCleanupFunction;
 	}
 
 	static void shutDown() {
@@ -67,7 +69,7 @@ private:
 	/**
 	 * Method is called every time the last event of a burst has been processed
 	 */
-	void onBurstFinished();
+	//void onBurstFinished();
 
 	static boost::timer::cpu_timer EOBReceivedTimer_;
 	static std::mutex timerMutex_;
@@ -82,7 +84,7 @@ private:
 	static uint currentBurstID_;
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;
-	static std::atomic<uint> incompleteEvents_;
+	static std::function<void()> burstCleanupFunction_;
 };
 
 }

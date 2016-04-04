@@ -37,7 +37,7 @@ struct L1_BLOCK {
 
 class MEPFragment {
 public:
-	MEPFragment(MEP* mep, const L1_EVENT_RAW_HDR * data, const uint16_t& dataLength);
+	MEPFragment(MEP* mep, const L1_EVENT_RAW_HDR * data);
 	~MEPFragment();
 
     inline const uint32_t getEventLength() const {

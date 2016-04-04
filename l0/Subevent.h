@@ -24,7 +24,7 @@ namespace l0 {
 
 class Subevent: private boost::noncopyable {
 public:
-	Subevent(const uint_fast16_t expectedPacketsNum);
+	Subevent(const uint_fast16_t expectedPacketsNum, const uint_fast8_t sourceID);
 	virtual ~Subevent();
 
 	void destroy();
@@ -107,9 +107,12 @@ public:
 	uint_fast16_t getNumberOfExpectedFragments() const {
 		return expectedPacketsNum;
 	}
-
+	uint8_t getSourceID() {
+		return sourceID;
+	}
 private:
 	const uint_fast16_t expectedPacketsNum;
+	const uint_fast8_t sourceID;
 	MEPFragment ** eventFragments;
 	std::atomic<uint_fast16_t> fragmentCounter;
 };

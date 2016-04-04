@@ -16,8 +16,8 @@
 namespace na62 {
 namespace l1 {
 
-Subevent::Subevent(const uint_fast16_t expectedPacketsNum) :
-		expectedPacketsNum(expectedPacketsNum), eventFragments(
+Subevent::Subevent(const uint_fast16_t expectedPacketsNum, const uint_fast8_t sourceID) :
+		expectedPacketsNum(expectedPacketsNum), sourceID(sourceID), eventFragments(
 				new (std::nothrow) MEPFragment*[expectedPacketsNum]), fragmentCounter(
 				0) {
 }

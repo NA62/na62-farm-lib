@@ -147,8 +147,33 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 				eventOffset += eventOffset % 4;
 			}
 		}
-		//  if (subevent->getNumberOfFragments()!=expected number of fragments)&&EOBevent search for missing ids and copy
-		//  fake content inside the event block -> why not only sending real data???
+		// Add here missing fragments: could actually be handled dynamically by decoders
+		if (subevent->getNumberOfFragments() < subevent->getNumberOfExpectedFragments() ) {
+			uint missingFrags = subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments();
+			for (uint i = 0; i != missingFrags; i++) {
+				payloadLength = sizeof(L0_BLOCK_HDR);
+                if (eventOffset + payloadLength > eventBufferSize) {
+                         eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+                                         eventBufferSize + payloadLength);
+                         eventBufferSize += payloadLength;
+                 }
+
+                 L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
+                                 + eventOffset);
+                 blockHdr->dataBlockSize = payloadLength;
+                 blockHdr->reserved = 0x01;
+                 blockHdr->sourceSubID = 0x00;
+                 blockHdr->timestamp = 0xffffffff;
+                 eventOffset += payloadLength;
+                 /*
+                  * 32-bit alignment
+                  */
+                 if (eventOffset % 4 != 0) {
+                         memset(eventBuffer + eventOffset, 0, eventOffset % 4);
+                         eventOffset += eventOffset % 4;
+                 }
+			}
+		}
 	}
 
 	return eventBuffer;
@@ -195,7 +220,37 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
 				eventOffset += eventOffset % 4;
 			}
 		}
-		// if (numberOfFragments!=fragments for source_id)&&EOBEvent) search for missing creams and put a fake block
+
+		// Add here missing fragments: could actually be handled dynamically by decoders
+		if (subevent->getNumberOfFragments() < subevent->getNumberOfExpectedFragments() ) {
+			uint missingFrags = subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments();
+			for (uint i = 0; i != missingFrags; i++) {
+				int payloadLength = sizeof(l1::L1_EVENT_RAW_HDR);
+                if (eventOffset + payloadLength > eventBufferSize) {
+                         eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+                                         eventBufferSize + payloadLength);
+                         eventBufferSize += payloadLength;
+                 }
+
+                 l1::L1_EVENT_RAW_HDR* blockHdr = reinterpret_cast<l1::L1_EVENT_RAW_HDR*>(eventBuffer + eventOffset);
+
+                 blockHdr->eventNumber = event->getEventNumber();
+                 blockHdr->sourceID = SourceIDManager::l1SourceNumToID(sourceNum);
+                 blockHdr->numberOf4BWords = payloadLength/4;
+                 blockHdr->timestamp = 0xffffffff;
+                 blockHdr->sourceSubID = 0;
+                 blockHdr->l0TriggerWord = event->getL0TriggerTypeWord();
+                 memcpy(eventBuffer + eventOffset, blockHdr, sizeof(l1::L1_EVENT_RAW_HDR));
+                 eventOffset += payloadLength;
+                 /*
+                  * 32-bit alignment
+                  */
+                 if (eventOffset % 4 != 0) {
+                         memset(eventBuffer + eventOffset, 0, eventOffset % 4);
+                         eventOffset += eventOffset % 4;
+                 }
+			}
+		}
 	}
 	return eventBuffer;
 }
