@@ -43,12 +43,13 @@ void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority,
 			exit(EXIT_FAILURE);
 		}
 
+		//LOG_ERROR << "Policy " << policy << ", priority " << param.sched_priority ;
 		/**
 		 * Set scheduling algorithm
-		 * Possible values: SCHED_FIFO, SCHED_RR, SCHED_OTHER
+		 * Possible values: SCHED_FIFO(1), SCHED_RR(2), SCHED_OTHER(0)
 		 */
 		policy = scheduler;
-		param.sched_priority = threadPriority;
+		param.__sched_priority = threadPriority;
 		if (pthread_setschedparam(threadID, policy, &param) != 0) {
 			perror("pthread_setschedparam");
 			exit(EXIT_FAILURE);

@@ -11,6 +11,7 @@
 #include <boost/lexical_cast.hpp>
 #include <string>
 
+#include "../exceptions/CommonExceptions.h"
 #include "../exceptions/BrokenPacketReceivedError.h"
 #include "../exceptions/UnknownSourceIDFound.h"
 
@@ -19,48 +20,81 @@ namespace l1 {
 
 MEP::MEP(const char * data, const uint16_t& dataLength,
                 DataContainer etherFrame) :
-                dataContainer_(etherFrame), sourceID_(0) {
+                dataContainer_(etherFrame), sourceID_(0xff) {
 
         /*
          * There is no special MEP header! A MEP just consists of several MEPFragments and we have to
          * find out how many of those are written into this packet.
          */
-        initializeMEPFragments(data, dataLength);
+	eventNum_ = 0 ;
+	initializeMEPFragments(data, dataLength);
 }
 
 MEP::~MEP() {
-        if (eventNum != 0) {
+        if (eventNum_ != 0) {
                 /*
                  * TODO: Just for testing. Should be deleted later to boost performance!
                  */
+#ifdef USE_ERS
+        	ers::error(Message("Deleting non-empty MEP!!!"));
+#else
                 throw NA62Error("Deleting non-empty MEP!!!");
+#endif
         }
         dataContainer_.free();
 }
 
 void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) {
+	if(dataLength == 0) {
+#ifdef USE_ERS
+		throw CorruptedMEP(ERS_HERE, "Received EMPTY UDP packet!");
+#else
+		throw BrokenPacketReceivedError("Received EMPTY UDP packet!");
+#endif
+	}
+	if(dataLength < sizeof(L1_EVENT_RAW_HDR)) {
+#ifdef USE_ERS
+		std::ostringstream s;
+		s << "Received UDP packet with size " << dataLength << " less data than a single L1 header!";
+		throw CorruptedMEP(ERS_HERE, s.str());
+#else
+		throw BrokenPacketReceivedError("Received UDP packet with less data than a single L1 header!");
+#endif
+	}
+	// Get source ID from first fragment and check its validity
+	const L1_EVENT_RAW_HDR* hdr = (const L1_EVENT_RAW_HDR*)(data);
 
-        uint16_t offset = 0;
+	if (!SourceIDManager::checkL1SourceID(hdr->sourceID)) {
+#ifdef USE_ERS
+		throw UnknownSourceID(ERS_HERE, hdr->sourceID, hdr->sourceSubID);
+#else
+		throw UnknownSourceIDFound(hdr->sourceID, hdr->sourceSubID);
+#endif
+	}
 
-        MEPFragment* newEvent;
+	sourceID_ = hdr->sourceID;
 
-        while (offset < dataLength) {
-                newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset), dataLength);
+	uint16_t offset = 0;
 
-                if (newEvent->getEventLength() + offset > dataLength) {
-                        throw BrokenPacketReceivedError(
-                                        "Incomplete MEPFragment! Received only "
-                                                        + boost::lexical_cast<std::string>(dataLength)
-                                                        + " instead of "
-                                                        + boost::lexical_cast<std::string>(
-                                                                        offset + newEvent->getEventLength())
-                                                        + " bytes");
-                }
-                offset += newEvent->getEventLength();
-                events.push_back(std::move(newEvent));
-        }
-        sourceID_ = newEvent->getSourceID();
-        eventNum = events.size();
+	MEPFragment* newEvent = nullptr;
+
+	while (offset < dataLength) {
+		newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset));
+
+		if (newEvent->getEventLength() + offset > dataLength) {
+			throw BrokenPacketReceivedError(
+					"type = BadEv : Incomplete MEPFragment! Received only  "
+					+ boost::lexical_cast<std::string>(dataLength)
+					+ " instead of "
+					+ boost::lexical_cast<std::string>(
+							offset + newEvent->getEventLength())
+							+ " bytes");
+		}
+		offset += newEvent->getEventLength();
+		events.push_back(std::move(newEvent));
+	}
+
+	eventNum_ = events.size();
 }
 
 

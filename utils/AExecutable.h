@@ -50,7 +50,7 @@ public:
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
 				boost::bind(&AExecutable::runThread, this));
-
+//		LOG_ERROR << "tprio " << threadPrio << " thread name " << threadName;
 		SetThreadAffinity(thread_, threadPrio, CPUMask, scheduler);
 		threadName_ = threadName;
 //		pthread_setname_np(thread_->native_handle(), threadName.c_str());

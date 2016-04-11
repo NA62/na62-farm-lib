@@ -11,6 +11,7 @@
 #include <thread>
 #include <iostream>
 
+#include "../exceptions/CommonExceptions.h"
 #include "../options/Logging.h"
 
 #include "Event.h"
@@ -72,8 +73,13 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
     //See if event number is in a valid range of the nodeID
     int rest = (eventNumber-mepFactorxNodeID_)%mepFactorxNodes_;
     if (rest < 0 || rest >= mepFactor_){
-            LOG_ERROR<<"Received Event with event number " << eventNumber
-                            << " which is invalid for this nodeID"
+    		int x = int(eventNumber/(mepFactor_-1)) % int(mepFactorxNodes_/mepFactor_);
+#ifdef USE_ERS
+    		throw(UnexpectedEventNumber(ERS_HERE, eventNumber, x, (int) (mepFactorxNodeID_ / mepFactor_)));
+#endif
+    		LOG_ERROR<<"Received Event with event number " << eventNumber
+                            << " which is invalid for this nodeID "<< (int) (mepFactorxNodeID_ / mepFactor_)
+							<< ", because it is meant for node ID " << x
                             << ENDL;
             return nullptr;
     }
@@ -82,7 +88,11 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
     //int index = eventNumber - mepFactorxNodeID_ - (mepFactorxNodes_ + mepFactor_) * myfloor ;
     int index = eventNumber - mepFactorxNodeID_ + (mepFactor_- mepFactorxNodes_) * myfloor ;
     if (index >= poolSize_) {
-                    LOG_ERROR<<"Received Event with event number " << eventNumber
+#ifdef USE_ERS
+    		throw(TooLargeEventNumber(ERS_HERE, eventNumber, poolSize_));
+#endif
+
+    	LOG_ERROR<<"Received Event with event number " << eventNumber
                     << " which is higher than configured maximum number of events. Index = " << int(index) << " " << (int) (poolSize_)
                     << ENDL;
             return nullptr;
