@@ -85,7 +85,7 @@ public:
 		for (int i = 0; i < 1000000; i++) {
 			sum += rand();
 		}
-		LOG_INFO<< "Heated up CPU for frequency measurement: " << sum << ENDL;
+		LOG_INFO("Heated up CPU for frequency measurement: " << sum);
 
 // cumputing usleep delay
 		uint64_t tick_start = GetTicks();

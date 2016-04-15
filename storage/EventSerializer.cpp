@@ -22,6 +22,7 @@ namespace na62 {
 
 uint EventSerializer::InitialEventBufferSize_;
 int EventSerializer::TotalNumberOfDetectors_;
+bool isUnfinishedEOB;
 
 void EventSerializer::initialize() {
 	/*
@@ -29,6 +30,7 @@ void EventSerializer::initialize() {
 	 */
 	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
 	InitialEventBufferSize_ = 1000;
+	isUnfinishedEOB = false;
 }
 
 char* EventSerializer::ResizeBuffer(char* buffer, const int oldLength,
@@ -43,6 +45,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
+	isUnfinishedEOB = false;
 	EVENT_HDR* header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
 
 	header->eventNum = event->getEventNumber();
@@ -85,6 +88,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	 * header may have been overwritten -> redefine it
 	 */
 	header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
+	if (isUnfinishedEOB) header->triggerWord = 0xfefe23;
 
 	header->length = eventLength / 4;
 
@@ -157,7 +161,7 @@ uint& eventBufferSize, uint& pointerTableOffset) {
                                          eventBufferSize + payloadLength);
                          eventBufferSize += payloadLength;
                  }
-
+	 	 isUnfinishedEOB = true;
                  L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
                                  + eventOffset);
                  blockHdr->dataBlockSize = payloadLength;
@@ -232,6 +236,7 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
                          eventBufferSize += payloadLength;
                  }
 
+		isUnfinishedEOB=true;
                  l1::L1_EVENT_RAW_HDR* blockHdr = reinterpret_cast<l1::L1_EVENT_RAW_HDR*>(eventBuffer + eventOffset);
 
                  blockHdr->eventNumber = event->getEventNumber();

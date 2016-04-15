@@ -51,8 +51,7 @@ public:
 	 * Reads the data coming from L0 and initializes the corresponding fields
 	 */
 	MEP(const char *data, const uint_fast16_t & dataLength,
-			const DataContainer originalData) throw (BrokenPacketReceivedError,
-					UnknownSourceIDFound);
+			const DataContainer originalData) ;
 
 	/**
 	 * Frees the data buffer (orignialData) that was created by the Receiver
@@ -62,7 +61,7 @@ public:
 	virtual ~MEP();
 
 	void initializeMEPFragments(const char* data,
-			const uint_fast16_t& dataLength) throw (BrokenPacketReceivedError);
+			const uint_fast16_t& dataLength) ;
 
 	/**
 	 * Returns a pointer to the n'th event within this MEP where 0<=n<getFirstEventNum()
