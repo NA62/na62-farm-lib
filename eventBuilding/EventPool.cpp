@@ -36,8 +36,8 @@ void EventPool::initialize(uint numberOfEventsToBeStored, uint numberOfNodes, ui
     mepFactorxNodes_ = mepFactor_ * numberOfNodes;
     mepFactorxNodeID_ = mepFactor_ * logicalNodeID;
 
-	LOG_INFO<< "Initializing EventPool with " << poolSize_
-	<< " Events" << ENDL;
+	LOG_INFO("Initializing EventPool with " << poolSize_
+	<< " Events");
 
 	/*
 	 * Fill the pool with empty events.
@@ -77,10 +77,9 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
 #ifdef USE_ERS
     		throw(UnexpectedEventNumber(ERS_HERE, eventNumber, x, (int) (mepFactorxNodeID_ / mepFactor_)));
 #endif
-    		LOG_ERROR<<"Received Event with event number " << eventNumber
+    		LOG_ERROR("Received Event with event number " << eventNumber
                             << " which is invalid for this nodeID "<< (int) (mepFactorxNodeID_ / mepFactor_)
-							<< ", because it is meant for node ID " << x
-                            << ENDL;
+							<< ", because it is meant for node ID " << x);
             return nullptr;
     }
 
@@ -92,9 +91,8 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
     		throw(TooLargeEventNumber(ERS_HERE, eventNumber, poolSize_));
 #endif
 
-    	LOG_ERROR<<"Received Event with event number " << eventNumber
-                    << " which is higher than configured maximum number of events. Index = " << int(index) << " " << (int) (poolSize_)
-                    << ENDL;
+    	LOG_ERROR("Received Event with event number " << eventNumber
+                    << " which is higher than configured maximum number of events. Index = " << int(index) << " " << (int) (poolSize_));
             return nullptr;
             }
 

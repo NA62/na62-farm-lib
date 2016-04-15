@@ -95,7 +95,7 @@ public:
 #ifdef MEASURE_TIME
 		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
 				- l0BuildingTime_;
-		//LOG_INFO<< "*******************l1ProcessingTime_ " << l1ProcessingTime_ << ENDL;
+		//LOG_INFO("*******************l1ProcessingTime_ " << l1ProcessingTime_);
 #endif
 
 		triggerTypeWord_ = L0L1TriggerTypeWord;
@@ -113,7 +113,7 @@ public:
 #ifdef MEASURE_TIME
 		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
 				- (l1BuildingTime_ + l1ProcessingTime_ + l0BuildingTime_);
-//		LOG_INFO<< "*******************l2ProcessingTime_ " << l2ProcessingTime_ << ENDL;
+//		LOG_INFO("*******************l2ProcessingTime_ " << l2ProcessingTime_);
 #endif
 
 		L2Accepted_ = L2TriggerTypeWord > 0;

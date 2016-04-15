@@ -21,7 +21,7 @@ bool DataContainer::checkValid() {
 	}
 
 	if (checksum != GenerateChecksum(data, length, 0)) {
-		LOG_ERROR<<"Packet broke!" << ENDL;
+		LOG_ERROR("Packet broke!");
 	}
 	return checksum != GenerateChecksum(data, length, 0);
 }

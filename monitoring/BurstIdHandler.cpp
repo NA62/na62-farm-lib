@@ -34,21 +34,21 @@ std::function<void()> BurstIdHandler::burstCleanupFunction_(nullptr);
 
 void BurstIdHandler::thread(){
 	while(BurstIdHandler::running_) {
-		//LOG_INFO<< "Burst ID Handler thread " << (bool) BurstIdHandler::isInBurst() << " " << (bool)BurstIdHandler::flushBurst() <<  " " << (int) BurstIdHandler::getTimeSinceLastEOB();
+		//LOG_INFO("Burst ID Handler thread " << (bool) BurstIdHandler::isInBurst() << " " << (bool)BurstIdHandler::flushBurst() <<  " " << (int) BurstIdHandler::getTimeSinceLastEOB());
 		if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == false && BurstIdHandler::getTimeSinceLastEOB() > 3.) {
 			// Mark that all further data shall be discarded
-			LOG_INFO<< "Preparing end of burst " << (int) BurstIdHandler::getCurrentBurstId();
+			LOG_INFO("Preparing end of burst " << (int) BurstIdHandler::getCurrentBurstId());
 			BurstIdHandler::flushBurst_=true;
 		}
 		else if (  BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
 			// Flush all events
-			LOG_INFO<< "Cleanup of burst " << (int) BurstIdHandler::getCurrentBurstId();
+			LOG_INFO("Cleanup of burst " << (int) BurstIdHandler::getCurrentBurstId());
 			//onBurstFinished();
 			BurstIdHandler::burstCleanupFunction_();
 			BurstIdHandler::currentBurstID_ = BurstIdHandler::nextBurstId_;
 			BurstIdHandler::flushBurst_ = false;
 
-			LOG_INFO<< "Start of burst " << (int) BurstIdHandler::getCurrentBurstId();
+			LOG_INFO("Start of burst " << (int) BurstIdHandler::getCurrentBurstId());
 
 		}
 		// Slow down polling

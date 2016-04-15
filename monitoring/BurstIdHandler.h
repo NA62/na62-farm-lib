@@ -31,7 +31,7 @@ public:
 		//EOBReceivedTimer_.elapsed().clear();
 		EOBReceivedTimer_.start();
 		nextBurstId_ = nextBurstID;
-		LOG_INFO<<"Changing BurstID to " << nextBurstID << ENDL;
+		LOG_INFO("Changing BurstID to " << nextBurstID);
 		//resetCounter_=true;
 	}
 

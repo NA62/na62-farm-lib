@@ -189,9 +189,8 @@ std::vector<int> Options::GetIntList(char* parameter) {
 				values.push_back(Utils::ToUInt(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR<< "Unable to cast '" + str
-			+ "' to int! Try correct option " << parameter
-			<< ENDL;
+			LOG_ERROR("Unable to cast '" + str
+			+ "' to int! Try correct option " << parameter);
 			exit(1);
 		}
 	}
@@ -214,9 +213,8 @@ std::vector<double> Options::GetDoubleList(char* parameter) {
 				values.push_back(boost::lexical_cast<double>(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR<< "Unable to cast '" + str
-			+ "' to double! Try correct option " << parameter
-			<< ENDL;
+			LOG_ERROR("Unable to cast '" + str
+			+ "' to double! Try correct option " << parameter);
 			exit(1);
 		}
 	}

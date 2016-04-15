@@ -13,7 +13,7 @@ namespace na62 {
 
 NA62Error::NA62Error(const std::string& message) :
 		std::runtime_error(message) {
-	LOG_INFO<<message << ENDL;
+	LOG_INFO(message);
 }
 
 }

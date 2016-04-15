@@ -93,13 +93,15 @@ MEP::~MEP() {
 #ifdef USE_ERS
 		ers::error(Message("Deleting non-empty MEP!!!"));
 #endif;
+
 	}
 	delete[] fragments_;
 	originalData_.free(); // Here we free the most important buffer used for polling in Receiver.cpp
 }
 
 void MEP::initializeMEPFragments(const char * data,
-		const uint_fast16_t& dataLength) throw (BrokenPacketReceivedError) {
+	//const uint_fast16_t& dataLength) throw (BrokenPacketReceivedError) {
+		const uint_fast16_t& dataLength) {
 	// The first subevent starts directly after the header -> offset is 12
 	uint_fast16_t offset = sizeof(MEP_HDR);
 
@@ -160,7 +162,7 @@ void MEP::initializeMEPFragments(const char * data,
 //	 UDP_HDR* hdr = ( UDP_HDR*) getUDPPack();
 //	if (!EthernetUtils::CheckData((char*) &hdr->ip, sizeof(iphdr))) {
 //		LOG_INFO
-//		<< "Packet with broken IP-checksum received" << ENDL;
+//		("Packet with broken IP-checksum received");
 //		return false;
 //	}
 //
@@ -168,7 +170,7 @@ void MEP::initializeMEPFragments(const char * data,
 //			(const char *) (&hdr->udp) + sizeof( udphdr),
 //			ntohs(hdr->udp.len) - sizeof( udphdr))) {
 //		LOG_INFO
-//		<< "Packet with broken UDP-checksum received"<<ENDL;
+//		("Packet with broken UDP-checksum received");
 //		return false;
 //	}
 //	checkSumsVarified_ = true;
