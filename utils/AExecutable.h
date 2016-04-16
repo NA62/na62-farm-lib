@@ -50,7 +50,7 @@ public:
 		threadNum_ = threadNum;
 		thread_ = threads_.create_thread(
 				boost::bind(&AExecutable::runThread, this));
-//		LOG_ERROR << "tprio " << threadPrio << " thread name " << threadName;
+//		LOG_ERROR("tprio " << threadPrio << " thread name " << threadName);
 		SetThreadAffinity(thread_, threadPrio, CPUMask, scheduler);
 		threadName_ = threadName;
 //		pthread_setname_np(thread_->native_handle(), threadName.c_str());
@@ -77,13 +77,12 @@ public:
 			instances_[i]->onInterruption();
 		}
 
-		LOG_INFO << "Interrupting " << instances_.size() << " threads"
-				<< ENDL;
+		LOG_INFO("Interrupting " << instances_.size() << " threads");
 		threads_.interrupt_all();
 	}
 
 	static void JoinAll() {
-		LOG_INFO << "Joining " << instances_.size() << " threads" << ENDL;
+		LOG_INFO("Joining " << instances_.size() << " threads");
 		threads_.join_all();
 	}
 

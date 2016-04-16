@@ -115,13 +115,18 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
 	if (!boost::filesystem::exists(dir)
 			&& !boost::filesystem::create_directory(dir)) {
-		LOG_ERROR<< "Unable to create directory " << dir.string() << std::endl;
+		std::cerr<< "Unable to create directory " << dir.string() << std::endl;
 	}
 
 	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
 	google::InitGoogleLogging(argv[0]);
 	std::cout << "Writing logs to " << FLAGS_log_dir << " With min log level "
 			<< FLAGS_minloglevel << std::endl;
+
+	google::SetLogDestination(google::INFO, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.info").c_str());
+	google::SetLogDestination(google::WARNING, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.warn").c_str());
+	google::SetLogDestination(google::ERROR, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.err").c_str());
+
 #endif
 }
 
@@ -184,9 +189,8 @@ std::vector<int> Options::GetIntList(char* parameter) {
 				values.push_back(Utils::ToUInt(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR<< "Unable to cast '" + str
-			+ "' to int! Try correct option " << parameter
-			<< ENDL;
+			LOG_ERROR("Unable to cast '" + str
+			+ "' to int! Try correct option " << parameter);
 			exit(1);
 		}
 	}
@@ -209,9 +213,8 @@ std::vector<double> Options::GetDoubleList(char* parameter) {
 				values.push_back(boost::lexical_cast<double>(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR<< "Unable to cast '" + str
-			+ "' to double! Try correct option " << parameter
-			<< ENDL;
+			LOG_ERROR("Unable to cast '" + str
+			+ "' to double! Try correct option " << parameter);
 			exit(1);
 		}
 	}
