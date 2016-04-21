@@ -8,13 +8,22 @@
 #pragma once
 
 #ifdef USE_ERS
+#include <string>
 #include <ers/ers.h>
 
 ERS_DECLARE_ISSUE(na62,                                 // namespace name
                 Message,		                       	// issue name
-                msg,									// message
-                ((std::string) msg)					    // first attribute
+                "Generic message ",						// message
+                ERS_EMPTY					    // first attribute
                    )
+
+ERS_DECLARE_ISSUE_BASE( na62,                                                                        // namespace name
+					BadInternalDataFlow,                          									 // issue name
+					na62::Message, 		                       								     //base issue name
+					txt ,               // message
+					ERS_EMPTY,     																 // base class attributes
+					((std::string) txt )                               // this class attributes
+							   )
 
 
 ERS_DECLARE_ISSUE_BASE( na62,                                                                        // namespace name
@@ -29,7 +38,7 @@ ERS_DECLARE_ISSUE_BASE( na62,                                                   
 ERS_DECLARE_ISSUE_BASE( na62,
 						CorruptedPacket,
 						na62::Message,
-						"Corrupted packet received from IP " << IP address << ", port " << port << ". Reason: " << reason,
+						"Corrupted packet received from IP " << ipaddr << ", port " << port << ". Reason: " << reason,
 						ERS_EMPTY,
 						((std::string)ipaddr )  ((uint) port ) ((std::string) reason)
 								   )
@@ -66,7 +75,7 @@ ERS_DECLARE_ISSUE_BASE( na62,
 						<< std::hex << detector << ", sourceSubID 0x" << sourceSubID
 						<< " for event " << std::dec << eventNumber,
 						ERS_EMPTY,
-						((std::string) detector ) ((uint) subSourceID ) ((uint) eventNumber )
+						((std::string) detector ) ((uint) sourceSubID ) ((uint) eventNumber )
 								   )
 
 ERS_DECLARE_ISSUE_BASE( na62,
@@ -90,7 +99,7 @@ ERS_DECLARE_ISSUE_BASE( na62,
 						na62::Message,
 						"There is no trace of event " << eventNumber << " in burst " << burstID,
 						ERS_EMPTY,
-						((uint) eventNumber ) ((uint) maxEventNumber )
+						((uint) eventNumber ) ((uint) burstID )
 								   )
 
 ERS_DECLARE_ISSUE_BASE( na62,

@@ -212,7 +212,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
 bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 	if (!L1Processed_) {
 #ifdef USE_ERS
-			ers::error(UnrequestedFragment(ERS_HERE, SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID(), this->getEventNumber()));
+			ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID()));
 #else
 			LOG_ERROR("type = BadEv : Received L1 data from "
 					<< std::hex << (int) fragment->getSourceID() << ":"<< (int) fragment->getSourceSubID() << " with EventNumber "

@@ -91,8 +91,8 @@ MEP::~MEP() {
 		 */
 		//throw NA62Error("Deleting non-empty MEP!!!");
 #ifdef USE_ERS
-		ers::error(Message("Deleting non-empty MEP!!!"));
-#endif;
+		ers::error(Message(ERS_HERE, "Deleting non-empty MEP!!!"));
+#endif
 
 	}
 	delete[] fragments_;
@@ -118,19 +118,14 @@ void MEP::initializeMEPFragments(const char * data,
 		expectedEventNum++;
 		fragments_[i] = newMEPFragment;
 		if (newMEPFragment->getDataWithHeaderLength() + offset > dataLength) {
+		std::ostringstream s;
+		s << "Incomplete MEPFragment! Received only " << dataLength << " of "
+		  << offset + newMEPFragment->getDataWithHeaderLength() << " bytes";
+
 #ifdef USE_ERS
-			std::ostringstream s;
-			s << "Incomplete MEPFragment! Received only " << dataLength << " of "
-			  << offset + newMEPFragment->getDataWithHeaderLength() << " bytes";
 			throw CorruptedMEP(ERS_HERE, s.str());
 #else
-			throw BrokenPacketReceivedError(
-					"type = BadEv : Incomplete MEPFragment! Received only "
-							+ std::to_string(dataLength) + " of "
-							+ std::to_string(
-									offset
-											+ newMEPFragment->getDataWithHeaderLength())
-							+ " bytes");
+			throw BrokenPacketReceivedError(s.str());
 #endif
 			}
 		offset += newMEPFragment->getDataWithHeaderLength();
