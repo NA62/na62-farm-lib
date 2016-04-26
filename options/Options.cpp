@@ -136,9 +136,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 		std::string ts = std::to_string(result);
 		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + ts + "na62-farm.info").c_str(),"w",stdout);
-		  freopen (std::string(GetString(OPTION_LOG_FILE) +"/"  + ts + "na62-farm.err").c_str(),"w",stderr);
-		  fclose (stdout);
-		  fclose (stderr);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/"  + ts + "na62-farm.err").c_str(),"w",stderr);
 	}
 #endif
 }
