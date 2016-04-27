@@ -129,6 +129,7 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	google::SetLogDestination(google::WARNING, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.warn").c_str());
 	google::SetLogDestination(google::ERROR, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.err").c_str());
 #elif USE_ERS
+	ers::Configuration::instance().debug_level(Options::GetInt(OPTION_VERBOSITY));
 	if (Options::GetInt(OPTION_LOGTOSTDERR) == false) {
 		time_t now = time(0);
 		// Convert now to tm struct for local timezone
