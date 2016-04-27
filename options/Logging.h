@@ -21,7 +21,7 @@
 
 
 	#include <ers/ers.h>
-	#define LOG_INFO(message) 	ERS_INFO(message)
+	#define LOG_INFO(message) 	ERS_DEBUG(3,message)
 	#define LOG_ERROR(message)	ERS_ERROR(message)
 	#define LOG_WARNING(message)	ERS_WARNING(message)
 
