@@ -5,6 +5,8 @@
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
+#include <time.h>
+
 #include "Options.h"
 
 #include <boost/foreach.hpp>
@@ -126,7 +128,16 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	google::SetLogDestination(google::INFO, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.info").c_str());
 	google::SetLogDestination(google::WARNING, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.warn").c_str());
 	google::SetLogDestination(google::ERROR, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.err").c_str());
+#elif USE_ERS
+	if (Options::GetInt(OPTION_LOGTOSTDERR) == false) {
+		time_t now = time(0);
+		// Convert now to tm struct for local timezone
+		std::time_t result = std::time(nullptr);
 
+		std::string ts = std::to_string(result);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + ts + "na62-farm.info").c_str(),"w",stdout);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/"  + ts + "na62-farm.err").c_str(),"w",stderr);
+	}
 #endif
 }
 

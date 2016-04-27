@@ -54,7 +54,7 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 #ifdef USE_ERS
 		std::ostringstream s;
 		s << "MEPFragment with bad event number LSB received: received "<< rawData->eventNumberLSB_
-		  << " but expected LSB is " << expectedEventNum & 0x000000FF;
+		  << " but expected LSB is " << (expectedEventNum & 0x000000FF);
 		throw CorruptedMEP(ERS_HERE, s.str());
 #else
 		throw BrokenPacketReceivedError(

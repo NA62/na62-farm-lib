@@ -36,7 +36,7 @@ MEP::~MEP() {
                  * TODO: Just for testing. Should be deleted later to boost performance!
                  */
 #ifdef USE_ERS
-        	ers::error(Message("Deleting non-empty MEP!!!"));
+        	ers::error(BadInternalDataFlow(ERS_HERE, "Deleting non-empty MEP!!!"));
 #else
                 throw NA62Error("Deleting non-empty MEP!!!");
 #endif
@@ -82,13 +82,17 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) 
 		newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset));
 
 		if (newEvent->getEventLength() + offset > dataLength) {
-			throw BrokenPacketReceivedError(
-					"type = BadEv : Incomplete MEPFragment! Received only  "
-					+ boost::lexical_cast<std::string>(dataLength)
-					+ " instead of "
-					+ boost::lexical_cast<std::string>(
-							offset + newEvent->getEventLength())
-							+ " bytes");
+			std::string s = "type = BadEv : Incomplete MEPFragment! Received only  "
+			+ boost::lexical_cast<std::string>(dataLength)
+			+ " instead of "
+			+ boost::lexical_cast<std::string>(offset + newEvent->getEventLength())
+					+ " bytes";
+#ifdef USE_ERS
+		throw CorruptedMEP(ERS_HERE, s);
+#else
+		throw BrokenPacketReceivedError(s);
+
+#endif
 		}
 		offset += newEvent->getEventLength();
 		events.push_back(std::move(newEvent));
