@@ -64,7 +64,6 @@ void FarmStatistics::thread() {
 			FarmStatistics::recvTimes.clear();
 			for (statisticTimeStamp a : recvTimesBuff) {
 				myfile << getFileOutString(a);
-				std::cout << "wrote statistic" << getFileOutString(a) << std::endl;
 			}
 		}
 		boost::this_thread::sleep(boost::posix_time::microsec(1000));
@@ -73,7 +72,6 @@ void FarmStatistics::thread() {
 }
 //I just removed static and i add FarmStatistics in front
  void FarmStatistics::addTime(std::string comment) {
-		std::cout << "recieved statistic" << comment << std::endl;
 	statisticTimeStamp st;
 	FarmStatistics::t2 = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::duration time_span = FarmStatistics::t2 - FarmStatistics::t1;

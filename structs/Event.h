@@ -17,9 +17,11 @@
 #define TRIGGER_L0_SOB 0x22
 #define TRIGGER_L0_EOB 0x23
 
-#define TRIGGER_L1_BYPASS 0xFF
+#define TRIGGER_L1_BYPASS 0x20
+#define TRIGGER_L2_BYPASS 0x20
 
-#define TRIGGER_L2_BYPASS 0xFF
+#define TRIGGER_L1_SPECIAL 0xFF
+#define TRIGGER_L2_SPECIAL 0xFF
 
 namespace na62 {
 /**

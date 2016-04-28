@@ -45,7 +45,9 @@ MEP::MEP(const char *data, const uint_fast16_t & dataLength,
 		if (getLength() > dataLength) {
 #ifdef USE_ERS
 			std::ostringstream s;
-			s<< "BadEv : Incomplete MEP! Received only " << dataLength << " of " << getLength() << " bytes";
+			s<< "BadEv : Incomplete MEP for detector " << std::hex << (uint)getSourceID() << std::dec
+					<< ":"<< (uint) getSourceSubID() << "! Received only " << dataLength << " of "
+					<< getLength() << " bytes";
 			throw CorruptedMEP(ERS_HERE, s.str());
 #else
 			throw BrokenPacketReceivedError(
@@ -56,7 +58,8 @@ MEP::MEP(const char *data, const uint_fast16_t & dataLength,
 		} else {
 #ifdef USE_ERS
 			std::ostringstream s;
-			s << "Received MEP longer than 'mep length' field! Received "
+			s << "Received MEP longer than 'mep length' field for detector " << std::hex << (uint) getSourceID()
+					<< std::dec << ":" << (uint) getSourceSubID()<< "! Received "
 			  << dataLength << " instead of " << getLength() <<  " bytes";
 			throw CorruptedMEP(ERS_HERE, s.str());
 #else

@@ -82,15 +82,14 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) 
 		newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset));
 
 		if (newEvent->getEventLength() + offset > dataLength) {
-			std::string s = "type = BadEv : Incomplete MEPFragment! Received only  "
-			+ boost::lexical_cast<std::string>(dataLength)
-			+ " instead of "
-			+ boost::lexical_cast<std::string>(offset + newEvent->getEventLength())
-					+ " bytes";
+			std::ostringstream s;
+			s << "Incomplete MEPFragment for detector "<< std::hex << hdr->sourceID << std::dec
+					<< " Received only " << (uint) dataLength << " instead of " <<
+					(uint) (offset + newEvent->getEventLength()) << " bytes.";
 #ifdef USE_ERS
-		throw CorruptedMEP(ERS_HERE, s);
+		throw CorruptedMEP(ERS_HERE, s.str());
 #else
-		throw BrokenPacketReceivedError(s);
+		throw BrokenPacketReceivedError(s.str());
 
 #endif
 		}

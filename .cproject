@@ -92,7 +92,7 @@
 								<option id="gnu.cpp.compiler.option.other.other.567104705" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -std=c++11" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.249053402" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="USE_ERS"/>
-									<listOptionValue builtIn="false" value="HAVE_TCMALLOC"/>
+									<listOptionValue builtIn="false" value="NOTHAVE_TCMALLOC"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.dialect.std.455199231" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.default" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.warnings.allwarn.1192458218" name="All warnings (-Wall)" superClass="gnu.cpp.compiler.option.warnings.allwarn" value="false" valueType="boolean"/>
@@ -137,9 +137,13 @@
 		<configuration configurationName="GLOG_RELEASE"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.lib.release.310524003;cdt.managedbuild.config.gnu.lib.release.310524003.;cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.1884753766;cdt.managedbuild.tool.gnu.cpp.compiler.input.440494843">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.lib.release.310524003.808849853.574918042;cdt.managedbuild.config.gnu.lib.release.310524003.808849853.574918042.;cdt.managedbuild.tool.gnu.c.compiler.lib.release.837411553;cdt.managedbuild.tool.gnu.c.compiler.input.160544270">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.lib.release.310524003.824820091;cdt.managedbuild.config.gnu.lib.release.310524003.824820091.;cdt.managedbuild.tool.gnu.c.compiler.lib.release.1857002422;cdt.managedbuild.tool.gnu.c.compiler.input.1971308939">
@@ -178,6 +182,9 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.lib.debug.1021636035;cdt.managedbuild.config.gnu.lib.debug.1021636035.;cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.952519847;cdt.managedbuild.tool.gnu.cpp.compiler.input.355919957">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.lib.release.310524003.808849853.574918042;cdt.managedbuild.config.gnu.lib.release.310524003.808849853.574918042.;cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.75817031;cdt.managedbuild.tool.gnu.cpp.compiler.input.1887304073">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.lib.release.310524003.808849853;cdt.managedbuild.config.gnu.lib.release.310524003.808849853.;cdt.managedbuild.tool.gnu.cpp.compiler.lib.release.182740317;cdt.managedbuild.tool.gnu.cpp.compiler.input.1058955986">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.make.core.GCCStandardMakePerFileProfile"/>
 		</scannerConfigBuildInfo>
@@ -188,5 +195,4 @@
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 </cproject>
