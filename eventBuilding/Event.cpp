@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "../monitoring/DetectorStatistics.h"
 #include "../exceptions/CommonExceptions.h"
 #include "../l0/MEP.h"
 #include "../l0/MEPFragment.h"
@@ -61,7 +62,9 @@ Event::Event(uint_fast32_t eventNumber) :
 		/*
 		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
 		 */
-		L0Subevents[i] = new l0::Subevent(SourceIDManager::getExpectedPacksBySourceNum(i), SourceIDManager::sourceNumToID(i));
+		L0Subevents[i] = new l0::Subevent(
+				SourceIDManager::getExpectedPacksBySourceNum(i),
+				SourceIDManager::sourceNumToID(i));
 	}
 
 	L1Subevents = new l1::Subevent*[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
@@ -69,7 +72,9 @@ Event::Event(uint_fast32_t eventNumber) :
 		/*
 		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
 		 */
-		L1Subevents[i] = new l1::Subevent(SourceIDManager::getExpectedL1PacksBySourceNum(i), SourceIDManager::l1SourceNumToID(i));
+		L1Subevents[i] = new l1::Subevent(
+				SourceIDManager::getExpectedL1PacksBySourceNum(i),
+				SourceIDManager::l1SourceNumToID(i));
 	}
 }
 
@@ -81,12 +86,12 @@ Event::~Event() {
 void Event::initialize(bool printCompletedSourceIDs) {
 
 	Event::printCompletedSourceIDs_ = printCompletedSourceIDs;
-	Event::MissingEventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES] ;
+	Event::MissingEventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES];
 	Event::MissingL1EventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
 
-	for (size_t i=0; i!= SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; ++i)
+	for (size_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; ++i)
 		MissingEventsBySourceNum_[i] = 0;
-	for (size_t i=0; i!= SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; ++i)
+	for (size_t i = 0; i != SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; ++i)
 		MissingL1EventsBySourceNum_[i] = 0;
 }
 
@@ -103,8 +108,9 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 	if (numberOfL0Fragments_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
 		setBurstID(burstID);
-		} else {
-		if (!lastEventOfBurst_) lastEventOfBurst_ = fragment->isLastEventOfBurst(); // work around STRAWs bug
+	} else {
+		if (!lastEventOfBurst_)
+			lastEventOfBurst_ = fragment->isLastEventOfBurst(); // work around STRAWs bug
 		if (burstID > getBurstID()) {
 			if (unfinishedEventMutex_.try_lock()) {
 				LOG_ERROR("Identified non cleared event " << (uint) getEventNumber() << " from previous burst!");
@@ -119,9 +125,8 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 			/*
 			 * Add the event after this or another thread has destroyed this event
 			 */
-				return addL0Fragment(fragment, burstID);
-		}
-		else if (burstID < getBurstID()) {
+			return addL0Fragment(fragment, burstID);
+		} else if (burstID < getBurstID()) {
 			LOG_ERROR("Received fragment from a previous burst for event " << (uint) getEventNumber());
 			delete fragment;
 			return false;
@@ -137,9 +142,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 #ifdef USE_ERS
 		ers::error(DuplicateFragment(ERS_HERE, SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID(), this->getEventNumber()));
 #else
-		LOG_ERROR( "type = BadEv : Already received all fragments from sourceID 0x"
-				<< std::hex << ((int) fragment->getSourceID()) << " sourceSubID 0x" << ((int) fragment->getSourceSubID())
-				<< " for event " << std::dec << (int)(this->getEventNumber()));
+		LOG_ERROR("type = BadEv : Already received all fragments from sourceID 0x" << std::hex << ((int) fragment->getSourceID()) << " sourceSubID 0x" << ((int) fragment->getSourceSubID()) << " for event " << std::dec << (int)(this->getEventNumber()));
 #endif
 		delete fragment;
 		return false;
@@ -155,8 +158,8 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
 		if (currentValue
 				> SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT)
-			LOG_ERROR( "Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT);
-		}
+			LOG_ERROR("Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT);
+	}
 	return result;
 
 #else
@@ -181,12 +184,9 @@ bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
 			&& !(nonSuppressedLkrFragmentsByCrateCREAMID.key_comp()(
 					crateCREAMID, lb->first))) {
 		if (unfinishedEventMutex_.try_lock()) {
-				LOG_INFO("Non zero suppressed LKr event with EventNumber "
-				<< (int) fragment->getEventNumber() << ", crate/creamID "
-				<< std::hex << (int) fragment->getSourceSubID()
-				<< std::dec
-				<< " received twice! Will delete the whole event!");
-			nonRequestsL1FramesReceived_.fetch_add(1, std::memory_order_relaxed);
+			LOG_INFO("Non zero suppressed LKr event with EventNumber " << (int) fragment->getEventNumber() << ", crate/creamID " << std::hex << (int) fragment->getSourceSubID() << std::dec << " received twice! Will delete the whole event!");
+			nonRequestsL1FramesReceived_.fetch_add(1,
+					std::memory_order_relaxed);
 
 			EventPool::freeEvent(this);
 			unfinishedEventMutex_.unlock();
@@ -198,8 +198,8 @@ bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
 		 * Event does not yet exist -> add it to the map
 		 */
 		nonSuppressedLkrFragmentsByCrateCREAMID.insert(lb,
-				std::map<uint_fast16_t, l1::MEPFragment*>::value_type(crateCREAMID,
-						fragment));
+				std::map<uint_fast16_t, l1::MEPFragment*>::value_type(
+						crateCREAMID, fragment));
 	}
 // TODO: this must be synchronized
 	return nonSuppressedLkrFragmentsByCrateCREAMID.size()
@@ -212,14 +212,11 @@ bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
 bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 	if (!L1Processed_) {
 #ifdef USE_ERS
-			ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID()));
+		ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID()));
 #else
-			LOG_ERROR("type = BadEv : Received L1 data from "
-					<< std::hex << (int) fragment->getSourceID() << ":"<< (int) fragment->getSourceSubID() << " with EventNumber "
-					<< 	std::dec << (int) fragment->getEventNumber()
-					<< " before requesting it. Will ignore it as it may come from last burst");
+		LOG_ERROR("type = BadEv : Received L1 data from " << std::hex << (int) fragment->getSourceID() << ":"<< (int) fragment->getSourceSubID() << " with EventNumber " << std::dec << (int) fragment->getEventNumber() << " before requesting it. Will ignore it as it may come from last burst");
 #endif
-			nonRequestsL1FramesReceived_.fetch_add(1, std::memory_order_relaxed);
+		nonRequestsL1FramesReceived_.fetch_add(1, std::memory_order_relaxed);
 
 		delete fragment;
 		return false;
@@ -230,24 +227,24 @@ bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 	} else {
 		l1::Subevent* subevent = L1Subevents[fragment->getSourceIDNum()];
 		if (!subevent->addFragment(fragment)) {
-		// don't know what to do with this fragment....
+			// don't know what to do with this fragment....
 #ifdef USE_ERS
 			ers::error(DuplicateFragment(ERS_HERE, SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID(), this->getEventNumber()));
 #else
-			LOG_ERROR( "type = BadEv : Already received all fragments from sourceID 0x"<< std::hex
-                     << ((int) fragment->getSourceID()) << " sourceSubID 0x" << ((int) fragment->getSourceSubID())
-                     << " for event " <<  std::dec <<(int)(this->getEventNumber()));
+			LOG_ERROR("type = BadEv : Already received all fragments from sourceID 0x"<< std::hex << ((int) fragment->getSourceID()) << " sourceSubID 0x" << ((int) fragment->getSourceSubID()) << " for event " << std::dec <<(int)(this->getEventNumber()));
 #endif
-				delete fragment;
+			delete fragment;
 			return false;
 		}
 
-
-		int numberOfMEPFragments = numberOfMEPFragments_.fetch_add(1, std::memory_order_release) + 1;
+		int numberOfMEPFragments = numberOfMEPFragments_.fetch_add(1,
+				std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
-		if (numberOfMEPFragments == SourceIDManager::NUMBER_OF_EXPECTED_L1_PACKETS_PER_EVENT) {
-			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall/ 1E3-(l1ProcessingTime_+l0BuildingTime_);
+		if (numberOfMEPFragments
+				== SourceIDManager::NUMBER_OF_EXPECTED_L1_PACKETS_PER_EVENT) {
+			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
+					- (l1ProcessingTime_ + l0BuildingTime_);
 //			LOG_INFO("l1BuildingTime_ " << l1BuildingTime_);
 			return true;
 		}
@@ -318,38 +315,44 @@ uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 
 void Event::updateMissingEventsStats() {
 
-	if (!L1Processed_) {
-		for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
-				sourceNum >= 0; sourceNum--) {
-			l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
-			if(subevent->getNumberOfFragments() != subevent->getNumberOfExpectedFragments()   ) {
-				MissingEventsBySourceNum_[sourceNum].fetch_add(1, std::memory_order_relaxed);
+	for (int sourceNum = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1;
+			sourceNum >= 0; sourceNum--) {
+		l0::Subevent* subevent = getL0SubeventBySourceIDNum(sourceNum);
+		if (subevent->getNumberOfFragments()
+				!= subevent->getNumberOfExpectedFragments()) {
+			MissingEventsBySourceNum_[sourceNum].fetch_add(1,
+					std::memory_order_relaxed);
 #ifdef USE_ERS
-				ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
-						SourceIDManager::sourceIdToDetectorName(SourceIDManager::sourceNumToID(sourceNum))));
+			ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
+							subevent->getNumberOfExpectedFragments(), SourceIDManager::sourceIdToDetectorName(SourceIDManager::sourceNumToID(sourceNum))));
 #endif
-				//LOG_ERROR("Type = IncompleteEv : " << "Missing " << (int)(subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments())
-				//		<< " fragments for det 0x" << std::hex << (int)(SourceIDManager::sourceNumToID(sourceNum)) << std::dec
-				//		<< " in event " << (int)(this->getEventNumber()));
-
-			}
+		}
+		int DetId = (int) (SourceIDManager::sourceNumToID(sourceNum));
+		for (int ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
+			int SubId = (int) (subevent->getFragment(ifrag)->getSourceSubID());
+			DetectorStatistics::incrementL0stat(DetId, SubId);
 		}
 	}
-	else {
+
+	if (L1Processed_) {
 		for (int sourceNum = SourceIDManager::NUMBER_OF_L1_DATA_SOURCES - 1;
 				sourceNum >= 0; sourceNum--) {
 			l1::Subevent* subevent = getL1SubeventBySourceIDNum(sourceNum);
-			if(subevent->getNumberOfFragments() != subevent->getNumberOfExpectedFragments()   ) {
-				MissingL1EventsBySourceNum_[sourceNum].fetch_add(1,std::memory_order_relaxed);
+			if (subevent->getNumberOfFragments()
+					!= subevent->getNumberOfExpectedFragments()) {
+				MissingL1EventsBySourceNum_[sourceNum].fetch_add(1,
+						std::memory_order_relaxed);
 #ifdef USE_ERS
 				ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
-						SourceIDManager::sourceIdToDetectorName(SourceIDManager::sourceNumToID(sourceNum))));
+								subevent->getNumberOfExpectedFragments(), SourceIDManager::sourceIdToDetectorName(SourceIDManager::l1SourceNumToID(sourceNum))));
+
 #endif
-
-
-				//LOG_ERROR("Type = IncompleteEv : Missing " << (int)(subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments())
-				//		<< " fragments for det 0x" << std::hex << (int)(SourceIDManager::l1SourceNumToID(sourceNum)) << std::dec
-				//		<< " in event " << (int)(this->getEventNumber()));
+			}
+			for (int ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
+				int SubId = (int) (subevent->getFragment(ifrag)->getSourceSubID());
+				int Crate = (SubId >> 5) & 0x3f;
+				int Slot = SubId & 0x1f;
+				DetectorStatistics::incrementL1stat(Crate, Slot);
 			}
 		}
 	}

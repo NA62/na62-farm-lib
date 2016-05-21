@@ -8,7 +8,7 @@
 #include "EventSerializer.h"
 
 #include <cstring>
-
+#include "../options/Logging.h"
 #include "../eventBuilding/Event.h"
 #include "../eventBuilding/SourceIDManager.h"
 #include "../l0/MEPFragment.h"
@@ -244,7 +244,9 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
                  blockHdr->numberOf4BWords = payloadLength/4;
                  blockHdr->timestamp = 0xffffffff;
                  blockHdr->sourceSubID = 0;
-                 blockHdr->l0TriggerWord = event->getL0TriggerTypeWord();
+                 blockHdr->reserved = 0;
+                 blockHdr->reserved2 = 0;
+                 blockHdr->l0TriggerWord = 0x23;
                  memcpy(eventBuffer + eventOffset, blockHdr, sizeof(l1::L1_EVENT_RAW_HDR));
                  eventOffset += payloadLength;
                  /*

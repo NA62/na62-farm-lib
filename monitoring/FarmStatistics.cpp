@@ -47,7 +47,7 @@ FarmStatistics::~FarmStatistics() {
 void FarmStatistics::init() {
 //	FarmStatistics::timer.start();LOG_INFO("started timer" << std::to_string(timer.elapsed().wall));
 	FarmStatistics::t1 = std::chrono::steady_clock::now();
-	FarmStatistics::hostname = getHostName();LOG_INFO("got Hostname: " << hostname);
+	FarmStatistics::hostname = getHostName();LOG_INFO("got Hostname: " << std::string(hostname));
 	FarmStatistics::recvTimes.reserve(200);LOG_INFO("reserved memory");
 	FarmStatistics::recvTimesBuff.reserve(200);LOG_INFO("reserved buffer");
 }
@@ -107,7 +107,7 @@ void FarmStatistics::thread() {
  char* FarmStatistics::getHostName() {
 //	20 chars should fit all hostnames
 	 char* host = new char[32];
-	 gethostname(host,sizeof(host));
+	 gethostname(host,32);
 	 return host;
 	//if (!(hostname = std::getenv("HOSTNAME"))) {
 	//	LOG_INFO("error at hostname retrieval");

@@ -29,11 +29,6 @@ struct L1_EVENT_RAW_HDR {
         uint8_t reserved2;
 }__attribute__ ((__packed__));
 
-struct L1_BLOCK {
-	uint32_t triggerword;
-//	uint16_t globaldownscaling;
-//	uint16_t globalreduction;
-};
 
 class MEPFragment {
 public:

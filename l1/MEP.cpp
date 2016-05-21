@@ -27,6 +27,7 @@ MEP::MEP(const char * data, const uint16_t& dataLength,
          * find out how many of those are written into this packet.
          */
 	eventNum_ = 0 ;
+
 	initializeMEPFragments(data, dataLength);
 }
 
@@ -79,18 +80,27 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) 
 	MEPFragment* newEvent = nullptr;
 
 	while (offset < dataLength) {
+
 		newEvent = new MEPFragment(this, (const L1_EVENT_RAW_HDR*)(data + offset));
+
+		if (newEvent->getEventLength()>9500) {
+			std::ostringstream s;
+			s << "Negative event length in L1 MEP" << newEvent->getEventLength();
+#ifdef USE_ERS
+			throw CorruptedMEP(ERS_HERE, s.str());
+#else
+			throw BrokenPacketReceivedError(s.str());
+#endif
+		}
 
 		if (newEvent->getEventLength() + offset > dataLength) {
 			std::ostringstream s;
-			s << "Incomplete MEPFragment for detector "<< std::hex << hdr->sourceID << std::dec
-					<< " Received only " << (uint) dataLength << " instead of " <<
+			s << "Incomplete L1 MEP Fragment. Received only " << (uint) dataLength << " instead of " <<
 					(uint) (offset + newEvent->getEventLength()) << " bytes.";
 #ifdef USE_ERS
-		throw CorruptedMEP(ERS_HERE, s.str());
+			throw CorruptedMEP(ERS_HERE, s.str());
 #else
-		throw BrokenPacketReceivedError(s.str());
-
+			throw BrokenPacketReceivedError(s.str());
 #endif
 		}
 		offset += newEvent->getEventLength();
@@ -99,8 +109,6 @@ void MEP::initializeMEPFragments(const char * data, const uint16_t& dataLength) 
 
 	eventNum_ = events.size();
 }
-
-
 
 } /* namespace l1 */
 } /* namespace na62 */

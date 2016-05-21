@@ -13,7 +13,7 @@
 
 ERS_DECLARE_ISSUE(na62,                                 // namespace name
                 Message,		                       	// issue name
-                "Generic message ",						// message
+                "",						// message
                 ERS_EMPTY					    // first attribute
                    )
 
@@ -105,9 +105,9 @@ ERS_DECLARE_ISSUE_BASE( na62,
 ERS_DECLARE_ISSUE_BASE( na62,
 						MissingFragments,
 						na62::Message,
-						"Event " << eventNumber << " is missing " << missingFrags << " fragments for detector "<< detector,
+						"Event " << eventNumber << " is missing " << missingFrags << " fragments out of " << frags << " for detector "<< detector,
 						ERS_EMPTY,
-						((uint) eventNumber ) ((uint) missingFrags ) ((std::string) detector)
+						((uint) eventNumber ) ((uint) missingFrags ) ((uint) frags ) ((std::string) detector)
 								   )
 
 ERS_DECLARE_ISSUE_BASE( na62,

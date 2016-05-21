@@ -43,7 +43,7 @@ void EventPool::initialize(uint numberOfEventsToBeStored, uint numberOfNodes, ui
 	 * Fill the pool with empty events.
 	 */
 
-#ifdef HAVE_TCMALLOC
+
         // Do it with parallel_for using tbb if tcmalloc is linked
         tbb::parallel_for(
                         tbb::blocked_range<uint_fast32_t>(0, poolSize_,
@@ -55,13 +55,6 @@ void EventPool::initialize(uint numberOfEventsToBeStored, uint numberOfNodes, ui
                                         events_[i] = new Event(evID);
                                 }
                         });
-# else
-        // The standard malloc blocks-> do it singlethreaded without tcmalloc
-        for (uint_fast32_t i = 0; i != poolSize_; ++i) {
-        	uint_fast32_t evID = (i - floor(i / mepFactor_) * mepFactor_) + (mepFactorxNodeID_ + (mepFactorxNodes_ * floor(i / mepFactor_)));
-        	events_[i] = new Event(evID);
-        }
-#endif
 
 
 	L0PacketCounter_= new std::atomic<uint16_t>[poolSize_];
@@ -74,6 +67,9 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
     int rest = (eventNumber-mepFactorxNodeID_)%mepFactorxNodes_;
     if (rest < 0 || rest >= mepFactor_){
     		int x = int(eventNumber/(mepFactor_-1)) % int(mepFactorxNodes_/mepFactor_);
+    		//int x = int(eventNumber/(mepFactor_-1)) % numberOfNodes;
+    		//int x = eventNumber - (int) ( eventNumber/mepFactor_) * mepFactor_;
+
 #ifdef USE_ERS
     		throw(UnexpectedEventNumber(ERS_HERE, eventNumber, x, (int) (mepFactorxNodeID_ / mepFactor_)));
 #endif
@@ -82,6 +78,9 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
 							<< ", because it is meant for node ID " << x);
             return nullptr;
     }
+
+
+
 
     int myfloor = floor(eventNumber / mepFactorxNodes_);
     //int index = eventNumber - mepFactorxNodeID_ - (mepFactorxNodes_ + mepFactor_) * myfloor ;
