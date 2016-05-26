@@ -78,6 +78,73 @@ Event::Event(uint_fast32_t eventNumber) :
 	}
 }
 
+Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
+	eventNumber_(serializedEvent->eventNum), numberOfL0Fragments_(0), numberOfMEPFragments_(0), burstID_(serializedEvent->burstID),
+			triggerTypeWord_(serializedEvent->triggerWord), triggerFlags_(0),
+			timestamp_(serializedEvent->timestamp), finetime_(serializedEvent->fineTime), SOBtimestamp_(serializedEvent->SOBtimestamp), processingID_(serializedEvent->processingID),
+			requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(false) {
+
+	// Helper variables to navigate through serialized event;
+	uint sizeOfPointerTable  = 4 * (SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES) ;
+	uint pointerTableOffset = sizeof(EVENT_HDR);
+	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
+
+	/*
+	 * Initialize subevents at the existing sourceIDs as position
+	 */
+	L0Subevents = new l0::Subevent*[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES];
+	for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
+		/*
+		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
+		 */
+		L0Subevents[i] = new l0::Subevent(
+				SourceIDManager::getExpectedPacksBySourceNum(i),
+				SourceIDManager::sourceNumToID(i));
+	}
+
+	if (!onlyL0) {
+		L1Subevents = new l1::Subevent*[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
+		for (int i = SourceIDManager::NUMBER_OF_L1_DATA_SOURCES - 1; i >= 0; i--) {
+			/*
+			 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
+			 */
+			L1Subevents[i] = new l1::Subevent(
+					SourceIDManager::getExpectedL1PacksBySourceNum(i),
+					SourceIDManager::l1SourceNumToID(i));
+		}
+	}
+
+	EVENT_DATA_PTR* sourceIdAndOffsets = serializedEvent->getDataPointer();
+	for(int sourceNum=0; sourceNum!=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; sourceNum++){
+		EVENT_DATA_PTR sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
+		const L0_BLOCK_HDR* detectorData = (L0_BLOCK_HDR*) serializedEvent + (sourceIdAndOffset.offset * 4);
+		l0::Subevent * se = L0Subevents[SourceIDManager::sourceIDToNum(sourceIdAndOffset.sourceID)];
+		int fragOffset = 0;
+		for (int j = 0 ; j < se->getNumberOfExpectedFragments(); ++j) {
+			const L0_BLOCK_HDR* l0b = detectorData+fragOffset ;
+			const l0::MEPFragment_HDR* fragData = (l0::MEPFragment_HDR*) detectorData+fragOffset ;
+			l0::MEPFragment * myFrag = new l0::MEPFragment(fragData, eventNumber_, sourceIdAndOffset.sourceID, l0b->sourceSubID);
+			se->addFragment(myFrag);
+			fragOffset += l0b->dataBlockSize;
+		}
+	}
+	if (!onlyL0) {
+	for(int sourceNum=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; sourceNum!=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; sourceNum++){
+		EVENT_DATA_PTR sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
+		l1::L1_EVENT_RAW_HDR * detectorData = (l1::L1_EVENT_RAW_HDR *) serializedEvent + (sourceIdAndOffset.offset * 4);
+		l1::Subevent * se = L1Subevents[SourceIDManager::l1SourceIDToNum(sourceIdAndOffset.sourceID)];
+		int fragOffset = 0;
+		for (int j = 0 ; j < se->getNumberOfExpectedFragments(); ++j) {
+			l1::L1_EVENT_RAW_HDR * fragData = detectorData+fragOffset ;
+			l1::MEPFragment * myFrag = new l1::MEPFragment(NULL, fragData);
+			se->addFragment(myFrag);
+			fragOffset += fragData->numberOf4BWords * 4;
+		}
+	}
+	}
+
+}
+
 Event::~Event() {
 	LOG_INFO("Destructor of Event "<< (int) this->getEventNumber());
 

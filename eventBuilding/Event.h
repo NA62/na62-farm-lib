@@ -43,6 +43,7 @@ namespace na62 {
 class Event: boost::noncopyable {
 public:
 	Event(uint_fast32_t eventNumber_);
+	Event(EVENT_HDR* serializedEvent, bool onlyL0);
 	virtual ~Event();
 	/**
 	 * Add an Event from a new SourceID.
