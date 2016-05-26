@@ -10,6 +10,7 @@
 #include <tbb/tbb.h>
 #include <thread>
 #include <iostream>
+#include <cmath>
 
 #include "../exceptions/CommonExceptions.h"
 #include "../options/Logging.h"
