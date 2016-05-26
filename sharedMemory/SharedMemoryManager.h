@@ -127,6 +127,8 @@ public:
 
 	static bool getNextEvent(Event &event, TriggerMessager &trigger_message);
 
+	//static bool l1Tol2(TriggerMessager trigger_message);
+
 	//Serialization and Unserialization
 	//==================================
 	//Will be moved

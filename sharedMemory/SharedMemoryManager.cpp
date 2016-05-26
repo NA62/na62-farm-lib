@@ -32,14 +32,16 @@ boost::interprocess::message_queue * SharedMemoryManager::trigger_response_queue
 
 void SharedMemoryManager::initialize(){
 
-	l1_mem_size_ = 2;
+	l1_mem_size_ = 1000000;
 	l2_mem_size_ = 10;
-	to_q_size_ = 10;
-	from_q_size_ = 10;
+	to_q_size_ = 1000000;
+	from_q_size_ = 1000000;
 
 
 	//Pick the nearest multiple page size in byte per excess
-	uint page_multiple_in_bytes = (l1_mem_size_ * sizeof(l1_SerializedEvent) /512 + 1 ) * 512;
+	uint page_multiple_in_bytes = (l1_mem_size_ * sizeof(l1_SerializedEvent) /512 + 1 ) * 512 * 2 ;
+	LOG_INFO("Shared memory 1 in bytes: " << page_multiple_in_bytes);
+
 
 	try {
 		//in bytes
@@ -84,12 +86,19 @@ bool SharedMemoryManager::storeL1Event(uint event_id, Event event){
     	uint message_priority = 0;
 
 		l1_SerializedEvent temp_serialized_event = serializeL1Event(event);
+		try {
 		l1_shm_->construct<l1_SerializedEvent>(label(event_id))(temp_serialized_event);
-
+		} catch(boost::interprocess::interprocess_exception& e) {
+				LOG_INFO(e.what());
+			}
+		LOG_INFO("Event: inserted in the memory!");
   	   //Enqueue Data
   	   //=============
-  	    while( !trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority) ){
-  	  	  //TODO sleep for a while
+  	    while( 1 ){
+  	    	for( int i = 0; i < 100; i++ )
+  	    		if( trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority) ) return true;
+  	    	LOG_WARNING("Tried pushing on trigger queue 100 times, now waiting");
+  	    	usleep(1000);
   	    }
   	    //LOG_INFO("Sended event id: "<<ev->id<<" for l"<<ev->level<<" processing");
 
@@ -99,6 +108,60 @@ bool SharedMemoryManager::storeL1Event(uint event_id, Event event){
     	return false;
     }
 }
+
+
+
+/*
+ *
+ * Potentially a function to store in either l1 or l2 shm
+bool SharedMemoryManager::storeEvent(bool l1_event, uint event_id, Event event){
+
+	typedef l1_SerializedEvent serializedEvent;
+	boost::interprocess::managed_shared_memory *shm;
+
+	if( l1_event ){
+		shm = l1_shm_;
+	}else{
+		typedef l2_SerializedEvent serializedEvent;
+		shm = l2_shm_;
+	}
+
+	std::pair<serializedEvent*, std::size_t> d;
+    d = shm->find<serializedEvent>(label(event_id));
+
+    if( !d.first ){
+
+    	TriggerMessager trigger_message;
+    	trigger_message.id = event_id;
+    	trigger_message.level = l1_event ? 1 : 2;
+
+    	uint message_priority = 0;
+
+		serializedEvent temp_serialized_event = l1_event ? serializeL1Event(event) : serializeL2Event(event);
+		try {
+			shm->construct<event>(label(event_id))(temp_serialized_event);
+		} catch(boost::interprocess::interprocess_exception& e) {
+			LOG_INFO(e.what());
+		}
+		LOG_INFO("Event: inserted in the memory!");
+  	   //Enqueue Data
+  	   //=============
+  	    while( 1 ){
+  	    	for( int i = 0; i < 100; i++ )
+  	    		if( trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority) ) return true;
+  	    	LOG_WARNING("Tried pushing on trigger queue 100 times, now waiting");
+  	    	usleep(1000);
+  	    }
+  	    //LOG_INFO("Sended event id: "<<ev->id<<" for l"<<ev->level<<" processing");
+
+  	    return true;
+    } else {
+    	LOG_WARNING("Event: "<< event_id << "already in the memory!");
+    	return false;
+    }
+}
+
+*/
 
 
 
@@ -144,8 +207,12 @@ bool SharedMemoryManager::popTriggerResponseQueue(TriggerMessager &trigger_messa
 
 bool SharedMemoryManager::pushTriggerResponseQueue(TriggerMessager trigger_message) {
 	uint priority = 0;
-	while( !trigger_response_queue_->try_send(&trigger_message, sizeof(TriggerMessager), priority) ){
-			//usleep(10);
+
+	while( 1 ){
+		for(int i = 0; i < 100; i++)
+			if( trigger_response_queue_->try_send(&trigger_message, sizeof(TriggerMessager), priority) ) return true;
+		LOG_WARNING("Tried pushing on trigger response queue 100 times, now waiting");
+	  	usleep(1000);
 	}
 	return true;
 }
@@ -184,6 +251,38 @@ bool SharedMemoryManager::getNextEvent(Event &event, TriggerMessager & trigger_m
 	return false;
 }
 
+/*
+ *
+ * A method that "converts" l1 events to l2, deletes them from l1 shm and puts them in l2 shm
+bool SharedMemoryManager::l1Tol2(TriggerMessager trigger_message){
+
+	try{
+		std::pair<l1_SerializedEvent*, std::size_t> l1_d;
+		l1_d = l1_shm_->find<l1_SerializedEvent>(label(trigger_message.id));
+
+		if( l1_d.first ){
+			removeL1Event(trigger_message.id);
+
+			l2_SerializedEvent l2_temp_event = (l2_SerializedEvent)*l1_d.first;
+			std::pair<l2_SerializedEvent*, std::size_t> l2_d;
+			l2_d.first = l2_shm_->find_or_construct<l2_SerializedEvent>(label(trigger_message.id))(serializeL2Event(l2_temp_event));
+
+			//Question: Any advantage (time/memory) in actually destroying this chunk of memory and constructing it with the new event? Should/Could the below method be used for general replacement of events (i.e. reduce number of function calls) with some sort of flag in each event saying it's ready to be deleted or perhaps a queue of event ID's ready to be deleted?
+			//===========================================================
+			if( l2_d.first ) *l2_d.first = l2_temp_event;
+
+			return true;
+		}
+		else{
+			return false;
+		}
+	} catch(boost::interprocess::interprocess_exception& e) {
+		LOG_INFO(e.what());
+		LOG_WARNING("Unable to put l1 triggered event "<<trigger_message.id<<" into l2 shared memory");
+	}
+
+}
+*/
 
 //Producing Labels for l1_Events
 //============================
