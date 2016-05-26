@@ -105,9 +105,6 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	po::notify(vm); // Check the configuration
 
-	std::cout << "======= Running with following configuration:" << std::endl;
-	PrintVM(vm);
-
 #ifdef USE_GLOG
 	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
 		FLAGS_logtostderr = true;
@@ -141,6 +138,9 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 		freopen (std::string(GetString(OPTION_LOG_FILE) +"/"  + ts + "na62-farm.err").c_str(),"w",stderr);
 	}
 #endif
+
+	std::cout << "======= Running with following configuration:" << std::endl;
+	PrintVM(vm);
 }
 
 bool Options::Isset(char* parameter) {

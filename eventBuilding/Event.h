@@ -377,11 +377,11 @@ public:
 		switch (getL0TriggerTypeWord()) {
 		case TRIGGER_L0_SOB: 			  //0x22
 		case TRIGGER_L0_EOB: 			  //0x23
-		case TRIGGER_L0_PEDESTAL_LKR:     //0x45
-		case TRIGGER_L0_CALIBRATION1_LKR: //0x48
-		case TRIGGER_L0_CALIBRATION2_LKR: //0x49
-		case TRIGGER_L0_CALIBRATION3_LKR: //0x50
-		case TRIGGER_L0_CALIBRATION4_LKR: //0x51
+		case TRIGGER_L0_PEDESTAL_LKR:     //0x2d
+		case TRIGGER_L0_CALIBRATION1_LKR: //0x30
+		case TRIGGER_L0_CALIBRATION2_LKR: //0x31
+		case TRIGGER_L0_CALIBRATION3_LKR: //0x32
+		case TRIGGER_L0_CALIBRATION4_LKR: //0x33
 			return true;
 		default:
 			return false;
