@@ -206,6 +206,14 @@ public:
 		return finetime_;
 	}
 
+	void setTriggerDataType(const uint_fast8_t triggerDataType) {
+		triggerDataType_ = triggerDataType;
+	}
+
+	uint_fast8_t getTriggerDataType() const {
+		return triggerDataType_;
+	}
+
 	void setTriggerFlags(const uint_fast16_t triggerFlags) {
 		triggerFlags_ = triggerFlags;
 	}
@@ -369,6 +377,16 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	bool isPhysicsTriggerEvent() {
+		return (getTriggerDataType() == TRIGGER_L0_PHYSICS_TYPE);
+	}
+	bool isPeriodicTriggerEvent() {
+		return (getTriggerDataType() == TRIGGER_L0_PERIODICS_TYPE);
+	}
+	bool isControlTriggerEvent() {
+		return (getTriggerDataType() == TRIGGER_L0_CONTROL_TYPE);
+	}
+
 //	bool isSpecialTriggerEvent() {
 //		uint_fast8_t specialTriggerMask = 0x20;
 //		return ((getL0TriggerTypeWord() & specialTriggerMask) != 0);
@@ -387,7 +405,7 @@ public:
 			return false;
 		}
 	}
-	bool isPulserGTKTriggerEvent(){
+	bool isPulserGTKTriggerEvent() {
 		return (getL0TriggerTypeWord() == TRIGGER_L0_PULSER_GTK);
 	}
 	/*
@@ -474,6 +492,7 @@ private:
 	 */
 	std::atomic<uint_fast32_t> burstID_;
 	std::atomic<uint_fast32_t> triggerTypeWord_;
+	std::atomic<uint_fast8_t> triggerDataType_;
 	std::atomic<uint_fast16_t> triggerFlags_;
 	std::atomic<uint_fast32_t> timestamp_;
 	std::atomic<uint_fast8_t> finetime_;

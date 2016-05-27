@@ -32,6 +32,9 @@
 #define TRIGGER_L1_SPECIAL_GTK 0xEE
 #define TRIGGER_L2_SPECIAL_GTK 0xEE
 
+#define TRIGGER_L0_PHYSICS_TYPE 0x1
+#define TRIGGER_L0_PERIODICS_TYPE 0x2
+#define TRIGGER_L0_CONTROL_TYPE 0x10
 namespace na62 {
 /**
  * Pointer to the payload of the given sourceID within an event
