@@ -311,6 +311,18 @@ uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 		setl0TriggerTypeWord(L0TPData->l0TriggerType);
 		setTriggerFlags(L0TPData->l0TriggerFlags);
 		return L0TPData->l0TriggerType;
+		if(getL0TPSubevent()->getNumberOfFragments() > 0) {
+			l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
+			L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
+			setFinetime(L0TPData->refFineTime);
+			setTriggerDataType(L0TPData->dataType);
+			setl0TriggerTypeWord(L0TPData->l0TriggerType);
+			setTriggerFlags(L0TPData->l0TriggerFlags);
+			return L0TPData->l0TriggerType;
+		}
+		else {
+			LOG_ERROR("Corrupted event! Could not retrieve the L0TP information!!");
+		}
 	}
 	return 1;
 }
