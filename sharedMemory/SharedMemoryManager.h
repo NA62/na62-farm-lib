@@ -15,20 +15,30 @@
 #include "structs/TriggerResponse.h"
 
 #include "utils/AExecutable.h"
-*/
+ */
 
 #include <iostream>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/ipc/message_queue.hpp>
 
+#include <cstdlib>
+#include <cstring>
+#include <array>
+
 #include "structs/TriggerMessager.h"
 #include "options/Logging.h"
+#include "structs/SerialEvent.h"
 
 //TODO move somewhere not here
-typedef uint32_t Event;
-typedef uint32_t l1_SerializedEvent;
-typedef uint64_t l2_SerializedEvent;
+//typedef uint32_t Event;
+//typedef uint32_t l1_SerializedEvent;
+//typedef uint64_t l2_SerializedEvent;
 
+//typedef char* Event;
+//typedef char* l1_SerializedEvent;
+//typedef char* l2_SerializedEvent;
+
+typedef std::array< char, 128 > l1_SerializedEvent;
 
 //using namespace boost::interprocess;
 namespace na62 {
@@ -115,8 +125,9 @@ public:
 		eraseTriggerResponseQueue();
 	}
 
-	static bool storeL1Event(uint event_id_to_process, Event temp_event);
+	static bool storeL1Event(Event temp_event);
 	static bool removeL1Event(uint event_id);
+	static bool getL1Event(uint event_id, Event &event);
 
 	static bool popQueue(bool is_trigger_message_queue, TriggerMessager &trigger_message, uint &priority);
 	static bool popTriggerQueue(TriggerMessager &trigger_message, uint &priority);
@@ -132,23 +143,42 @@ public:
 	//Serialization and Unserialization
 	//==================================
 	//Will be moved
+
+
 	static inline l1_SerializedEvent serializeL1Event(Event event) {
-	  //Just do noting here now, will be implement the logic for serialize a farm event
-	  return (l1_SerializedEvent) event;
+	        l1_SerializedEvent seriale;
+	        SerialEventHeader header;
+	        header.length = event.length;
+	        header.event_id = event.event_id;
+
+	        if (event.length > sizeof(l1_SerializedEvent)){
+	                std::cout<<"error"<<std::endl;
+	        }
+	        memcpy((char*)&seriale, (char*)&header, sizeof(header));
+	        memcpy(((char*) &seriale) + sizeof(header),  event.data, event.length);
+	        //memcpy(((char*) &seriale) + 32,  (char*) event, event_size);
+	        LOG_INFO("Length "<< header.length);
+
+	        return seriale; // "array" being boost::array or std::array
 	}
 
-	static inline l2_SerializedEvent serializeL2Event(Event event) {
+	static inline Event unserializeL1Event( l1_SerializedEvent &seriale) {
 
-	  return (l2_SerializedEvent) event;
-	}
+	        SerialEventHeader* header;
+	        //header = (SerialEventHeader*) &seriale;
+	        header = reinterpret_cast<SerialEventHeader*> (&seriale);
+	        //hdr = reinterpret_cast<UDP_HDR*>(container.data);
 
-	static inline Event unserializeEvent(l1_SerializedEvent serialized_event) {
-	   //Just do noting here now, will be implement the logic for unserialize a farm event
-	   return (Event) serialized_event;
-	}
+	        //size = header->length;
+	        std::cout<< "Length/ID "<< header->length<< "  " << header->event_id<<std::endl;
+	        Event event;
+	        event.event_id = header->event_id;
+	        event.length = header->length;
+	        event.data = new char[header->length];
+	        memcpy(event.data,((char*) &seriale) + sizeof(header), header->length);
+	        //memcpy(event,((char*) &seriale) , header->length);
 
-	static inline Event unserializeEvent(l2_SerializedEvent serialized_event) {
-	  return (Event) serialized_event;
+	        return event; // "array" being boost::array or std::array
 	}
 
 
@@ -181,7 +211,7 @@ static l2_Event l1tol2(l1_Event event){
   return (l2_Event) event;
 }
 
-*/
+ */
 
 /*
  * L1 trigger function

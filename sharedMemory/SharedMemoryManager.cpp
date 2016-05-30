@@ -73,25 +73,28 @@ void SharedMemoryManager::initialize(){
 	}
 }
 
-bool SharedMemoryManager::storeL1Event(uint event_id, Event event){
+bool SharedMemoryManager::storeL1Event(Event event){
+
 	std::pair<l1_SerializedEvent*, std::size_t> l1_d;
-    l1_d = l1_shm_->find<l1_SerializedEvent>(label(event_id));
+    l1_d = l1_shm_->find<l1_SerializedEvent>(label(event.event_id));
 
     if( !l1_d.first ){
 
     	TriggerMessager trigger_message;
-    	trigger_message.id = event_id;
+    	trigger_message.id = event.event_id;
     	trigger_message.level = 1;
 
     	uint message_priority = 0;
 
 		l1_SerializedEvent temp_serialized_event = serializeL1Event(event);
 		try {
-		l1_shm_->construct<l1_SerializedEvent>(label(event_id))(temp_serialized_event);
+			l1_shm_->construct<l1_SerializedEvent>(label(event.event_id))(temp_serialized_event);
+			LOG_INFO("Event: inserted in the memory!... ");
 		} catch(boost::interprocess::interprocess_exception& e) {
-				LOG_INFO(e.what());
-			}
-		LOG_INFO("Event: inserted in the memory!");
+			LOG_INFO("Failed to store L1 event... "<<e.what());
+			return false;
+		}
+
   	   //Enqueue Data
   	   //=============
   	    while( 1 ){
@@ -104,11 +107,25 @@ bool SharedMemoryManager::storeL1Event(uint event_id, Event event){
 
   	    return true;
     } else {
-    	LOG_WARNING("Event: "<< event_id << "already in the memory!");
+    	LOG_WARNING("Event: "<< event.event_id << "already in the memory!");
     	return false;
     }
 }
 
+/*
+bool SharedMemoryManager::getL1Event(uint event_id, Event &event){
+
+	std::pair<l1_SerializedEvent*, std::size_t> l1_d;
+    l1_d = l1_shm_->find<l1_SerializedEvent>(label(event_id));
+
+    if( l1_d.first ){
+    	event = SharedMemoryManager::unserialize(*l1_d.first);
+    	return true;
+    }
+
+	return false;
+}
+*/
 
 
 /*
@@ -185,7 +202,7 @@ bool SharedMemoryManager::popQueue(bool is_trigger_message_queue, TriggerMessage
 		queue = trigger_response_queue_;
 	}
 	if (queue->try_receive((void *) &trigger_message, struct_size, recvd_size, priority)) {
-		//Check than is the expected type
+		//Check that is the expected type
 		if( recvd_size == struct_size ) {
 			return true;
 		}
@@ -224,17 +241,24 @@ bool SharedMemoryManager::getNextEvent(Event &event, TriggerMessager & trigger_m
 
 	if (popTriggerQueue(trigger_message, temp_priority)) {
 		if( trigger_message.level == 1 ){
+
 			std::pair<l1_SerializedEvent*, std::size_t> l1_d;
 
-			l1_d = l1_shm_->find<l1_SerializedEvent>(label(trigger_message.id));
+			try {
+				l1_d = l1_shm_->find<l1_SerializedEvent>(label(trigger_message.id));
+			} catch(boost::interprocess::interprocess_exception& e) {
+				LOG_INFO(e.what());
+			}
+
 			if ( l1_d.first != 0 ) {
-				event = unserializeEvent(*l1_d.first);
+				event = SharedMemoryManager::unserializeL1Event(*l1_d.first);
                 return true;
 			}
 			LOG_ERROR("Error couldn't find this piece of data in l1...");
 			return false;
 
-		}else if( trigger_message.level == 2 ){
+		}
+		/*else if( trigger_message.level == 2 ){
 			std::pair<l2_SerializedEvent*, std::size_t> l2_d;
 
 			l2_d = l2_shm_->find<l2_SerializedEvent>(label(trigger_message.id));
@@ -244,10 +268,11 @@ bool SharedMemoryManager::getNextEvent(Event &event, TriggerMessager & trigger_m
 			}
 			LOG_ERROR("Error couldn't find this piece of data in l2...");
 			return false;
-		}
+		}*/
 		LOG_ERROR("No idea of which level you want to process..");
 		return false;
 	}
+
 	return false;
 }
 
@@ -287,7 +312,7 @@ bool SharedMemoryManager::l1Tol2(TriggerMessager trigger_message){
 //Producing Labels for l1_Events
 //============================
 char* SharedMemoryManager::label(uint n){
-	const char* std_ID = "event_1024";
+const char* std_ID = "event_1024";
 	const char* std_ID_format = "event_%04d";
 
 	//TODO possible not use a new
