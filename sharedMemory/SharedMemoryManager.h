@@ -45,7 +45,7 @@ namespace na62 {
 
 class SharedMemoryManager {
 private:
-	static uint l1_mem_size_;
+	static uint l1_mem_size_; static uint l1_num_events_;
 	static uint l2_mem_size_;
 	static uint to_q_size_;
 	static uint from_q_size_;
@@ -55,11 +55,28 @@ private:
 
 	static boost::interprocess::message_queue *trigger_queue_;
 	static boost::interprocess::message_queue *trigger_response_queue_;
+	static boost::interprocess::message_queue *l1_free_queue_;
 
-	static char* label(uint n);
 
+	static char* label(uint memory_id);
+	static bool popL1FreeQueue(uint &memory_id);
+	static bool pushL1FreeQueue(uint memory_id);
 
 public:
+	/*
+	static uint getL1NumEvents();
+	static void setL1NumEvents( uint num );
+	 */
+
+	static inline uint getL1NumEvents(){
+		return l1_num_events_;
+	}
+
+	static inline void setL1NumEvents( uint num ){
+		l1_num_events_ = num;
+	}
+
+
 	static void initialize();
 
 	static inline boost::interprocess::managed_shared_memory * getL1SharedMemory() {
@@ -84,7 +101,7 @@ public:
 
 	static inline bool eraseL1SharedMemory() {
 		try {
-			return boost::interprocess::shared_memory_object::remove("l1_shm");
+			return boost::interprocess::shared_memory_object::remove("l1_shm_");
 		} catch(boost::interprocess::interprocess_exception& e) {
 			LOG_ERROR(e.what());
 			return false;
@@ -93,7 +110,7 @@ public:
 
 	static inline bool eraseL2SharedMemory() {
 		try {
-			return boost::interprocess::shared_memory_object::remove("l2_shm");
+			return boost::interprocess::shared_memory_object::remove("l2_shm_");
 		} catch(boost::interprocess::interprocess_exception& e) {
 			LOG_ERROR(e.what());
 			return false;
@@ -102,7 +119,7 @@ public:
 
 	static inline bool eraseTriggerQueue() {
 		try {
-			return boost::interprocess::message_queue::remove("trigger_queue");
+			return boost::interprocess::message_queue::remove("trigger_queue_");
 		} catch(boost::interprocess::interprocess_exception& e) {
 			LOG_ERROR(e.what());
 			return false;
@@ -111,28 +128,37 @@ public:
 
 	static inline bool eraseTriggerResponseQueue() {
 		try {
-			return boost::interprocess::message_queue::remove("trigger_response_queue");
+			return boost::interprocess::message_queue::remove("trigger_response_queue_");
 		} catch(boost::interprocess::interprocess_exception& e) {
 			LOG_ERROR(e.what());
 			return false;
 		}
 	}
 
+	static inline bool eraseL1FreeQueue() {
+			try {
+				return boost::interprocess::message_queue::remove("l1_free_queue_");
+			} catch(boost::interprocess::interprocess_exception& e) {
+				LOG_ERROR(e.what());
+				return false;
+			}
+		}
+
 	static inline void eraseAll() {
 		eraseL1SharedMemory();
 		eraseL2SharedMemory();
 		eraseTriggerQueue();
 		eraseTriggerResponseQueue();
+		eraseL1FreeQueue();
 	}
 
 	static bool storeL1Event(Event temp_event);
-	static bool removeL1Event(uint event_id);
-	static bool getL1Event(uint event_id, Event &event);
+	static bool removeL1Event(uint memory_id);
+	static bool getL1Event(uint memory_id, Event &event);
 
 	static bool popQueue(bool is_trigger_message_queue, TriggerMessager &trigger_message, uint &priority);
 	static bool popTriggerQueue(TriggerMessager &trigger_message, uint &priority);
 	static bool popTriggerResponseQueue(TriggerMessager &trigger_message, uint &priority);
-
 	static bool pushTriggerResponseQueue(TriggerMessager trigger_message);
 
 
@@ -145,8 +171,8 @@ public:
 	//Will be moved
 
 
-	static inline l1_SerializedEvent serializeL1Event(Event event) {
-	        l1_SerializedEvent seriale;
+	static inline void serializeL1Event(Event event, l1_SerializedEvent* seriale) {
+	      //  l1_SerializedEvent seriale;
 	        SerialEventHeader header;
 	        header.length = event.length;
 	        header.event_id = event.event_id;
@@ -154,12 +180,16 @@ public:
 	        if (event.length > sizeof(l1_SerializedEvent)){
 	                std::cout<<"error"<<std::endl;
 	        }
-	        memcpy((char*)&seriale, (char*)&header, sizeof(header));
-	        memcpy(((char*) &seriale) + sizeof(header),  event.data, event.length);
+	       //memcpy((char*)&seriale, (char*)&header, sizeof(header));
+	       //memcpy(((char*) &seriale) + sizeof(header),  event.data, event.length);
+
+	        memcpy((char*)seriale, (char*)&header, sizeof(header));
+	        memcpy(((char*)seriale) + sizeof(header),  event.data, event.length);
+
 	        //memcpy(((char*) &seriale) + 32,  (char*) event, event_size);
 	        LOG_INFO("Length "<< header.length);
 
-	        return seriale; // "array" being boost::array or std::array
+	       // return seriale; // "array" being boost::array or std::array
 	}
 
 	static inline Event unserializeL1Event( l1_SerializedEvent &seriale) {

@@ -43,7 +43,7 @@ void QueueReceiver::thread() {
 		//=================
 		if (SharedMemoryManager::popTriggerResponseQueue(trigger_message, priority)) {
 
-			LOG_INFO("Queue Receiver Received event: "<<trigger_message.id);
+			LOG_INFO("Queue Receiver Received event: "<<trigger_message.event_id);
 
 			//Act on Result
 			//==============
@@ -63,7 +63,7 @@ void QueueReceiver::thread() {
 					//Event temp_event;
 					//SharedMemoryManager::getL1Event(trigger_message.id, temp_event);
 					//LOG_INFO("Event = "<< temp_event[0] << temp_event[1] << temp_event[2]);
-					SharedMemoryManager::removeL1Event(trigger_message.id);
+					SharedMemoryManager::removeL1Event(trigger_message.memory_id);
 
 					//LOG_INFO(" -> Sending L1 request for event id: "<< response->event_id);
 
@@ -95,7 +95,7 @@ void QueueReceiver::thread() {
 			} else {
 				LOG_INFO("event is bad");
 
-				SharedMemoryManager::removeL1Event(trigger_message.id);
+				SharedMemoryManager::removeL1Event(trigger_message.memory_id);
 
 				//LOG_INFO(" -> Discard event id: "<< response->event_id << "from L"<< response->level << " triggering");
 /*

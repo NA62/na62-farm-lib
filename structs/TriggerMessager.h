@@ -11,7 +11,8 @@
 //#include <stdint.h>
 
 struct TriggerMessager {
-	uint id;
+	uint memory_id;
+	uint event_id;
 	uint level;
 	bool trigger_result;
 };
