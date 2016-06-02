@@ -1,6 +1,5 @@
 #include "SharedMemoryManager.h"
 
-
 namespace na62 {
 
 
@@ -114,9 +113,10 @@ bool SharedMemoryManager::storeL1Event(Event &event){
 
 	uint memory_id;
 	//Retrieving free memory space
-	if ( !SharedMemoryManager::popL1FreeQueue(memory_id) ) {
+
+	while ( !SharedMemoryManager::popL1FreeQueue(memory_id) ) {
+		//TODO need to slow down the request??? Can i also call recursively myself
 		LOG_ERROR(" No free memory available...");
-		return false;
 	}
 
 	LOG_INFO("Attempting to Store Event "<< event.event_id <<" at "<<memory_id);
@@ -128,20 +128,31 @@ bool SharedMemoryManager::storeL1Event(Event &event){
 
 	uint message_priority = 0;
 
-	SharedMemoryManager::serializeL1Event(event, l1_mem_array_ + memory_id);
+	try {
+		SharedMemoryManager::serializeL1Event(event, l1_mem_array_ + memory_id, l1_shared_memory_fragment_size_);
+		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
 
 
+		//Enqueue Data
+		//=============
+		while( 1 ){
+			for( int i = 0; i < 100; i++ ){
 
+				if( trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority) ) {
+					return true;
+				}
+			}
+			LOG_WARNING("Tried pushing on trigger queue 100 times, now waiting");
+			usleep(1000);
+		}
 
-	//Enqueue Data
-	//=============
-	while( 1 ){
-		for( int i = 0; i < 100; i++ )
-			if( trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority) ) return true;
-		LOG_WARNING("Tried pushing on trigger queue 100 times, now waiting");
-		usleep(1000);
+	} catch(SerializeError) {
+		LOG_ERROR("Fragmet exeed the memory");
+
+		removeL1Event(memory_id);
+		FragmentNonStored_.fetch_add(1, std::memory_order_relaxed);
+		return false;
 	}
-
 
 	LOG_ERROR("How did we get here??");
 	return false;

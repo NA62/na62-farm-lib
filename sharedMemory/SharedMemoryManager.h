@@ -10,9 +10,7 @@
 #include "structs/TriggerMessager.h"
 #include "options/Logging.h"
 #include "structs/SerialEvent.h"
-
-
-
+#include "exceptions/SerializeError.h"
 
 
 /*
@@ -27,7 +25,7 @@
  * Mean L1 serialized event size ~  2 Kb
  */
 
-typedef std::array< char, 2048 > l1_SerializedEvent;
+typedef std::array< char, 2000 > l1_SerializedEvent;
 
 
 
@@ -63,6 +61,7 @@ private:
 	static std::atomic<uint64_t> FragmentStored_;
 	static std::atomic<uint64_t> FragmentNonStored_;
 
+
 	static char* label(uint memory_id);
 	static bool popL1FreeQueue(uint &memory_id);
 	static bool pushL1FreeQueue(uint memory_id);
@@ -71,9 +70,8 @@ private:
 	static inline bool createL1MemArray(uint size){
 
 		uint difference_factor = 1;
-
+		l1_SerializedEvent temp_event;
 		try{
-			l1_SerializedEvent temp_event;
 			l1_mem_array_ = l1_shm_->construct<l1_SerializedEvent>(l1_mem_array_name_)[size](temp_event);
 			setL1NumEvents( size );
 			return true;
@@ -202,19 +200,28 @@ public:
 	static bool pushTriggerResponseQueue(TriggerMessager &trigger_message);
 
 
+	static inline float getStoreRatio() {
+		return  ((float) FragmentStored_ / (float) (FragmentNonStored_ + FragmentStored_)) ;
+	}
+
+
+
 
 	//Serialization and Unserialization
 	//==================================
 	//Will be moved
 
-	static inline void serializeL1Event(Event event, l1_SerializedEvent* seriale) {
+	static inline void serializeL1Event(Event event, l1_SerializedEvent* seriale, uint max_length = -1){
 
 		SerialEventHeader header;
 		header.length = event.length;
 		header.event_id = event.event_id;
 
-		if (event.length > sizeof(l1_SerializedEvent)){
-			std::cout<<"error"<<std::endl;
+		if ( max_length != -1 && event.length > max_length){ //l1_shared_memory_fragment_size_
+
+			throw SerializeError("Fragmento is too big");
+
+			//std::cout<<"error"<<std::endl;
 		}
 
 		memcpy((char*)seriale, (char*)&header, sizeof(header));
@@ -235,8 +242,6 @@ public:
 		event.data = new char[header->length];
 		memcpy(event.data,((char*) seriale) + sizeof(header), header->length);
 	}
-
-
 };
 
 }

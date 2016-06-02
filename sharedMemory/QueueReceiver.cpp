@@ -44,7 +44,7 @@ void QueueReceiver::thread() {
 
 			if (trigger_message.trigger_result) {
 
-				LOG_INFO("event is good");
+				//LOG_INFO("event is good");
 
 				//L1 Processing
 				//==============
@@ -60,7 +60,7 @@ void QueueReceiver::thread() {
 				}
 
 			} else {
-				LOG_INFO("event is bad");
+				//LOG_INFO("event is bad");
 
 				SharedMemoryManager::removeL1Event(trigger_message.memory_id);
 			}
