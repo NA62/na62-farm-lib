@@ -300,6 +300,9 @@ public:
 	inline const l0::Subevent* getCHODSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHOD)];
 	}
+	inline const l0::Subevent* getNewCHODSubevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NEWCHOD)];
+	}
 	inline const l0::Subevent* getRICHSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_RICH)];
 	}
@@ -376,7 +379,9 @@ public:
 		uint_fast8_t specialTriggerMask = 0x20;
 		return ((getL0TriggerTypeWord() & specialTriggerMask) != 0);
 	}
-
+	bool isPulserGTKTriggerEvent() {
+		return false;
+	}
 	/*
 	 * Find the missing sourceIDs
 	 */
