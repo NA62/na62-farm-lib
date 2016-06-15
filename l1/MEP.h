@@ -24,6 +24,18 @@
 namespace na62 {
 namespace l1 {
 
+struct MEP_HDR {
+	// Number of L0 triggers since start of burst
+	uint32_t eventNum :24;
+	uint8_t sourceID;
+	uint16_t EventLength; //  Total length of the MEP in bytes including the header
+	uint32_t timestamp;
+	uint8_t errorBits;
+	uint8_t l0TriggerWord;
+	uint16_t sourceSubID;
+}__attribute__ ((__packed__));
+
+
 class MEP: private boost::noncopyable  {
 public:
         /**

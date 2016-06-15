@@ -25,6 +25,7 @@
 #include "../l1/MEPFragment.h"
 #include "../l1/Subevent.h"
 
+
 #include "../structs/DataContainer.h"
 #include "../structs/L0TPHeader.h"
 #include "../utils/DataDumper.h"
@@ -111,6 +112,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 	} else {
 		if (!lastEventOfBurst_)
 			lastEventOfBurst_ = fragment->isLastEventOfBurst(); // work around STRAWs bug
+
 		if (burstID > getBurstID()) {
 			if (unfinishedEventMutex_.try_lock()) {
 				LOG_ERROR("Identified non cleared event " << (uint) getEventNumber() << " from previous burst!");
@@ -148,8 +150,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 		return false;
 	}
 
-	uint currentValue = numberOfL0Fragments_.fetch_add(1,
-			std::memory_order_release) + 1;
+	uint currentValue = numberOfL0Fragments_.fetch_add(1, std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
 	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
@@ -210,6 +211,7 @@ bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
  * Process data coming from the CREAMs
  */
 bool Event::addL1Fragment(l1::MEPFragment* fragment) {
+	/////////////
 	if (!L1Processed_) {
 #ifdef USE_ERS
 		ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID()));

@@ -32,7 +32,7 @@ void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority,
 }
 
 void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority, std::vector<short> CPUsToBind, int scheduler) {
-#ifndef __APPLE__
+#ifdef __APPLE__
 	int policy;
 	pthread_t threadID = (pthread_t) (daThread->native_handle());
 	if (scheduler > 0) {

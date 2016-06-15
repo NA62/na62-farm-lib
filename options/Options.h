@@ -30,7 +30,8 @@ namespace po = boost::program_options;
 /*
  * Compile time options
  */
-#define MTU 9014
+
+#define MTU 65000
 
 /*
  * Dynamic options

@@ -51,13 +51,27 @@ public:
 	static inline bool flushBurst() {
 		return flushBurst_ ;
 	}
+	static inline int autoInc(){
+		return auto_inc_;
+	}
+	static inline uint secondsBID(){
+		return secs_;
+	}
 
-	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction) {
+
+	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction,
+			uint auto_inc, uint secs, std::vector<std::pair<int, int> > sourceIDs, std::string deviceName) {
 		currentBurstID_ = startBurstID;
 		nextBurstId_ = currentBurstID_;
 		running_ = true;
 		flushBurst_ = false;
 		burstCleanupFunction_ = burstCleanupFunction;
+		auto_inc_ = auto_inc;
+		secs_ = secs;
+		deviceName_ = deviceName;
+		sourceIDs_ = sourceIDs;
+
+
 	}
 
 	static void shutDown() {
@@ -80,6 +94,10 @@ private:
 	 * to make sure currently enqueued frames in other threads are not processed with
 	 * the new burstID
 	 */
+	static std::string deviceName_;
+	static std::vector<std::pair<int, int> > sourceIDs_;
+	static uint secs_;
+	static uint auto_inc_;
 	static uint nextBurstId_;
 	static uint currentBurstID_;
 	static std::atomic<bool> running_;

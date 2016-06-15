@@ -174,6 +174,7 @@ std::vector<std::string> Options::GetStringList(char* parameter) {
 }
 
 int Options::GetInt(char* parameter) {
+
 	if (GetOptionType(parameter) == typeid(int)) {
 		return vm[parameter].as<int>();
 	}
@@ -252,12 +253,12 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 	 * Check if the parameter is empty
 	 */
 	if (comaSeparatedList.size() == 0) {
+
 		return values;
 	}
 
 	std::vector<std::string> pairStrings;
 	boost::split(pairStrings, comaSeparatedList, boost::is_any_of(","));
-
 	for (std::string pairString : pairStrings) {
 
 		std::vector<std::string> tuple;
@@ -268,11 +269,13 @@ std::vector<std::pair<std::string, std::string> > Options::GetPairList(
 		}
 		values.push_back(std::make_pair(tuple[0], tuple[1]));
 
+
 	}
 	return values;
 }
 
 std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
+
 	auto pairs = GetPairList(parameter);
 	std::vector<std::pair<int, int> > values;
 	for (auto& pair : pairs) {
@@ -299,6 +302,7 @@ std::vector<std::pair<int, int> > Options::GetIntPairList(char* parameter) {
 			throw BadOption(parameter, "Not an integer: '" + pair.first + "'");
 		}
 	}
+
 	return values;
 }
 

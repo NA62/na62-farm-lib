@@ -57,6 +57,8 @@ public:
 
 	inline bool isLastEventOfBurst() const {
 		return rawData->lastEventOfBurst_;
+
+
 	}
 
 	/**

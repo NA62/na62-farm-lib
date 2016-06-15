@@ -10,8 +10,8 @@
 namespace na62 {
 
 DataContainer::DataContainer(char* _data, uint_fast16_t _length,
-		bool _ownerMayFreeData) :
-		data(_data), length(_length), ownerMayFreeData(_ownerMayFreeData) {
+		bool _ownerMayFreeData, in_port_t _UDPPort, /*in_port_t _L1UDPPort,*/ in_addr_t _UDPAddr) :
+		data(_data), length(_length), ownerMayFreeData(_ownerMayFreeData), UDPPort(_UDPPort),/* L1UDPPort(_L1UDPPort),*/ UDPAddr(_UDPAddr) {
 	checksum = GenerateChecksum(_data, _length, 0);
 }
 

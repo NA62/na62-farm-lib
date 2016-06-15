@@ -54,7 +54,7 @@ void FarmStatistics::init() {
 
 void FarmStatistics::thread() {
 	std::ofstream myfile;
-	std::string filename = "/performance/log/" + currentDateTime() + "_" + std::string(hostname) + ".txt";
+	std::string filename = "/performance/log/" + currentDateTime() + "_" + "localhost"/*std::string(hostname)*/ + ".txt";
 	const char* filenamechars = filename.c_str();
 	myfile.open(filenamechars, std::ofstream::app);
 	while (running_) {

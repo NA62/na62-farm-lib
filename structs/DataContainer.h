@@ -19,14 +19,17 @@ struct DataContainer {
 	char * data;
 	uint_fast16_t length;
 	bool ownerMayFreeData;
-
 	uint16_t checksum;
+	in_port_t UDPPort;
+	/*in_port_t L1UDPPort;*/
+	in_addr_t UDPAddr;
+
 
 	DataContainer() :
-			data(nullptr), length(0), ownerMayFreeData(false), checksum(0) {
+			data(nullptr), length(0), ownerMayFreeData(false), checksum(0), UDPPort(0),/* L1UDPPort(0),*/ UDPAddr(0) {
 	}
 
-	DataContainer(char* _data, uint_fast16_t _length, bool _ownerMayFreeData);
+	DataContainer(char* _data, uint_fast16_t _length, bool _ownerMayFreeData, in_port_t _UDPPort, /*in_port_t _L1UDPPort,*/in_addr_t _UDPAddr);
 
 	~DataContainer() {
 	}
@@ -36,7 +39,7 @@ struct DataContainer {
 	 */
 	DataContainer(const DataContainer& other) :
 			data(other.data), length(std::move(other.length)), ownerMayFreeData(
-					other.ownerMayFreeData), checksum(other.checksum) {
+					other.ownerMayFreeData), checksum(other.checksum), UDPPort(other.UDPPort), /*L1UDPPort(other.L1UDPPort),*/ UDPAddr(other.UDPAddr) {
 	}
 
 	/**
@@ -44,7 +47,7 @@ struct DataContainer {
 	 */
 	DataContainer(const DataContainer&& other) :
 			data(other.data), length(other.length), ownerMayFreeData(
-					other.ownerMayFreeData), checksum(other.checksum) {
+					other.ownerMayFreeData), checksum(other.checksum), UDPPort(other.UDPPort), /*L1UDPPort(other.L1UDPPort),*/ UDPAddr(other.UDPAddr) {
 	}
 
 	/**
@@ -56,9 +59,16 @@ struct DataContainer {
 			length = other.length;
 			ownerMayFreeData = other.ownerMayFreeData;
 			checksum = other.checksum;
+			UDPPort =  other.UDPPort;
+			/*L1UDPPort = other.L1UDPPort;*/
+			UDPAddr = other.UDPAddr;
 
 			other.data = nullptr;
 			other.length = 0;
+			other.UDPPort = 0;
+			/*other.L1UDPPort = 0;*/
+		    other.UDPAddr = 0;
+
 		}
 		return *this;
 	}
@@ -72,6 +82,9 @@ struct DataContainer {
 			length = other.length;
 			ownerMayFreeData = other.ownerMayFreeData;
 			checksum = other.checksum;
+			UDPPort = other.UDPPort;
+			/*L1UDPPort =  other.L1UDPPort;*/
+			UDPAddr = other.UDPAddr;
 		}
 		return *this;
 	}
@@ -121,6 +134,10 @@ struct DataContainer {
 			checksum = 0;
 			delete[] data;
 			data = nullptr;
+			UDPPort = 0;
+			/*L1UDPPort = 0;*/
+			UDPAddr = 0;
+
 		}
 	}
 };
