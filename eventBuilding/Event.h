@@ -378,13 +378,13 @@ public:
 	}
 
 	bool isPhysicsTriggerEvent() {
-		return (getTriggerDataType() == TRIGGER_L0_PHYSICS_TYPE);
+		return (getTriggerDataType() & TRIGGER_L0_PHYSICS_TYPE);
 	}
 	bool isPeriodicTriggerEvent() {
-		return (getTriggerDataType() == TRIGGER_L0_PERIODICS_TYPE);
+		return (getTriggerDataType() & TRIGGER_L0_PERIODICS_TYPE);
 	}
 	bool isControlTriggerEvent() {
-		return (getTriggerDataType() == TRIGGER_L0_CONTROL_TYPE);
+		return (getTriggerDataType() & TRIGGER_L0_CONTROL_TYPE);
 	}
 
 //	bool isSpecialTriggerEvent() {
