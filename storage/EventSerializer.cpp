@@ -29,7 +29,7 @@ void EventSerializer::initialize() {
 	 * L0 + L1 sources
 	 */
 	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
-	InitialEventBufferSize_ = 1000;
+	InitialEventBufferSize_ = 4096; // allocate 4 kB initially for the serialized event
 	isUnfinishedEOB = false;
 }
 
@@ -74,11 +74,18 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	/*
 	 * Trailer
 	 */
+       if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
+                        eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+                                        eventBufferSize + sizeof(EVENT_TRAILER));
+                        eventBufferSize += sizeof(EVENT_TRAILER);
+                }
+
+
 	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
 	trailer->eventNum = event->getEventNumber();
 	trailer->reserved = 0;
 
-	const int eventLength = eventOffset + 4/*trailer*/;
+	const int eventLength = eventOffset + sizeof(EVENT_TRAILER);
 
 	if (eventBufferSize > InitialEventBufferSize_) {
 		InitialEventBufferSize_ = eventBufferSize;
@@ -105,8 +112,8 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 
 		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-					eventBufferSize + 1000);
-			eventBufferSize += 1000;
+					eventBufferSize + 4096); // add 4kB to the buffer
+			eventBufferSize += 4096;
 		}
 
 		/*
@@ -127,8 +134,8 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 			payloadLength = fragment->getPayloadLength() + sizeof(L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-						eventBufferSize + payloadLength);
-				eventBufferSize += payloadLength;
+						eventBufferSize + 4096);
+				eventBufferSize += 4096; // add another 4kB, no point in being too precise...
 			}
 
 			L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
@@ -158,8 +165,8 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 				payloadLength = sizeof(L0_BLOCK_HDR);
                 if (eventOffset + payloadLength > eventBufferSize) {
                          eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-                                         eventBufferSize + payloadLength);
-                         eventBufferSize += payloadLength;
+                                         eventBufferSize + 4096);
+                         eventBufferSize += 4096;
                  }
 	 	 isUnfinishedEOB = true;
                  L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
@@ -191,8 +198,8 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
 
 		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-					eventBufferSize + 1000);
-			eventBufferSize += 1000;
+					eventBufferSize + 4096);
+			eventBufferSize += 4096;
 		}
 
 		uint eventOffset32 = eventOffset / 4;
@@ -208,8 +215,8 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
 
 			if (eventOffset + e->getEventLength() > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-						eventBufferSize + e->getEventLength());
-				eventBufferSize += e->getEventLength();
+						eventBufferSize + 4096);
+				eventBufferSize += 4096;
 			}
 
 			memcpy(eventBuffer + eventOffset, e->getDataWithHeader(),
@@ -232,8 +239,8 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
 				int payloadLength = sizeof(l1::L1_EVENT_RAW_HDR);
                 if (eventOffset + payloadLength > eventBufferSize) {
                          eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-                                         eventBufferSize + payloadLength);
-                         eventBufferSize += payloadLength;
+                                         eventBufferSize + 4096);
+                         eventBufferSize += 4096;
                  }
 
 		isUnfinishedEOB=true;
