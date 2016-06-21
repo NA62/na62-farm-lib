@@ -62,8 +62,9 @@ void BurstIdHandler::thread(){
 				LOG_INFO("Start of burst " << (int) BurstIdHandler::getCurrentBurstId());
 
 			}
+
 			// Slow down polling
-			boost::this_thread::sleep(boost::posix_time::microsec(100000));
+			//boost::this_thread::sleep(boost::posix_time::microsec(100000));
 
 			//IPCHandler::sendCommand("eob_timestamp:1");
 		}else{
@@ -81,30 +82,32 @@ void BurstIdHandler::thread(){
 			boost::asio::io_service io_service;
 			boost::asio::ip::udp::resolver resolver(io_service);
 	        boost::asio::ip::udp::endpoint receiver_endpoint;
-			//receiver_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(myIP), 55555);
+			receiver_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string("10.194.20.9"), 55555);
 	        boost::asio::ip::udp::socket socket(io_service);
      		socket.open(boost::asio::ip::udp::v4());
      		//for (auto sourceID : sourceIDs_) {
        	    int i = 3000;
      		while (i > 1){
-     		//socket.send_to(boost::asio::buffer("stop", sizeof("stop")), receiver_endpoint);
+     		socket.send_to(boost::asio::buffer("stop", sizeof("stop")), receiver_endpoint);
      		--i;
      		}
 			//boost::this_thread::sleep(boost::posix_time::seconds(1));
 
 
-			//BurstIdHandler::isInBurst() = false;
-			//IPCHandler::sendCommand("eob_timestamp:0");
+
+			LOG_INFO("Preparing end of burst ***************************************************" << (int) BurstIdHandler::getCurrentBurstId());
 			BurstIdHandler::flushBurst_= true;
+			LOG_INFO("Cleanup of burst ********************************************************** " << (int) BurstIdHandler::getCurrentBurstId());
 			BurstIdHandler::burstCleanupFunction_();
+			BurstIdHandler::setNextBurstID(BurstIdHandler::currentBurstID_ + 1);
 			BurstIdHandler::currentBurstID_ = BurstIdHandler::nextBurstId_;
 			BurstIdHandler::flushBurst_ = false;
 			FarmStatistics::init();
+			LOG_INFO("Start of burst " << (int) BurstIdHandler::getCurrentBurstId());
+
 
 			// Slow down polling
-			boost::this_thread::sleep(boost::posix_time::microsec(100000));
-			//IPCHandler::sendCommand("eob_timestamp:1");
-
+			//boost::this_thread::sleep(boost::posix_time::microsec(100000));
 
 
 		} //end else
