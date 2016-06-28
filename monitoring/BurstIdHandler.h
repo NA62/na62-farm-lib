@@ -51,6 +51,7 @@ public:
 	static inline bool flushBurst() {
 		return flushBurst_ ;
 	}
+#ifdef USE_SIMU
 	static inline int autoInc(){
 		return auto_inc_;
 	}
@@ -74,6 +75,16 @@ public:
 
 	}
 
+#else
+	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction) {
+			currentBurstID_ = startBurstID;
+			nextBurstId_ = currentBurstID_;
+			running_ = true;
+			flushBurst_ = false;
+			burstCleanupFunction_ = burstCleanupFunction;
+		}
+#endif
+
 	static void shutDown() {
 		running_=false;
 	}
@@ -94,6 +105,8 @@ private:
 	 * to make sure currently enqueued frames in other threads are not processed with
 	 * the new burstID
 	 */
+
+#ifdef USE_SIMU
 	static std::string deviceName_;
 	static std::vector<std::pair<int, int> > sourceIDs_;
 	static uint secs_;
@@ -103,6 +116,14 @@ private:
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;
 	static std::function<void()> burstCleanupFunction_;
+#else
+	static uint nextBurstId_;
+	static uint currentBurstID_;
+	static std::atomic<bool> running_;
+	static std::atomic<bool> flushBurst_;
+	static std::function<void()> burstCleanupFunction_;
+
+#endif
 };
 
 }

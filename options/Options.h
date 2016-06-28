@@ -58,7 +58,7 @@ public:
 	 (OPTION_CONFIG_FILE,
 	 po::value<std::string>()->default_value("/etc/na62-farm.cfg"),
 	 "Config file for the options shown here")
-	 // some more options here
+	 // some more ptions here
 	 ;
 	 Options::Initialize(argc, argv, desc);
 	 */

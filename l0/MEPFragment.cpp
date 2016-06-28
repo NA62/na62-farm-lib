@@ -32,8 +32,10 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 	 * increase by one, possibly wrapping around to zero (in which case the upper 8 bits of the event
 	 * number are those in the MEP header incremented by one).
 	 */
+	//LOG_INFO("event Number LSB "<< (uint) (rawData->eventNumberLSB_));
 	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)
         ){
+		LOG_INFO("event Number LSB "<< (uint) (rawData->eventNumberLSB_));
 		LOG_INFO("++++++++++++++MEP SourceID " << (uint)(mep->getSourceID()));
 		LOG_INFO("++++++++++++++MEP SourceSubID " << (uint)(mep->getSourceIDNum()));
 		LOG_INFO("++++++++++++++MEP Length " << (uint)(mep->getLength()));
@@ -53,7 +55,7 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)) {
 #ifdef USE_ERS
 		std::ostringstream s;
-		s << "MEPFragment with bad event number LSB received: received "<< rawData->eventNumberLSB_
+		s << "MEPFragment with bad event number LSB received: received "<< (uint) (rawData->eventNumberLSB_)
 		  << " but expected LSB is " << (expectedEventNum & 0x000000FF);
 		throw CorruptedMEP(ERS_HERE, s.str());
 #else

@@ -20,8 +20,7 @@ namespace l1 {
 
 MEPFragment::MEPFragment(MEP* mep, const L1_EVENT_RAW_HDR * data) :
 		mep_(mep), rawData_(data) {
-	int nueva = data->numberOf4BWords;
-	int sur = data->sourceID;
+
 
 	dataLength_ = rawData_->numberOf4BWords * 4;
 	//dataLength_ = 140;

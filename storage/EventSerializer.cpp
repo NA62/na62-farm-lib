@@ -29,7 +29,7 @@ void EventSerializer::initialize() {
 	 * L0 + L1 sources
 	 */
 	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
-	InitialEventBufferSize_ = 1000;
+	InitialEventBufferSize_ = 65000;
 	isUnfinishedEOB = false;
 }
 
@@ -121,9 +121,10 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 		/*
 		 * Write all fragments
 		 */
-		int payloadLength;
+		uint32_t payloadLength;
 		for (uint i = 0; i != subevent->getNumberOfFragments(); i++) {
 			const l0::MEPFragment* const fragment = subevent->getFragment(i);
+			//payloadLength = 128;
 			payloadLength = fragment->getPayloadLength() + sizeof(L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,

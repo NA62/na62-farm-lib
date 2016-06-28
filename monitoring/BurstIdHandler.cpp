@@ -30,11 +30,12 @@ boost::timer::cpu_timer BurstIdHandler::EOBReceivedTimer_;
 std::mutex BurstIdHandler::timerMutex_;
 uint BurstIdHandler::nextBurstId_;
 uint BurstIdHandler::currentBurstID_;
+#ifdef USE_SIMU
 uint BurstIdHandler::auto_inc_;
 uint BurstIdHandler::secs_;
 std::string BurstIdHandler::deviceName_;
 std::vector<std::pair<int, int> > BurstIdHandler::sourceIDs_;
-
+#endif
 std::atomic<bool> BurstIdHandler::running_(false);
 std::atomic<bool> BurstIdHandler::flushBurst_(false);
 std::function<void()> BurstIdHandler::burstCleanupFunction_(nullptr);
@@ -42,9 +43,11 @@ std::function<void()> BurstIdHandler::burstCleanupFunction_(nullptr);
 void BurstIdHandler::thread(){
 
 	while(BurstIdHandler::running_) {
+#ifdef USE_SIMU
+		if (BurstIdHandler::autoInc() == 0){
+#endif
 
-		if (BurstIdHandler::autoInc() == 0)
-		{
+
 			//LOG_INFO("Burst ID Handler thread " << (bool) BurstIdHandler::isInBurst() << " " << (bool)BurstIdHandler::flushBurst() <<  " " << (int) BurstIdHandler::getTimeSinceLastEOB());
 			if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == false && BurstIdHandler::getTimeSinceLastEOB() > 3.) {
 				// Mark that all further data shall be discarded
@@ -64,9 +67,10 @@ void BurstIdHandler::thread(){
 			}
 
 			// Slow down polling
-			//boost::this_thread::sleep(boost::posix_time::microsec(100000));
+			boost::this_thread::sleep(boost::posix_time::microsec(100000));
 
 			//IPCHandler::sendCommand("eob_timestamp:1");
+#ifdef USE_SIMU
 		}else{
 			time_t start = time(0);
 			time_t timeLeft = (time_t) BurstIdHandler::secondsBID();
@@ -85,15 +89,7 @@ void BurstIdHandler::thread(){
 			receiver_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string("10.194.20.9"), 55555);
 	        boost::asio::ip::udp::socket socket(io_service);
      		socket.open(boost::asio::ip::udp::v4());
-     		//for (auto sourceID : sourceIDs_) {
-       	    int i = 3000;
-     		while (i > 1){
-     		socket.send_to(boost::asio::buffer("stop", sizeof("stop")), receiver_endpoint);
-     		--i;
-     		}
-			//boost::this_thread::sleep(boost::posix_time::seconds(1));
-
-
+       	   	socket.send_to(boost::asio::buffer("stop", sizeof("stop")), receiver_endpoint);
 
 			LOG_INFO("Preparing end of burst ***************************************************" << (int) BurstIdHandler::getCurrentBurstId());
 			BurstIdHandler::flushBurst_= true;
@@ -111,6 +107,7 @@ void BurstIdHandler::thread(){
 
 
 		} //end else
+#endif
 
 	} //end while running
 
