@@ -84,7 +84,6 @@ public:
 		return L2Accepted_;
 	}
 
-
 	/**
 	 * DO NOT USE THIS METHOD IF YOUR ARE IMPLEMENTING TRIGGER ALGORITHMS
 	 *
@@ -208,6 +207,14 @@ public:
 		return finetime_;
 	}
 
+	void setTriggerDataType(const uint_fast8_t triggerDataType) {
+		triggerDataType_ = triggerDataType;
+	}
+
+	uint_fast8_t getTriggerDataType() const {
+		return triggerDataType_;
+	}
+
 	void setTriggerFlags(const uint_fast16_t triggerFlags) {
 		triggerFlags_ = triggerFlags;
 	}
@@ -260,7 +267,6 @@ public:
 		return L0Subevents[SourceIDManager::sourceIDToNum(std::move(sourceID))];
 	}
 
-
 	/*
 	 * Can be used for iteration over all L1 subevents like following:
 	 * for (int i = Options::Instance()->NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
@@ -280,7 +286,6 @@ public:
 			const uint_fast8_t sourceID) const {
 		return L1Subevents[SourceIDManager::l1SourceIDToNum(std::move(sourceID))];
 	}
-
 
 	inline const l0::Subevent* getCEDARSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CEDAR)];
@@ -337,17 +342,18 @@ public:
 	}
 
 	inline l1::Subevent* getMuv1Subevent() const {
-		return L1Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV1)] ;
+		return L1Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV1)];
 	}
 
 	inline l1::Subevent* getMuv2Subevent() const {
-		return L1Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV2)] ;
+		return L1Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_MUV2)];
 	}
 
 	/**
 	 * Get the received non zero suppressed LKr Event by the crateCREAMID
 	 */
-	inline l1::MEPFragment* getNonZSuppressedLkrFragment(const uint_fast16_t crateCREAMID) const {
+	inline l1::MEPFragment* getNonZSuppressedLkrFragment(
+			const uint_fast16_t crateCREAMID) const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID.at(crateCREAMID);
 	}
 
@@ -375,30 +381,56 @@ public:
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
+	bool isPhysicsTriggerEvent() {
+		return (getTriggerDataType() & TRIGGER_L0_PHYSICS_TYPE);
+	}
+	bool isPeriodicTriggerEvent() {
+		return (getTriggerDataType() & TRIGGER_L0_PERIODICS_TYPE);
+	}
+	bool isControlTriggerEvent() {
+		return (getTriggerDataType() & TRIGGER_L0_CONTROL_TYPE);
+	}
+
+//	bool isSpecialTriggerEvent() {
+//		uint_fast8_t specialTriggerMask = 0x20;
+//		return ((getL0TriggerTypeWord() & specialTriggerMask) != 0);
+//	}
 	bool isSpecialTriggerEvent() {
-		uint_fast8_t specialTriggerMask = 0x20;
-		return ((getL0TriggerTypeWord() & specialTriggerMask) != 0);
+		switch (getL0TriggerTypeWord()) {
+		case TRIGGER_L0_SOB: 			  //0x22
+		case TRIGGER_L0_EOB: 			  //0x23
+		case TRIGGER_L0_PEDESTAL_LKR:     //0x2d
+		case TRIGGER_L0_CALIBRATION1_LKR: //0x30
+		case TRIGGER_L0_CALIBRATION2_LKR: //0x31
+		case TRIGGER_L0_CALIBRATION3_LKR: //0x32
+		case TRIGGER_L0_CALIBRATION4_LKR: //0x33
+			return true;
+		default:
+			return false;
+		}
 	}
 	bool isPulserGTKTriggerEvent() {
-		return false;
+		return (getL0TriggerTypeWord() == TRIGGER_L0_PULSER_GTK);
 	}
 	/*
 	 * Find the missing sourceIDs
 	 */
 	void updateMissingEventsStats();
-	static uint_fast64_t getMissingL0EventsBySourceNum(const uint_fast16_t sourceNum) {
+	static uint_fast64_t getMissingL0EventsBySourceNum(
+			const uint_fast16_t sourceNum) {
 		return MissingEventsBySourceNum_[sourceNum];
 	}
-	static uint_fast64_t getMissingL1EventsBySourceNum(const uint_fast16_t sourceNum) {
+	static uint_fast64_t getMissingL1EventsBySourceNum(
+			const uint_fast16_t sourceNum) {
 		return MissingL1EventsBySourceNum_[sourceNum];
 	}
 
 	std::map<uint, std::vector<uint>> getFilledL0SourceIDs();
 	std::map<uint, std::vector<uint>> getFilledL1SourceIDs();
 
-    static uint64_t getNumberOfNonRequestedL1Fragments() {
-            return nonRequestsL1FramesReceived_;
-    }
+	static uint64_t getNumberOfNonRequestedL1Fragments() {
+		return nonRequestsL1FramesReceived_;
+	}
 
 #ifdef MEASURE_TIME
 	/*
@@ -464,6 +496,7 @@ private:
 	 */
 	std::atomic<uint_fast32_t> burstID_;
 	std::atomic<uint_fast32_t> triggerTypeWord_;
+	std::atomic<uint_fast8_t> triggerDataType_;
 	std::atomic<uint_fast16_t> triggerFlags_;
 	std::atomic<uint_fast32_t> timestamp_;
 	std::atomic<uint_fast8_t> finetime_;
@@ -475,7 +508,7 @@ private:
 	l0::Subevent ** L0Subevents;
 	l1::Subevent ** L1Subevents;
 
-	std::atomic<uint_fast16_t>  nonZSuppressedDataRequestedNum;
+	std::atomic<uint_fast16_t> nonZSuppressedDataRequestedNum;
 
 	/*
 	 * zSuppressedLkrFragmentsByLocalCREAMID[SourceIDManager::getLocalCREAMID()] is the cream event fragment of the

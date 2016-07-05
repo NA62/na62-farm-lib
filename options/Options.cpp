@@ -68,6 +68,9 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	(OPTION_LOG_FILE,
 			po::value<std::string>()->default_value("/var/log/na62-farm"),
 			"Directory where the log files should be written to")
+	(OPTION_APP_NAME,
+			po::value<std::string>()->default_value("na62-farm"),
+			"Application name")
 
 	(OPTION_DELAY_EOB_PROCESSING, po::value<int>()->default_value(2000),
 			"Delay in milliseconds before the EOB cleanup.")
@@ -105,9 +108,6 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	po::notify(vm); // Check the configuration
 
-	std::cout << "======= Running with following configuration:" << std::endl;
-	PrintVM(vm);
-
 #ifdef USE_GLOG
 	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
 		FLAGS_logtostderr = true;
@@ -125,9 +125,9 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	std::cout << "Writing logs to " << FLAGS_log_dir << " With min log level "
 			<< FLAGS_minloglevel << std::endl;
 
-	google::SetLogDestination(google::INFO, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.info").c_str());
-	google::SetLogDestination(google::WARNING, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.warn").c_str());
-	google::SetLogDestination(google::ERROR, std::string(GetString(OPTION_LOG_FILE)+"/na62-farm.err").c_str());
+	google::SetLogDestination(google::INFO, std::string(GetString(OPTION_LOG_FILE) + "/" + GetString(OPTION_APP_NAME) + ".info").c_str());
+	google::SetLogDestination(google::WARNING, std::string(GetString(OPTION_LOG_FILE)+ "/" + GetString(OPTION_APP_NAME)+".warn").c_str());
+	google::SetLogDestination(google::ERROR, std::string(GetString(OPTION_LOG_FILE)+ "/" + GetString(OPTION_APP_NAME)+".err").c_str());
 #elif USE_ERS
 	ers::Configuration::instance().debug_level(Options::GetInt(OPTION_VERBOSITY));
 	ers::Configuration::instance().verbosity_level(1);
@@ -137,10 +137,13 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 		std::time_t result = std::time(nullptr);
 
 		std::string ts = std::to_string(result);
-		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + ts + "na62-farm.info").c_str(),"w",stdout);
-		freopen (std::string(GetString(OPTION_LOG_FILE) +"/"  + ts + "na62-farm.err").c_str(),"w",stderr);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + GetString(OPTION_APP_NAME) + "_" + ts + ".info").c_str(),"w",stdout);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + GetString(OPTION_APP_NAME) + "_" + ts + ".err").c_str(),"w",stderr);
 	}
 #endif
+
+	std::cout << "======= Running with following configuration:" << std::endl;
+	PrintVM(vm);
 }
 
 bool Options::Isset(char* parameter) {
