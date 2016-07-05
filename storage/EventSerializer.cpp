@@ -8,6 +8,7 @@
 #include "EventSerializer.h"
 
 #include <cstring>
+#include <algorithm>
 #include "../options/Logging.h"
 #include "../eventBuilding/Event.h"
 #include "../eventBuilding/SourceIDManager.h"
@@ -22,15 +23,14 @@ namespace na62 {
 
 uint EventSerializer::InitialEventBufferSize_;
 int EventSerializer::TotalNumberOfDetectors_;
-bool isUnfinishedEOB;
+//bool isUnfinishedEOB;
 
 void EventSerializer::initialize() {
 	/*
 	 * L0 + L1 sources
 	 */
 	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
-	InitialEventBufferSize_ = 1000;
-	isUnfinishedEOB = false;
+	InitialEventBufferSize_ = 4096; // allocate 4 kB initially for the serialized event
 }
 
 char* EventSerializer::ResizeBuffer(char* buffer, const int oldLength,
@@ -45,7 +45,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint eventBufferSize = InitialEventBufferSize_;
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
-	isUnfinishedEOB = false;
+	bool isUnfinishedEOB = false;
 	EVENT_HDR* header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
 
 	header->eventNum = event->getEventNumber();
@@ -66,19 +66,26 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
 
 	writeL0Data(event, eventBuffer, eventOffset, eventBufferSize,
-			pointerTableOffset);
+			pointerTableOffset, isUnfinishedEOB);
 
 	writeL1Data(event, eventBuffer, eventOffset, eventBufferSize,
-			pointerTableOffset);
+			pointerTableOffset, isUnfinishedEOB);
 
 	/*
 	 * Trailer
 	 */
+       if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
+                        eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+                                        eventBufferSize + sizeof(EVENT_TRAILER));
+                        eventBufferSize += sizeof(EVENT_TRAILER);
+                }
+
+
 	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
 	trailer->eventNum = event->getEventNumber();
 	trailer->reserved = 0;
 
-	const int eventLength = eventOffset + 4/*trailer*/;
+	const int eventLength = eventOffset + sizeof(EVENT_TRAILER);
 
 	if (eventBufferSize > InitialEventBufferSize_) {
 		InitialEventBufferSize_ = eventBufferSize;
@@ -96,7 +103,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 }
 
 char* EventSerializer::writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
-uint& eventBufferSize, uint& pointerTableOffset) {
+uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 	/*
 	 * Write all L0 data sources
 	 */
@@ -105,8 +112,8 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 
 		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-					eventBufferSize + 1000);
-			eventBufferSize += 1000;
+					eventBufferSize + 4096); // add 4kB to the buffer
+			eventBufferSize += 4096;
 		}
 
 		/*
@@ -127,8 +134,8 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 			payloadLength = fragment->getPayloadLength() + sizeof(L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-						eventBufferSize + payloadLength);
-				eventBufferSize += payloadLength;
+						eventBufferSize + std::max(4096, payloadLength));
+				eventBufferSize += std::max(4096, payloadLength); // add another 4kB, no point in being too precise...
 			}
 
 			L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
@@ -158,8 +165,8 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 				payloadLength = sizeof(L0_BLOCK_HDR);
                 if (eventOffset + payloadLength > eventBufferSize) {
                          eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-                                         eventBufferSize + payloadLength);
-                         eventBufferSize += payloadLength;
+                                         eventBufferSize + std::max(4096, payloadLength));
+                         eventBufferSize += std::max(4096, payloadLength);
                  }
 	 	 isUnfinishedEOB = true;
                  L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
@@ -184,15 +191,15 @@ uint& eventBufferSize, uint& pointerTableOffset) {
 }
 
 char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint& eventOffset,
-		uint& eventBufferSize, uint& pointerTableOffset) {
+		uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 
 	for (int sourceNum = 0; sourceNum != SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; sourceNum++) {
 		const l1::Subevent* const subevent = event->getL1SubeventBySourceIDNum(sourceNum);
 
 		if (eventOffset + 4 > eventBufferSize) {
 			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-					eventBufferSize + 1000);
-			eventBufferSize += 1000;
+					eventBufferSize + 4096);
+			eventBufferSize += 4096;
 		}
 
 		uint eventOffset32 = eventOffset / 4;
@@ -208,8 +215,8 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
 
 			if (eventOffset + e->getEventLength() > eventBufferSize) {
 				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-						eventBufferSize + e->getEventLength());
-				eventBufferSize += e->getEventLength();
+						eventBufferSize + std::max(4096, (int) e->getEventLength()));
+				eventBufferSize += std::max(4096, (int) e->getEventLength());
 			}
 
 			memcpy(eventBuffer + eventOffset, e->getDataWithHeader(),
@@ -232,8 +239,8 @@ char* EventSerializer::writeL1Data(const Event* event, char*& eventBuffer, uint&
 				int payloadLength = sizeof(l1::L1_EVENT_RAW_HDR);
                 if (eventOffset + payloadLength > eventBufferSize) {
                          eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-                                         eventBufferSize + payloadLength);
-                         eventBufferSize += payloadLength;
+                                         eventBufferSize + std::max(4096, payloadLength));
+                         eventBufferSize += std::max(4096, payloadLength);
                  }
 
 		isUnfinishedEOB=true;

@@ -41,7 +41,7 @@ bool Event::printCompletedSourceIDs_ = false;
 
 Event::Event(uint_fast32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfMEPFragments_(
-				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), timestamp_(
+				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), triggerDataType_(0), timestamp_(
 				0), finetime_(0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
 		false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(
 		false), unfinished_(false), lastEventOfBurst_(
@@ -265,6 +265,7 @@ void Event::reset() {
 	triggerFlags_ = 0;
 	timestamp_ = 0;
 	finetime_ = 0;
+	triggerDataType_ = 0;
 	processingID_ = 0;
 	requestZeroSuppressedCreamData_ = false;
 	L1Processed_ = false;
@@ -306,9 +307,22 @@ uint_fast8_t Event::readTriggerTypeWordAndFineTime() {
 		l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
 		L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
 		setFinetime(L0TPData->refFineTime);
+		setTriggerDataType(L0TPData->dataType);
 		setl0TriggerTypeWord(L0TPData->l0TriggerType);
 		setTriggerFlags(L0TPData->l0TriggerFlags);
 		return L0TPData->l0TriggerType;
+		if(getL0TPSubevent()->getNumberOfFragments() > 0) {
+			l0::MEPFragment* L0TPEvent = getL0TPSubevent()->getFragment(0);
+			L0TpHeader* L0TPData = (L0TpHeader*) L0TPEvent->getPayload();
+			setFinetime(L0TPData->refFineTime);
+			setTriggerDataType(L0TPData->dataType);
+			setl0TriggerTypeWord(L0TPData->l0TriggerType);
+			setTriggerFlags(L0TPData->l0TriggerFlags);
+			return L0TPData->l0TriggerType;
+		}
+		else {
+			LOG_ERROR("Corrupted event! Could not retrieve the L0TP information!!");
+		}
 	}
 	return 1;
 }
