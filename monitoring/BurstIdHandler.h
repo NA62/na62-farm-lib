@@ -61,7 +61,7 @@ public:
 
 
 	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction,
-			uint auto_inc, uint secs, std::vector<std::pair<int, int> > sourceIDs, std::string deviceName) {
+			uint auto_inc, uint secs, std::vector<std::pair<int, int> > sourceIDs, std::string deviceName, std::vector<std::string> telsimGroupStop) {
 		currentBurstID_ = startBurstID;
 		nextBurstId_ = currentBurstID_;
 		running_ = true;
@@ -69,12 +69,13 @@ public:
 		burstCleanupFunction_ = burstCleanupFunction;
 		auto_inc_ = auto_inc;
 		secs_ = secs;
+		telsimGroupStop_ = telsimGroupStop;
 		deviceName_ = deviceName;
 		sourceIDs_ = sourceIDs;
 
 
-	}
 
+	}
 #else
 	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction) {
 			currentBurstID_ = startBurstID;
@@ -111,11 +112,13 @@ private:
 	static std::vector<std::pair<int, int> > sourceIDs_;
 	static uint secs_;
 	static uint auto_inc_;
+	static std::vector<std::string> telsimGroupStop_;
 	static uint nextBurstId_;
 	static uint currentBurstID_;
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;
 	static std::function<void()> burstCleanupFunction_;
+
 #else
 	static uint nextBurstId_;
 	static uint currentBurstID_;

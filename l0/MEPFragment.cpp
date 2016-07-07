@@ -32,7 +32,7 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 	 * increase by one, possibly wrapping around to zero (in which case the upper 8 bits of the event
 	 * number are those in the MEP header incremented by one).
 	 */
-	//LOG_INFO("event Number LSB "<< (uint) (rawData->eventNumberLSB_));
+
 	if (rawData->eventNumberLSB_ != (expectedEventNum & 0x000000FF)
         ){
 		LOG_INFO("event Number LSB "<< (uint) (rawData->eventNumberLSB_));

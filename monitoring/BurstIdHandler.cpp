@@ -34,6 +34,7 @@ uint BurstIdHandler::currentBurstID_;
 uint BurstIdHandler::auto_inc_;
 uint BurstIdHandler::secs_;
 std::string BurstIdHandler::deviceName_;
+std::vector<std::string> BurstIdHandler::telsimGroupStop_;
 std::vector<std::pair<int, int> > BurstIdHandler::sourceIDs_;
 #endif
 std::atomic<bool> BurstIdHandler::running_(false);
@@ -66,7 +67,7 @@ void BurstIdHandler::thread(){
 
 			}
 
-			// Slow down polling
+			/// Slow down polling
 			boost::this_thread::sleep(boost::posix_time::microsec(100000));
 
 			//IPCHandler::sendCommand("eob_timestamp:1");
@@ -86,18 +87,24 @@ void BurstIdHandler::thread(){
 			boost::asio::io_service io_service;
 			boost::asio::ip::udp::resolver resolver(io_service);
 	        boost::asio::ip::udp::endpoint receiver_endpoint;
-			receiver_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string("10.194.20.9"), 55555);
 	        boost::asio::ip::udp::socket socket(io_service);
-     		socket.open(boost::asio::ip::udp::v4());
-       	   	socket.send_to(boost::asio::buffer("stop", sizeof("stop")), receiver_endpoint);
-
-			LOG_INFO("Preparing end of burst ***************************************************" << (int) BurstIdHandler::getCurrentBurstId());
+	        socket.open(boost::asio::ip::udp::v4());
+	        for (std::string multiStopIP : telsimGroupStop_) {
+			receiver_endpoint = boost::asio::ip::udp::endpoint(boost::asio::ip::address::from_string(multiStopIP), 55555);
+       	   		socket.send_to(boost::asio::buffer("stop", sizeof("stop")), receiver_endpoint);
+	        }
+       	    boost::this_thread::sleep(boost::posix_time::microsec(10000000));
+			LOG_INFO("Preparing end of burst: " << (int) BurstIdHandler::getCurrentBurstId() << "*************************");
 			BurstIdHandler::flushBurst_= true;
-			LOG_INFO("Cleanup of burst ********************************************************** " << (int) BurstIdHandler::getCurrentBurstId());
+			LOG_INFO("Cleanup of burst: " << (int) BurstIdHandler::getCurrentBurstId() << "*******************************");
 			BurstIdHandler::burstCleanupFunction_();
+			LOG_INFO("Cleanup **************************************** ");
 			BurstIdHandler::setNextBurstID(BurstIdHandler::currentBurstID_ + 1);
+			LOG_INFO("Setting next************************************ ");
 			BurstIdHandler::currentBurstID_ = BurstIdHandler::nextBurstId_;
+			LOG_INFO("Flush true ************************************* ");
 			BurstIdHandler::flushBurst_ = false;
+			LOG_INFO("Init stats ************************************* ");
 			FarmStatistics::init();
 			LOG_INFO("Start of burst " << (int) BurstIdHandler::getCurrentBurstId());
 

@@ -47,11 +47,11 @@ public:
 	/**
 	 * Number of Bytes of the payload data
 	 */
-	inline uint_fast16_t getPayloadLength() const {
+	inline int_fast16_t getPayloadLength() const {
 		return rawData->eventLength_ - sizeof(MEPFragment_HDR);
 	}
 
-	inline uint_fast32_t getTimestamp() const {
+	inline int_fast32_t getTimestamp() const {
 		return rawData->timestamp_;
 	}
 

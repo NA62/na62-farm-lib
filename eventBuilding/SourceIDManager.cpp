@@ -44,7 +44,6 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 		std::vector<std::pair<int, int> > l0sourceIDs,
 		std::vector<std::pair<int, int> > l1sourceIDs) {
 
-		std::cout << "TS L0 L1" << std::endl;
 	/*
 	 * OPTION_DATA_SOURCE_IDS
 	 *
@@ -57,7 +56,6 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 	L1_DATA_SOURCE_IDS = new uint_fast8_t[NUMBER_OF_L1_DATA_SOURCES];
 	L1_DATA_SOURCE_NUM_TO_PACKNUM = new uint_fast16_t[NUMBER_OF_L1_DATA_SOURCES];
 
-	std::cout << "TS L0 L1" << std::endl;
 	int pos = -1;
 	for (auto& pair : l0sourceIDs) {
 		L0_DATA_SOURCE_IDS[++pos] = pair.first;
@@ -104,7 +102,6 @@ void SourceIDManager::Initialize(const uint_fast16_t timeStampSourceID,
 		L1_DATA_SOURCE_ID_TO_PACKNUM[L1_DATA_SOURCE_IDS[i]] =
 				L1_DATA_SOURCE_NUM_TO_PACKNUM[i];
 	}
-	std::cout << "TS L0 L1" << std::endl;
 	L0TP_ACTIVE = SourceIDManager::isL0TPActive();
 	TS_SOURCEID_NUM = sourceIDToNum(timeStampSourceID);
 	if (!SourceIDManager::checkL0SourceID(timeStampSourceID)) {
