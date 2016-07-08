@@ -5,6 +5,8 @@
  *      Author: Jonas Kunze (kunze.jonas@gmail.com)
  */
 
+#include <time.h>
+
 #include "Options.h"
 
 #include <boost/foreach.hpp>
@@ -66,6 +68,12 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	(OPTION_LOG_FILE,
 			po::value<std::string>()->default_value("/var/log/na62-farm"),
 			"Directory where the log files should be written to")
+	(OPTION_APP_NAME,
+			po::value<std::string>()->default_value("na62-farm"),
+			"Application name")
+
+	(OPTION_DELAY_EOB_PROCESSING, po::value<int>()->default_value(2000),
+			"Delay in milliseconds before the EOB cleanup.")
 
 			;
 
@@ -100,9 +108,6 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 
 	po::notify(vm); // Check the configuration
 
-	std::cout << "======= Running with following configuration:" << std::endl;
-	PrintVM(vm);
-
 #ifdef USE_GLOG
 	if (Options::GetInt(OPTION_LOGTOSTDERR)) {
 		FLAGS_logtostderr = true;
@@ -112,14 +117,33 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	boost::filesystem::path dir(Options::GetString(OPTION_LOG_FILE));
 	if (!boost::filesystem::exists(dir)
 			&& !boost::filesystem::create_directory(dir)) {
-		LOG_ERROR<< "Unable to create directory " << dir.string() << std::endl;
+		std::cerr<< "Unable to create directory " << dir.string() << std::endl;
 	}
 
 	FLAGS_log_dir = GetString(OPTION_LOG_FILE);
 	google::InitGoogleLogging(argv[0]);
 	std::cout << "Writing logs to " << FLAGS_log_dir << " With min log level "
 			<< FLAGS_minloglevel << std::endl;
+
+	google::SetLogDestination(google::INFO, std::string(GetString(OPTION_LOG_FILE) + "/" + GetString(OPTION_APP_NAME) + ".info").c_str());
+	google::SetLogDestination(google::WARNING, std::string(GetString(OPTION_LOG_FILE)+ "/" + GetString(OPTION_APP_NAME)+".warn").c_str());
+	google::SetLogDestination(google::ERROR, std::string(GetString(OPTION_LOG_FILE)+ "/" + GetString(OPTION_APP_NAME)+".err").c_str());
+#elif USE_ERS
+	ers::Configuration::instance().debug_level(Options::GetInt(OPTION_VERBOSITY));
+	ers::Configuration::instance().verbosity_level(1);
+	if (Options::GetInt(OPTION_LOGTOSTDERR) == false) {
+		time_t now = time(0);
+		// Convert now to tm struct for local timezone
+		std::time_t result = std::time(nullptr);
+
+		std::string ts = std::to_string(result);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + GetString(OPTION_APP_NAME) + "_" + ts + ".info").c_str(),"w",stdout);
+		freopen (std::string(GetString(OPTION_LOG_FILE) +"/" + GetString(OPTION_APP_NAME) + "_" + ts + ".err").c_str(),"w",stderr);
+	}
 #endif
+
+	std::cout << "======= Running with following configuration:" << std::endl;
+	PrintVM(vm);
 }
 
 bool Options::Isset(char* parameter) {
@@ -181,9 +205,8 @@ std::vector<int> Options::GetIntList(char* parameter) {
 				values.push_back(Utils::ToUInt(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR<< "Unable to cast '" + str
-			+ "' to int! Try correct option " << parameter
-			<< ENDL;
+			LOG_ERROR("Unable to cast '" + str
+			+ "' to int! Try correct option " << parameter);
 			exit(1);
 		}
 	}
@@ -206,9 +229,8 @@ std::vector<double> Options::GetDoubleList(char* parameter) {
 				values.push_back(boost::lexical_cast<double>(str));
 			}
 		} catch (boost::bad_lexical_cast &e) {
-			LOG_ERROR<< "Unable to cast '" + str
-			+ "' to double! Try correct option " << parameter
-			<< ENDL;
+			LOG_ERROR("Unable to cast '" + str
+			+ "' to double! Try correct option " << parameter);
 			exit(1);
 		}
 	}

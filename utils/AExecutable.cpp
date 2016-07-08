@@ -25,13 +25,13 @@ AExecutable::~AExecutable() {
 	delete thread_;
 }
 
-void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, short CPUToBind, int scheduler) {
+void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority, short CPUToBind, int scheduler) {
 	std::vector<short> CPUsToBind;
 	CPUsToBind.push_back(CPUToBind);
 	SetThreadAffinity(daThread, threadPriority, CPUsToBind, scheduler);
 }
 
-void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short threadPriority, std::vector<short> CPUsToBind, int scheduler) {
+void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority, std::vector<short> CPUsToBind, int scheduler) {
 #ifndef __APPLE__
 	int policy;
 	pthread_t threadID = (pthread_t) (daThread->native_handle());
@@ -42,13 +42,13 @@ void AExecutable::SetThreadAffinity(boost::thread* daThread, unsigned short thre
 			perror("pthread_getschedparam");
 			exit(EXIT_FAILURE);
 		}
-
+		//LOG_ERROR("Policy " << policy << ", priority " << param.sched_priority);
 		/**
 		 * Set scheduling algorithm
-		 * Possible values: SCHED_FIFO, SCHED_RR, SCHED_OTHER
+		 * Possible values: SCHED_FIFO(1), SCHED_RR(2), SCHED_OTHER(0)
 		 */
 		policy = scheduler;
-		param.sched_priority = threadPriority;
+		param.__sched_priority = threadPriority;
 		if (pthread_setschedparam(threadID, policy, &param) != 0) {
 			perror("pthread_setschedparam");
 			exit(EXIT_FAILURE);

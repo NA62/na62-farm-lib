@@ -1,9 +1,11 @@
 /*
  * Subevent.cpp
  *
- *  Created on: Jan 25, 2012
- *      Author: Jonas Kunze (kunze.jonas@gmail.com)
+ *  Created on: Mar 2, 2016
+ *      Author: giovanna
  */
+
+
 
 #include "Subevent.h"
 
@@ -12,7 +14,7 @@
 #include "MEPFragment.h"
 
 namespace na62 {
-namespace l0 {
+namespace l1 {
 
 Subevent::Subevent(const uint_fast16_t expectedPacketsNum, const uint_fast8_t sourceID) :
 		expectedPacketsNum(expectedPacketsNum), sourceID(sourceID), eventFragments(
@@ -21,7 +23,7 @@ Subevent::Subevent(const uint_fast16_t expectedPacketsNum, const uint_fast8_t so
 }
 
 Subevent::~Subevent() {
-//	throw NA62Error("A Subevent-Object should not be deleted! Use Subevent::destroy instead so that it can be reused by the overlaying Event!");
+	throw NA62Error("A L1Subevent-Object should not be deleted! Use L1Subevent::destroy instead so that it can be reused by the overlaying Event!");
 	destroy();
 	delete[] eventFragments;
 }
@@ -33,5 +35,6 @@ void Subevent::destroy() {
 	}
 	fragmentCounter = 0;
 }
-} /* namespace l0 */
-} /* namespace na62 */
+
+}
+}

@@ -1,13 +1,13 @@
 /*
  * Subevent.h
  *
- *  Created on: Jan 25, 2012
- *      Author: Jonas Kunze (kunze.jonas@gmail.com)
+ *  Created on: Mar 2, 2016
+ *      Author: giovanna
  */
 
-#pragma once
-#ifndef SUBEVENT_H_
-#define SUBEVENT_H_
+#ifndef L1SUBEVENT_H_
+#define L1SUBEVENT_H_
+
 
 #include <boost/noncopyable.hpp>
 #include <atomic>
@@ -20,7 +20,7 @@
 #include "MEPFragment.h"
 
 namespace na62 {
-namespace l0 {
+namespace l1 {
 
 class Subevent: private boost::noncopyable {
 public:
@@ -39,8 +39,7 @@ public:
 		uint_fast16_t oldNumberOfFragments = fragmentCounter.fetch_add(1);
 
 		if (oldNumberOfFragments
-				>= SourceIDManager::getExpectedPacksBySourceID(
-						fragment->getSourceID())) {
+				>= SourceIDManager::getExpectedL1PacksBySourceID(fragment->getSourceID())) {
 			/*
 			 * when more fragments are received than expected: decrement the counter back to the old value
 			 * We have to check >= as it might be > in case of a high rate where another thread could already
@@ -78,20 +77,8 @@ public:
 	 * Returns all missing source sub IDs. This only works correctly if the enabled sub IDs are consecutive numbers from 0 to ExpectedPacketsNum-1
 	 */
 	inline std::vector<uint> getMissingSourceSubIds() const {
+		// Not implemented
 		std::vector<uint> missingSubIDs;
-
-		std::set<uint> receivedSubIDs;
-		for (uint i = 0; i != getNumberOfFragments(); i++) {
-			receivedSubIDs.insert(eventFragments[i]->getSourceSubID());
-		}
-
-		// Check which subIDs are missing
-		for (uint i = 0; i != expectedPacketsNum; i++) {
-			if (receivedSubIDs.find(i) == receivedSubIDs.end()) {
-				missingSubIDs.push_back(i);
-			}
-		}
-
 		return missingSubIDs;
 	}
 
@@ -117,6 +104,8 @@ private:
 	std::atomic<uint_fast16_t> fragmentCounter;
 };
 
-} /* namespace l0 */
+} /* namespace l1 */
 } /* namespace na62 */
-#endif /* SUBEVENT_H_ */
+
+
+#endif /* L1SUBEVENT_H_ */

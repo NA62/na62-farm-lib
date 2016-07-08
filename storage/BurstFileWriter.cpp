@@ -32,7 +32,7 @@ BurstFileWriter::BurstFileWriter(const std::string filePath,
 				filePath), fileName_(fileName), eventID_(0) {
 
 	if (!myFile_.good()) {
-		LOG_ERROR<<"Unable to write to file " << filePath;
+		LOG_ERROR("Unable to write to file " << filePath);
 		exit(1);
 	}
 
@@ -88,15 +88,13 @@ BurstFileWriter::~BurstFileWriter() {
 //	chown(filePath_.c_str(), ownerID, groupID);
 	system(std::string("chown na62cdr:vl " + filePath_).data());
 
-	LOG_INFO<< "Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with "
-	<< Utils::FormatSize(dataRate) << "B/s";
+	LOG_INFO("Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with " << Utils::FormatSize(dataRate) << "B/s");
 
 	delete[] hdr_;
 }
 
 void BurstFileWriter::writeEvent(const EVENT_HDR* event) {
 	myFile_.write(reinterpret_cast<const char*>(event), event->length * 4);
-//	bytesWritten_ += event->length * 4;
 
 	eventNumbers_[eventID_] = event->eventNum;
 	triggerWords_[eventID_] = event->triggerWord;
@@ -121,7 +119,7 @@ void BurstFileWriter::writeBkmFile(const std::string bkmDir) {
 	BKMFile.open(BKMFilePath.data(), std::ios::out | std::ios::trunc);
 
 	if (!BKMFile.good()) {
-		LOG_ERROR<< "Unable to write to file " << BKMFilePath;
+		LOG_ERROR("Unable to write to file " << BKMFilePath << "");
 		return;
 	}
 
@@ -140,7 +138,7 @@ void BurstFileWriter::writeBkmFile(const std::string bkmDir) {
 
 	system(std::string("chown na62cdr:vl " + BKMFilePath).data());
 
-	LOG_INFO<<"Wrote BKM file " << BKMFilePath;
+	LOG_INFO("Wrote BKM file " << BKMFilePath);
 }
 
 }

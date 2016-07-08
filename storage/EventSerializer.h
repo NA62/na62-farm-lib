@@ -32,11 +32,10 @@ public:
 private:
 	static uint InitialEventBufferSize_;
 	static int TotalNumberOfDetectors_;
-
-	static char* writeCreamData(char*& eventBuffer, uint& eventOffset,
-			uint& eventBufferSize, uint& pointerTableOffset,
-			cream::LkrFragment** fragments, uint numberOfFragments,
-			uint sourceID);
+	static char* writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
+	uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);
+	static char* writeL1Data(const Event* event, char*& eventBuffer, uint& eventOffset,
+			uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);
 
 	static char* ResizeBuffer(char* buffer, const int oldLength,
 			const int newLength);

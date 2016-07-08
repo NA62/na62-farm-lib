@@ -30,7 +30,7 @@ namespace po = boost::program_options;
 /*
  * Compile time options
  */
-#define MTU 9000
+#define MTU 9014
 
 /*
  * Dynamic options
@@ -40,6 +40,8 @@ namespace po = boost::program_options;
 #define OPTION_LOGTOSTDERR (char*)"logtostderr"
 #define OPTION_VERBOSITY (char*)"verbosity"
 #define OPTION_LOG_FILE (char*)"logDir"
+#define OPTION_APP_NAME (char*)"appName"
+#define OPTION_DELAY_EOB_PROCESSING (char*)"delayEOBProcessing"
 
 namespace na62 {
 class Options {
