@@ -417,10 +417,10 @@ void Event::updateMissingEventsStats() {
 				!= subevent->getNumberOfExpectedFragments()) {
 			MissingEventsBySourceNum_[sourceNum].fetch_add(1,
 					std::memory_order_relaxed);
-#ifdef USE_ERS
-			ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
-							subevent->getNumberOfExpectedFragments(), SourceIDManager::sourceIdToDetectorName(SourceIDManager::sourceNumToID(sourceNum))));
-#endif
+//#ifdef USE_ERS
+//			ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
+//							subevent->getNumberOfExpectedFragments(), SourceIDManager::sourceIdToDetectorName(SourceIDManager::sourceNumToID(sourceNum))));
+//#endif
 		}
 		int DetId = (int) (SourceIDManager::sourceNumToID(sourceNum));
 		for (int ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
@@ -437,11 +437,11 @@ void Event::updateMissingEventsStats() {
 					!= subevent->getNumberOfExpectedFragments()) {
 				MissingL1EventsBySourceNum_[sourceNum].fetch_add(1,
 						std::memory_order_relaxed);
-#ifdef USE_ERS
-				ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
-								subevent->getNumberOfExpectedFragments(), SourceIDManager::sourceIdToDetectorName(SourceIDManager::l1SourceNumToID(sourceNum))));
-
-#endif
+//#ifdef USE_ERS
+//				ers::warning(MissingFragments(ERS_HERE, this->getEventNumber(), subevent->getNumberOfExpectedFragments() - subevent->getNumberOfFragments(),
+//								subevent->getNumberOfExpectedFragments(), SourceIDManager::sourceIdToDetectorName(SourceIDManager::l1SourceNumToID(sourceNum))));
+//
+//#endif
 			}
 			for (int ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
 				int SubId = (int) (subevent->getFragment(ifrag)->getSourceSubID());
