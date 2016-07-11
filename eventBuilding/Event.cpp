@@ -86,6 +86,8 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 
 
 	std::cout << "Creating event with ID " << (int) eventNumber_ << std::endl;
+
+
 	// Helper variables to navigate through serialized event;
 	uint sizeOfPointerTable  = 4 * (SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES) ;
 	uint pointerTableOffset = sizeof(EVENT_HDR);
@@ -103,7 +105,10 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 		/*
 		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
 		 */
+
 		std::cout << "Build subevent for det 0x" << std::hex << (uint) SourceIDManager::sourceNumToID(i) << std::dec << std::endl;
+
+
 		L0Subevents[i] = new l0::Subevent(
 				SourceIDManager::getExpectedPacksBySourceNum(i),
 				SourceIDManager::sourceNumToID(i));
@@ -113,11 +118,13 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 	EVENT_DATA_PTR* sourceIdAndOffsets = serializedEvent->getDataPointer();
 	for(int sourceNum=0; sourceNum!=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; sourceNum++){
 		EVENT_DATA_PTR sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
-		std::cout << "Found detector " << std::hex << (int) sourceIdAndOffset.sourceID << " in the serialized event." << std::dec << std::endl;
+		std::cout << "Found detector " << std::hex << (int) sourceIdAndOffset.sourceID << " Starting at: " << std::dec << sourceIdAndOffset.offset << " in the serialized event." << std::dec << std::endl;
 		const char* detectorData = serializedBuf + (sourceIdAndOffset.offset * 4);
+		//const char* detectorData = serializedBuf + (sourceIdAndOffset.offset);
 		l0::Subevent * se = L0Subevents[SourceIDManager::sourceIDToNum(sourceIdAndOffset.sourceID)];
 		int fragOffset = 0;
 		for (int j = 0 ; j < se->getNumberOfExpectedFragments(); ++j) {
+			std::cout << "Recreating fragment: " << std::dec << j << std::endl;
 			const L0_BLOCK_HDR* l0b = reinterpret_cast<const L0_BLOCK_HDR*>(detectorData+fragOffset);
 			const l0::MEPFragment_HDR* fragData = reinterpret_cast<const l0::MEPFragment_HDR*> (detectorData+fragOffset) ;
 			std::cout << "Create MEPFragment " << j << " and size " << (int) l0b->dataBlockSize << " with subID 0x" << std::hex << (int) l0b->sourceSubID << std::dec << std::endl;

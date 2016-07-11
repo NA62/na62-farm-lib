@@ -61,6 +61,7 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	header->reserved1 = 0;
 	header->fineTime = event->getFinetime();
 	header->numberOfDetectors = TotalNumberOfDetectors_;
+	std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
 	header->reserved2 = 0;
 	header->processingID = event->getProcessingID();
 	header->SOBtimestamp = 0; // Will be set by the merger
@@ -72,17 +73,31 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	writeL0Data(event, eventBuffer, eventOffset, eventBufferSize,
 			pointerTableOffset, isUnfinishedEOB);
 
+
+//	int*  serializedevent_per_byte = (int * ) eventBuffer;
+//	for ( int a = 0; a < eventOffset / 4 ; a++ ) {
+//		std::cout << std::hex << (int) *(serializedevent_per_byte + a)<<std::endl;
+//
+//	}
+
+
+
+
+
+
+
+
+
 	writeL1Data(event, eventBuffer, eventOffset, eventBufferSize,
 			pointerTableOffset, isUnfinishedEOB);
 
 	/*
 	 * Trailer
 	 */
-       if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
-                        eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-                                        eventBufferSize + sizeof(EVENT_TRAILER));
-                        eventBufferSize += sizeof(EVENT_TRAILER);
-                }
+	if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
+		eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + sizeof(EVENT_TRAILER));
+		eventBufferSize += sizeof(EVENT_TRAILER);
+	}
 
 
 	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
@@ -103,13 +118,13 @@ EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 
 	header->length = eventLength / 4;
 
-	if (DumpFlag_ == true) {
-		std::cout << "De/Reserialization test." << std::endl;
-		DumpFlag_ == false;
-		Event unserializedEv(header, false);
-		EventSerializer::SerializeEvent(&unserializedEv);
-		DumpFlag_ == true;
-	}
+//	if (DumpFlag_ == true) {
+//		std::cout << "De/Reserialization test." << std::endl;
+//		DumpFlag_ == false;
+//		Event unserializedEv(header, false);
+//		EventSerializer::SerializeEvent(&unserializedEv);
+//		DumpFlag_ == true;
+//	}
 
 	return header;
 }
@@ -133,9 +148,9 @@ uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 		 */
 		uint eventOffset32 = eventOffset / 4;
 		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
-		std::memset(eventBuffer + pointerTableOffset + 3,
-				SourceIDManager::sourceNumToID(sourceNum), 1);
+		std::memset(eventBuffer + pointerTableOffset + 3, SourceIDManager::sourceNumToID(sourceNum), 1);
 		pointerTableOffset += 4;
+		std::cout<<"Detector Table: "<< std::hex <<(int) SourceIDManager::sourceNumToID(sourceNum) << " Offset: "<< std::dec << eventOffset32 << std::endl;
 
 		/*
 		 * Write all fragments
@@ -182,7 +197,7 @@ uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
                                          eventBufferSize + std::max(4096, payloadLength));
                          eventBufferSize += std::max(4096, payloadLength);
                  }
-                isUnfinishedEOB = true;
+                 isUnfinishedEOB = true;
                  L0_BLOCK_HDR* blockHdr = reinterpret_cast<L0_BLOCK_HDR*>(eventBuffer
                                  + eventOffset);
                  blockHdr->dataBlockSize = payloadLength;
