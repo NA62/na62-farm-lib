@@ -46,33 +46,19 @@ char* SmartEventSerializer::ResizeBuffer(char* buffer, const int oldLength,
 }
 
 EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event) {
-	uint eventBufferSize = InitialEventBufferSize_;
+
 	char* eventBuffer = new char[InitialEventBufferSize_];
-
-	bool isUnfinishedEOB = false;
-
+	uint eventBufferSize = InitialEventBufferSize_;
 	uint sizeOfPointerTable = 4 * TotalNumberOfDetectors_;
 	uint pointerTableOffset = sizeof(EVENT_HDR);
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
-
-
+	bool isUnfinishedEOB = false;
 
 	writeL0Data(event, eventBuffer, eventOffset, eventBufferSize, pointerTableOffset, isUnfinishedEOB);
 
 	writeL1Data(event, eventBuffer, eventOffset, eventBufferSize, pointerTableOffset, isUnfinishedEOB);
 
 	writeTrailer(event, eventBuffer, eventOffset, eventBufferSize);
-
-
-//	if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
-//		eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + sizeof(EVENT_TRAILER));
-//		eventBufferSize += sizeof(EVENT_TRAILER);
-//	}
-//	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
-//	trailer->eventNum = event->getEventNumber();
-//	trailer->reserved = 0;
-
-
 
 
 	if (eventBufferSize > InitialEventBufferSize_) {
@@ -105,7 +91,7 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 	header->reserved1 = 0;
 	header->fineTime = event->getFinetime();
 	header->numberOfDetectors = TotalNumberOfDetectors_;
-	std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
+	//std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
 	header->reserved2 = 0;
 	header->processingID = event->getProcessingID();
 	header->SOBtimestamp = 0; // Will be set by the merger
@@ -114,9 +100,12 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 		header->triggerWord = 0xfefe23;
 	}
 
-	const int eventLength = eventOffset + sizeof(EVENT_TRAILER);
+//	const int eventLength = eventOffset + sizeof(EVENT_TRAILER);
+//	//Number of 32 words
+//	header->length = eventLength / 4;
+
 	//Number of 32 words
-	header->length = eventLength / 4;
+	header->length = (eventOffset + sizeof(EVENT_TRAILER)) / 4;
 	return header;
 }
 
