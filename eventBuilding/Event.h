@@ -43,6 +43,7 @@ namespace na62 {
 class Event: boost::noncopyable {
 public:
 	Event(uint_fast32_t eventNumber_);
+	Event(EVENT_HDR* serializedEvent, bool onlyL0);
 	virtual ~Event();
 	/**
 	 * Add an Event from a new SourceID.
@@ -303,6 +304,9 @@ public:
 	}
 	inline const l0::Subevent* getCHODSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHOD)];
+	}
+	inline const l0::Subevent* getNewCHODSubevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NEWCHOD)];
 	}
 	inline const l0::Subevent* getRICHSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_RICH)];

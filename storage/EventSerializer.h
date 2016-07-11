@@ -32,6 +32,7 @@ public:
 private:
 	static uint InitialEventBufferSize_;
 	static int TotalNumberOfDetectors_;
+	static bool DumpFlag_;
 	static char* writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
 	uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);
 	static char* writeL1Data(const Event* event, char*& eventBuffer, uint& eventOffset,

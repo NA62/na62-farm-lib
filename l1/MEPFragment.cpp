@@ -25,8 +25,10 @@ MEPFragment::MEPFragment(MEP* mep, const L1_EVENT_RAW_HDR * data) :
 
 
 MEPFragment::~MEPFragment() {
-	if (mep_->deleteEvent()) {
-		delete mep_;
+	if(mep_) {
+		if (mep_->deleteEvent()) {
+			delete mep_;
+		}
 	}
 }
 
