@@ -1,3 +1,6 @@
+#ifndef SHAREDMEMOPRYMANAGER_H_
+#define SHAREDMEMOPRYMANAGER_H_
+
 #include <iostream>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/ipc/message_queue.hpp>
@@ -189,6 +192,7 @@ public:
 
 	static bool removeL1Event(uint memory_id);
 	static bool getNextEvent(EventTest &event, TriggerMessager &trigger_message);
+	static bool getNextEvent(Event* & event, TriggerMessager & trigger_message);
 
 	static bool popQueue(bool is_trigger_message_queue, TriggerMessager &trigger_message, uint &priority);
 	static bool popTriggerQueue(TriggerMessager &trigger_message, uint &priority);
@@ -236,5 +240,5 @@ public:
 };
 
 }
-
+#endif /* SHAREDMEMOPRYMANAGER_H_ */
 

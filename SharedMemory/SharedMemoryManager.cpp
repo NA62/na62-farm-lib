@@ -127,13 +127,12 @@ bool SharedMemoryManager::storeL1Event(const Event* event) {
 		//SharedMemoryManager::serializeL1Event(event, l1_mem_array_ + memory_id, l1_shared_memory_fragment_size_);
 		EVENT_HDR* smartserializedevent = SmartEventSerializer::SerializeEvent(event, l1_mem_array_ + memory_id);
 		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
+		std::cout<<"Serilized on shared memory!!!!"<<std::endl;
 		//Enqueue Data
 		//=============
 		while (1) {
 			for (int i = 0; i < 100; i++) {
-
 				if (trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority)) {
-
 					return true;
 				}
 			}
@@ -219,6 +218,28 @@ bool SharedMemoryManager::getNextEvent(EventTest &event, TriggerMessager & trigg
 			LOG_INFO("Getting Event at "<< trigger_message.memory_id);
 
 			SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
+			return true;
+		}
+
+		LOG_ERROR("No idea of which level you want to process..");
+		return false;
+	}
+
+	return false;
+}
+
+bool SharedMemoryManager::getNextEvent(Event* & event, TriggerMessager & trigger_message) {
+	uint temp_priority;
+	//TODO why is not defined temp_priority???
+
+	if (popTriggerQueue(trigger_message, temp_priority)) {
+		if( trigger_message.level == 1 ){
+
+			LOG_INFO("Getting Event at "<< trigger_message.memory_id);
+
+			//SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
+
+			event = new Event( (EVENT_HDR*) (l1_mem_array_ + trigger_message.memory_id), 1);
 			return true;
 		}
 

@@ -61,15 +61,13 @@ EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event) {
 }
 
 EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event, l1_SerializedEvent* seriale) {
-
 	uint eventBufferSize = sizeof(l1_SerializedEvent);
 	char* eventBuffer = (char*) seriale;
-	return SmartEventSerializer::doSerialization(event,eventBuffer, eventBufferSize);
+	return SmartEventSerializer::doSerialization(event, eventBuffer, eventBufferSize);
 }
 
 EVENT_HDR* SmartEventSerializer::doSerialization(const Event* event, char* eventBuffer, uint& eventBufferSize) {
 
-	//uint eventBufferSize = InitialEventBufferSize_;
 	uint sizeOfPointerTable = 4 * TotalNumberOfDetectors_;
 	uint pointerTableOffset = sizeof(EVENT_HDR);
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
@@ -90,14 +88,14 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 	EVENT_HDR* header = reinterpret_cast<EVENT_HDR*>(eventBuffer);
 	header->eventNum = event->getEventNumber();
 	header->formatVersion = EVENT_HDR_FORMAT_VERSION; // TODO: update current format
-	// header->length will be written later on
+	header->length = (eventOffset + sizeof(EVENT_TRAILER)) / 4; //Number of 32 words
 	header->burstID = event->getBurstID();
 	header->timestamp = event->getTimestamp();
 	header->triggerWord = event->getTriggerTypeWord();
 	header->reserved1 = 0;
 	header->fineTime = event->getFinetime();
 	header->numberOfDetectors = TotalNumberOfDetectors_;
-	//std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
+	std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
 	header->reserved2 = 0;
 	header->processingID = event->getProcessingID();
 	header->SOBtimestamp = 0; // Will be set by the merger
@@ -106,10 +104,7 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 		header->triggerWord = 0xfefe23;
 	}
 
-	//Number of 32 words
-	header->length = (eventOffset + sizeof(EVENT_TRAILER)) / 4;
-	return header;
-}
+	return header;}
 
 
 char* SmartEventSerializer::writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
