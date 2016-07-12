@@ -55,19 +55,21 @@ char* SmartEventSerializer::ResizeBuffer(char* buffer, const int oldLength,	cons
 }
 
 EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event) {
-	char* eventBuffer = new char[InitialEventBufferSize_];
-	return SmartEventSerializer::doSerialization(event, eventBuffer);
+	uint eventBufferSize = InitialEventBufferSize_;
+	char* eventBuffer = new char[eventBufferSize];
+	return SmartEventSerializer::doSerialization(event, eventBuffer, eventBufferSize);
 }
 
 EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event, l1_SerializedEvent* seriale) {
 
+	uint eventBufferSize = sizeof(l1_SerializedEvent);
 	char* eventBuffer = (char*) seriale;
-	return SmartEventSerializer::doSerialization(event,eventBuffer);
+	return SmartEventSerializer::doSerialization(event,eventBuffer, eventBufferSize);
 }
 
-EVENT_HDR* SmartEventSerializer::doSerialization(const Event* event, char* eventBuffer) {
+EVENT_HDR* SmartEventSerializer::doSerialization(const Event* event, char* eventBuffer, uint& eventBufferSize) {
 
-	uint eventBufferSize = InitialEventBufferSize_;
+	//uint eventBufferSize = InitialEventBufferSize_;
 	uint sizeOfPointerTable = 4 * TotalNumberOfDetectors_;
 	uint pointerTableOffset = sizeof(EVENT_HDR);
 	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;

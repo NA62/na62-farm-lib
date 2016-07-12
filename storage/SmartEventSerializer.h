@@ -42,7 +42,7 @@ private:
 	static int TotalNumberOfDetectors_;
 	static bool DumpFlag_;
 
-	static EVENT_HDR* doSerialization(const Event* event, char* eventBuffer);
+	static EVENT_HDR* doSerialization(const Event* event, char* eventBuffer, uint& eventBufferSize);
 	static EVENT_HDR* writeHeader(const Event* event, char*& eventBuffer, uint& eventOffset, bool& isUnfinishedEOB);
 	static char* writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
 	uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);
