@@ -43,6 +43,8 @@ char* EventSerializer::ResizeBuffer(char* buffer, const int oldLength,
 
 EVENT_HDR* EventSerializer::SerializeEvent(const Event* event) {
 	uint eventBufferSize = InitialEventBufferSize_;
+	//!!!!!!!!!!!!!!!!!!!!!!
+	//TODO potentially this is a bug, what happen is InitialEventBufferSize_ change? see line 93
 	char* eventBuffer = new char[InitialEventBufferSize_];
 
 	bool isUnfinishedEOB = false;

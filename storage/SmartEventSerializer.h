@@ -10,9 +10,12 @@
 
 #include <sys/types.h>
 
+#include <eventBuilding/Event.h>
+#include "structs/SerialEvent.h"
+
 namespace na62 {
 
-class Event;
+
 struct EVENT_HDR;
 struct EVENT_TRAILER;
 
@@ -27,14 +30,19 @@ public:
 	 * The returned buffer must be deleted by you!
 	 */
 	static EVENT_HDR* SerializeEvent(const Event* event);
+	static EVENT_HDR* SerializeEvent(const Event* event, l1_SerializedEvent* seriale);
+
+	static bool compareSerializedEvent(EVENT_HDR* first_event, EVENT_HDR* second_event);
 
 	static void initialize();
 
 private:
 	static uint InitialEventBufferSize_;
+	static bool IsInitialEventBufferSizeFixed_;
 	static int TotalNumberOfDetectors_;
 	static bool DumpFlag_;
 
+	static EVENT_HDR* doSerialization(const Event* event, char* eventBuffer);
 	static EVENT_HDR* writeHeader(const Event* event, char*& eventBuffer, uint& eventOffset, bool& isUnfinishedEOB);
 	static char* writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
 	uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);

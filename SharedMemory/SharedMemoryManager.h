@@ -10,8 +10,10 @@
 #include "structs/TriggerMessager.h"
 #include "options/Logging.h"
 #include "structs/SerialEvent.h"
-#include "exceptions/SerializeError.h"
+#include "structs/Event.h"
 
+#include <eventBuilding/Event.h>
+#include "exceptions/SerializeError.h"
 
 /*
  * Mean l2 serialized event size : 16.7Kb
@@ -24,10 +26,6 @@
  *
  * Mean L1 serialized event size ~  2 Kb
  */
-
-typedef std::array< char, 2000 > l1_SerializedEvent;
-
-
 
 namespace na62 {
 
@@ -122,10 +120,6 @@ public:
 		return l1_shm_->find<l1_SerializedEvent>(l1_mem_array_name_).first;
 	}
 
-
-
-
-
 	static inline bool eraseL1SharedMemory() {
 		try {
 			return boost::interprocess::shared_memory_object::remove(l1_shm_name_);
@@ -190,9 +184,11 @@ public:
 		destroyL1MemArray();
 	}
 
-	static bool storeL1Event(Event &temp_event);
+	static bool storeL1Event(EventTest &temp_event);
+	static bool storeL1Event(const Event* event);
+
 	static bool removeL1Event(uint memory_id);
-	static bool getNextEvent(Event &event, TriggerMessager &trigger_message);
+	static bool getNextEvent(EventTest &event, TriggerMessager &trigger_message);
 
 	static bool popQueue(bool is_trigger_message_queue, TriggerMessager &trigger_message, uint &priority);
 	static bool popTriggerQueue(TriggerMessager &trigger_message, uint &priority);
@@ -204,14 +200,9 @@ public:
 		return  ((float) FragmentStored_ / (float) (FragmentNonStored_ + FragmentStored_)) ;
 	}
 
-
-
-
-	//Serialization and Unserialization
+	//Serialization and Unserialization just for testing with random data
 	//==================================
-	//Will be moved
-
-	static inline void serializeL1Event(Event event, l1_SerializedEvent* seriale, uint max_length = -1){
+	static inline void serializeL1Event(EventTest event, l1_SerializedEvent* seriale, uint max_length = -1){
 
 		SerialEventHeader header;
 		header.length = event.length;
@@ -230,7 +221,7 @@ public:
 		LOG_INFO("Length "<< header.length);
 	}
 
-	static inline void unserializeL1Event(Event &event, l1_SerializedEvent* seriale) {
+	static inline void unserializeL1Event(EventTest &event, l1_SerializedEvent* seriale) {
 
 		SerialEventHeader* header;
 		header = reinterpret_cast<SerialEventHeader*> (seriale);

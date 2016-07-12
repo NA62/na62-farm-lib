@@ -18,27 +18,36 @@
 #include "../l1/Subevent.h"
 #include "../structs/Event.h"
 #include "../structs/Versions.h"
+#include "exceptions/SerializeError.h"
 
 namespace na62 {
 
 uint SmartEventSerializer::InitialEventBufferSize_;
+bool SmartEventSerializer::IsInitialEventBufferSizeFixed_;
 int SmartEventSerializer::TotalNumberOfDetectors_;
-bool isUnfinishedEOB;
 bool SmartEventSerializer::DumpFlag_;
+
+bool isUnfinishedEOB;
 
 void SmartEventSerializer::initialize() {
 	/*
 	 * L0 + L1 sources
 	 */
 	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
-	InitialEventBufferSize_ = 1000;
+	//InitialEventBufferSize_ = 1000;
 	//InitialEventBufferSize_ = 4096; // allocate 4 kB initially for the serialized event
+	InitialEventBufferSize_ = 8192;
+	std::cout<<"Buffer size initialized at: "<<InitialEventBufferSize_<<std::endl;
+	IsInitialEventBufferSizeFixed_ = true;
+
 	isUnfinishedEOB = false;
 	DumpFlag_ = true;
 }
 
-char* SmartEventSerializer::ResizeBuffer(char* buffer, const int oldLength,
-		const int newLength) {
+char* SmartEventSerializer::ResizeBuffer(char* buffer, const int oldLength,	const int newLength) {
+	if (IsInitialEventBufferSizeFixed_) {
+		throw SerializeError("Serialized Event too big for the shared memory");
+	}
 	char* newBuffer = new char[newLength];
 	memcpy(newBuffer, buffer, oldLength);
 	delete[] buffer;
@@ -46,8 +55,18 @@ char* SmartEventSerializer::ResizeBuffer(char* buffer, const int oldLength,
 }
 
 EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event) {
-
 	char* eventBuffer = new char[InitialEventBufferSize_];
+	return SmartEventSerializer::doSerialization(event, eventBuffer);
+}
+
+EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event, l1_SerializedEvent* seriale) {
+
+	char* eventBuffer = (char*) seriale;
+	return SmartEventSerializer::doSerialization(event,eventBuffer);
+}
+
+EVENT_HDR* SmartEventSerializer::doSerialization(const Event* event, char* eventBuffer) {
+
 	uint eventBufferSize = InitialEventBufferSize_;
 	uint sizeOfPointerTable = 4 * TotalNumberOfDetectors_;
 	uint pointerTableOffset = sizeof(EVENT_HDR);
@@ -55,29 +74,14 @@ EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event) {
 	bool isUnfinishedEOB = false;
 
 	writeL0Data(event, eventBuffer, eventOffset, eventBufferSize, pointerTableOffset, isUnfinishedEOB);
-
 	writeL1Data(event, eventBuffer, eventOffset, eventBufferSize, pointerTableOffset, isUnfinishedEOB);
-
 	writeTrailer(event, eventBuffer, eventOffset, eventBufferSize);
-
 
 	if (eventBufferSize > InitialEventBufferSize_) {
 		InitialEventBufferSize_ = eventBufferSize;
 	}
 
-
 	return writeHeader(event, eventBuffer, eventOffset, isUnfinishedEOB);
-}
-
-EVENT_TRAILER* SmartEventSerializer::writeTrailer(const Event* event, char*& eventBuffer, uint& eventOffset, uint& eventBufferSize) {
-	if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
-		eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + sizeof(EVENT_TRAILER));
-		eventBufferSize += sizeof(EVENT_TRAILER);
-	}
-	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
-	trailer->eventNum = event->getEventNumber();
-	trailer->reserved = 0;
-	return trailer;
 }
 
 EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuffer, uint& eventOffset, bool& isUnfinishedEOB) {
@@ -100,10 +104,6 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 		header->triggerWord = 0xfefe23;
 	}
 
-//	const int eventLength = eventOffset + sizeof(EVENT_TRAILER);
-//	//Number of 32 words
-//	header->length = eventLength / 4;
-
 	//Number of 32 words
 	header->length = (eventOffset + sizeof(EVENT_TRAILER)) / 4;
 	return header;
@@ -119,8 +119,7 @@ uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 		const l0::Subevent* const subevent = event->getL0SubeventBySourceIDNum(sourceNum);
 
 		if (eventOffset + 4 > eventBufferSize) {
-			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-					eventBufferSize + 4096); // add 4kB to the buffer
+			eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + 4096); // add 4kB to the buffer
 			eventBufferSize += 4096;
 		}
 
@@ -131,7 +130,7 @@ uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 		std::memcpy(eventBuffer + pointerTableOffset, &eventOffset32, 3);
 		std::memset(eventBuffer + pointerTableOffset + 3, SourceIDManager::sourceNumToID(sourceNum), 1);
 		pointerTableOffset += 4;
-		//std::cout<<"Detector Table: "<< std::hex <<(int) SourceIDManager::sourceNumToID(sourceNum) << " Offset: "<< std::dec << eventOffset32 << std::endl;
+//		std::cout<<"Detector Table: "<< std::hex <<(int) SourceIDManager::sourceNumToID(sourceNum) << " Offset: "<< std::dec << eventOffset32 << std::endl;
 
 		/*
 		 * Write all fragments
@@ -141,8 +140,7 @@ uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 			const l0::MEPFragment* const fragment = subevent->getFragment(i);
 			payloadLength = fragment->getPayloadLength() + sizeof(L0_BLOCK_HDR);
 			if (eventOffset + payloadLength > eventBufferSize) {
-				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-						eventBufferSize + std::max(4096, payloadLength));
+				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + std::max(4096, payloadLength));
 				eventBufferSize += std::max(4096, payloadLength); // add another 4kB, no point in being too precise...
 			}
 
@@ -175,8 +173,7 @@ uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB) {
 			for (uint i = 0; i != missingFrags; i++) {
 				payloadLength = sizeof(L0_BLOCK_HDR);
                 if (eventOffset + payloadLength > eventBufferSize) {
-                         eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-                                         eventBufferSize + std::max(4096, payloadLength));
+                         eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,  eventBufferSize + std::max(4096, payloadLength));
                          eventBufferSize += std::max(4096, payloadLength);
                  }
                  isUnfinishedEOB = true;
@@ -278,6 +275,44 @@ char* SmartEventSerializer::writeL1Data(const Event* event, char*& eventBuffer, 
 		}
 	}
 	return eventBuffer;
+}
+
+bool SmartEventSerializer::compareSerializedEvent(EVENT_HDR* first_event, EVENT_HDR* second_event) {
+	//std::cout<<"Checking Serialization"<<std::endl;
+	std::cout<<"Length event 1: "<<first_event->length<<" Length event 2: "<<second_event->length<<std::endl;
+	if (first_event->length != second_event->length) {
+		std::cout<<"Length event 1: "<<first_event->length<<" Length event 2: "<<second_event->length<<std::endl;
+		return false;
+	}
+
+	bool is_ok = true;
+	//std::cout<<"Length is the same: "<<first_event->length<<" "<<second_event->length<<std::endl;
+	int * first_pointer = (int*) first_event;
+	int * second_pointer = (int*) second_event;
+	//Length is expressed in 32 bit words
+	for (uint a = 0 ; a < first_event->length; ++a) {
+		//std::cout<<"Checking "<<std::endl;
+		if (*(first_pointer) != *(second_pointer)){
+			is_ok = false;
+			std::cout <<"Serialized Event mismatch"<< std::endl;
+		} else {
+			//std::cout << *(first_pointer) <<" "<< *(second_pointer)<< std::endl;
+		}
+		first_pointer++;
+		second_pointer++;
+	}
+	return is_ok;
+}
+
+EVENT_TRAILER* SmartEventSerializer::writeTrailer(const Event* event, char*& eventBuffer, uint& eventOffset, uint& eventBufferSize) {
+	if (eventOffset + sizeof(EVENT_TRAILER) > eventBufferSize) {
+		eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize, eventBufferSize + sizeof(EVENT_TRAILER));
+		eventBufferSize += sizeof(EVENT_TRAILER);
+	}
+	EVENT_TRAILER* trailer = (EVENT_TRAILER*) (eventBuffer + eventOffset);
+	trailer->eventNum = event->getEventNumber();
+	trailer->reserved = 0;
+	return trailer;
 }
 
 } /* namespace na62 */
