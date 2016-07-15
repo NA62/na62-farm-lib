@@ -328,6 +328,9 @@ public:
 	inline const l0::Subevent* getNSTDSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NSTD)];
 	}
+	inline const l0::Subevent* getHASCSubevent() const {
+			return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_HASC)];
+	}
 
 // L1 dets
 	inline const l1::Subevent* getL1GTKSubevent() const {
