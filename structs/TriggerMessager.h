@@ -14,6 +14,7 @@ struct TriggerMessager {
 	uint memory_id;
 	uint event_id;
 	uint level;
+	uint_fast8_t l1_trigger_type_word;
 	bool trigger_result;
 };
 

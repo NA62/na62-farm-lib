@@ -233,20 +233,13 @@ bool SharedMemoryManager::getNextEvent(Event* & event, TriggerMessager & trigger
 	//TODO why is not defined temp_priority???
 
 	if (popTriggerQueue(trigger_message, temp_priority)) {
-		if( trigger_message.level == 1 ){
+		LOG_INFO("Getting Event at "<< trigger_message.memory_id);
 
-			LOG_INFO("Getting Event at "<< trigger_message.memory_id);
+		//SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
 
-			//SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
-
-			event = new Event( (EVENT_HDR*) (l1_mem_array_ + trigger_message.memory_id), 1);
-			return true;
-		}
-
-		LOG_ERROR("No idea of which level you want to process..");
-		return false;
+		event = new Event( (EVENT_HDR*) (l1_mem_array_ + trigger_message.memory_id), 1);
+		return true;
 	}
-
 	return false;
 }
 
@@ -281,7 +274,7 @@ bool SharedMemoryManager::popTriggerResponseQueue(TriggerMessager &trigger_messa
 }
 
 bool SharedMemoryManager::pushTriggerResponseQueue(TriggerMessager &trigger_message) {
-	uint priority = 0;
+	uint priority;
 
 	while( 1 ){
 		for(int i = 0; i < 100; i++)

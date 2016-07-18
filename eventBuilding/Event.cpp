@@ -80,9 +80,12 @@ Event::Event(uint_fast32_t eventNumber) :
 
 Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 	eventNumber_(serializedEvent->eventNum), numberOfL0Fragments_(0), numberOfMEPFragments_(0), burstID_(serializedEvent->burstID),
-			triggerTypeWord_(serializedEvent->triggerWord), triggerFlags_(0),
+			triggerTypeWord_(serializedEvent->triggerWord), triggerFlags_(0), triggerDataType_(0),
 			timestamp_(serializedEvent->timestamp), finetime_(serializedEvent->fineTime), SOBtimestamp_(serializedEvent->SOBtimestamp), processingID_(serializedEvent->processingID),
 			requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(false) {
+
+
+
 
 
 	//std::cout << "Creating event with ID " << (int) eventNumber_ << std::endl;
@@ -238,7 +241,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 
 	uint currentValue = numberOfL0Fragments_.fetch_add(1,
 			std::memory_order_release) + 1;
-
+	std::cout<<"fragment: "<<currentValue<<" / "<< SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << std::endl;
 #ifdef MEASURE_TIME
 	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue
