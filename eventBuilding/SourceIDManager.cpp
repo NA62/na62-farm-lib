@@ -161,6 +161,9 @@ std::string SourceIDManager::sourceIdToDetectorName(uint_fast8_t sourceID) {
 		return "L2";
 	case SOURCE_ID_NSTD:
 		return "NSTD";
+	case SOURCE_ID_HASC:
+		return "HASC";
+
 	default:
 		return "UNKNOWN SOURCE ID!";
 	}

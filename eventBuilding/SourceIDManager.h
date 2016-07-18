@@ -32,7 +32,9 @@
 #define SOURCE_ID_L0TP 0x40
 #define SOURCE_ID_L1 0x44
 #define SOURCE_ID_L2 0x48
+#define SOURCE_ID_HASC 0x3C
 #define SOURCE_ID_NSTD 0x4C
+
 
 namespace na62 {
 
@@ -208,7 +210,12 @@ public:
 	static inline bool isNSTDActive() {
 		return checkL0SourceID(SOURCE_ID_NSTD);
 	}
-
+	/**
+	 * Returns true if the HASC is activated
+	 */
+	static inline bool isHASCActive() {
+		return checkL0SourceID(SOURCE_ID_HASC);
+	}
 
 	/*
 	 * sourceID must be a valid SourceID! So use checkSourceID if you are not sure!
