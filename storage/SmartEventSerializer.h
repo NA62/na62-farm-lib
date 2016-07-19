@@ -1,8 +1,8 @@
 /*
  * SmartEventSerializer.h
  *
- *  Created on: Feb 2, 2015
- *      Author: Jonas Kunze (kunze.jonas@gmail.com)
+ *  Created on: Jul 19, 2016
+ *      Author: Marco Boretto
  */
 
 #ifndef EVENTBUILDING_SMARTEVENTSERIALIZER_H_
@@ -18,10 +18,6 @@ namespace na62 {
 
 struct EVENT_HDR;
 struct EVENT_TRAILER;
-
-namespace cream {
-class LkrFragment;
-} /* namespace cream */
 
 class SmartEventSerializer {
 public:
