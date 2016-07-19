@@ -36,8 +36,8 @@ void SmartEventSerializer::initialize() {
 	TotalNumberOfDetectors_ = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES ;
 	//InitialEventBufferSize_ = 1000;
 	//InitialEventBufferSize_ = 4096; // allocate 4 kB initially for the serialized event
-	InitialEventBufferSize_ = 8192;
-	std::cout<<"Buffer size initialized at: "<<InitialEventBufferSize_<<std::endl;
+	InitialEventBufferSize_ = 32768;
+	LOG_INFO("Buffer size initialized at: "<<InitialEventBufferSize_);
 	IsInitialEventBufferSizeFixed_ = true;
 
 	isUnfinishedEOB = false;
@@ -95,7 +95,7 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 	header->reserved1 = 0;
 	header->fineTime = event->getFinetime();
 	header->numberOfDetectors = TotalNumberOfDetectors_;
-	std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
+	//std::cout << "Total number of detectors: " << TotalNumberOfDetectors_ << std::endl;
 	header->reserved2 = 0;
 	header->processingID = event->getProcessingID();
 	header->SOBtimestamp = 0; // Will be set by the merger

@@ -11,7 +11,8 @@ namespace na62 {
 
 uint SharedMemoryManager::l1_shared_memory_fragment_size_;
 
-uint SharedMemoryManager::l1_mem_size_; uint SharedMemoryManager::l1_num_events_;
+uint SharedMemoryManager::l1_mem_size_;
+uint SharedMemoryManager::l1_num_events_;
 uint SharedMemoryManager::l2_mem_size_;
 uint SharedMemoryManager::to_q_size_;
 uint SharedMemoryManager::from_q_size_;
@@ -40,7 +41,7 @@ void SharedMemoryManager::initialize(){
 
 	l1_shared_memory_fragment_size_= sizeof(l1_SerializedEvent);
 
-	l1_mem_size_ = 500000;  // relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
+	l1_mem_size_ = 100000000;  // relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
 	l1_num_events_ = l1_mem_size_ /sizeof(l1_SerializedEvent); //bytes
 	l2_mem_size_ = 10000;
 	to_q_size_ = 1000000;
@@ -71,9 +72,6 @@ void SharedMemoryManager::initialize(){
 		LOG_INFO(e.what()<< "L2 exists");
 		l2_shm_ = new boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, l2_shm_name_, l2_mem_size_);
 	}
-
-
-
 
 	try {
 		l1_free_queue_ = new boost::interprocess::message_queue(boost::interprocess::create_only, l1_free_queue_name_, SharedMemoryManager::getL1NumEvents() , sizeof(uint));
@@ -127,7 +125,7 @@ bool SharedMemoryManager::storeL1Event(const Event* event) {
 		//SharedMemoryManager::serializeL1Event(event, l1_mem_array_ + memory_id, l1_shared_memory_fragment_size_);
 		EVENT_HDR* smartserializedevent = SmartEventSerializer::SerializeEvent(event, l1_mem_array_ + memory_id);
 		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
-		std::cout<<"Serilized on shared memory!!!!"<<std::endl;
+		std::cout<<"Serialized on shared memory!!!!"<<std::endl;
 		//Enqueue Data
 		//=============
 		while (1) {
@@ -141,11 +139,10 @@ bool SharedMemoryManager::storeL1Event(const Event* event) {
 		}
 
 	} catch(SerializeError) {
-		LOG_ERROR("Fragment exceed the memory");
-//
-//		removeL1Event(memory_id);
-//		FragmentNonStored_.fetch_add(1, std::memory_order_relaxed);
-//		return false;
+		LOG_ERROR("Fragment exceed the memory! Initial Event buffer size: "<<SmartEventSerializer::getInitialEventBufferSize() << "Shared Memory buffer size: " << getL1SharedMemoryFragmentSize());
+		removeL1Event(memory_id);
+		FragmentNonStored_.fetch_add(1, std::memory_order_relaxed);
+		return false;
 	}
 
 	LOG_ERROR("How did we get here??");
@@ -173,7 +170,6 @@ bool SharedMemoryManager::storeL1Event(EventTest &event){
 		SharedMemoryManager::serializeL1Event(event, l1_mem_array_ + memory_id, l1_shared_memory_fragment_size_);
 		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
 
-
 		//Enqueue Data
 		//=============
 		while(1) {
@@ -187,7 +183,7 @@ bool SharedMemoryManager::storeL1Event(EventTest &event){
 			usleep(1000);
 		}
 
-	} catch(SerializeError) {
+	} catch(SerializeError &) {
 		LOG_ERROR("Fragmet exeed the memory");
 
 		removeL1Event(memory_id);
@@ -199,7 +195,6 @@ bool SharedMemoryManager::storeL1Event(EventTest &event){
 	return false;
 }
 
-
 bool SharedMemoryManager::removeL1Event(uint memory_id){
 
 	if ( SharedMemoryManager::pushL1FreeQueue(memory_id)) {
@@ -209,24 +204,6 @@ bool SharedMemoryManager::removeL1Event(uint memory_id){
 	return false;
 }
 
-bool SharedMemoryManager::getNextEvent(EventTest &event, TriggerMessager & trigger_message) {
-	uint temp_priority;
-
-	if (popTriggerQueue(trigger_message, temp_priority)) {
-		if( trigger_message.level == 1 ){
-
-			LOG_INFO("Getting Event at "<< trigger_message.memory_id);
-
-			SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
-			return true;
-		}
-
-		LOG_ERROR("No idea of which level you want to process..");
-		return false;
-	}
-
-	return false;
-}
 
 bool SharedMemoryManager::getNextEvent(Event* & event, TriggerMessager & trigger_message) {
 	uint temp_priority;
@@ -314,6 +291,25 @@ bool SharedMemoryManager::pushL1FreeQueue(uint memory_id) {
 
 
 
+//Deprecated
+//bool SharedMemoryManager::getNextEvent(EventTest &event, TriggerMessager & trigger_message) {
+//	uint temp_priority;
+//
+//	if (popTriggerQueue(trigger_message, temp_priority)) {
+//		if( trigger_message.level == 1 ){
+//
+//			LOG_INFO("Getting Event at "<< trigger_message.memory_id);
+//
+//			SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
+//			return true;
+//		}
+//
+//		LOG_ERROR("No idea of which level you want to process..");
+//		return false;
+//	}
+//
+//	return false;
+//}
 
 
 

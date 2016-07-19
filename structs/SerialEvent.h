@@ -20,7 +20,7 @@ struct EventTest {
         uint length;
 };
 
-typedef std::array< char, 8192 > l1_SerializedEvent;
+typedef std::array< char, 32768 > l1_SerializedEvent; //byte
 
 #endif /* SERIALEVENT_H_ */
 

@@ -241,7 +241,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 
 	uint currentValue = numberOfL0Fragments_.fetch_add(1,
 			std::memory_order_release) + 1;
-	std::cout<<"fragment: "<<currentValue<<" / "<< SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << std::endl;
+	//std::cout<<"fragment: "<<currentValue<<" / "<< SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << std::endl;
 #ifdef MEASURE_TIME
 	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue

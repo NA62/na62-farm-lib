@@ -35,6 +35,9 @@ public:
 	static bool compareSerializedEvent(EVENT_HDR* first_event, EVENT_HDR* second_event);
 
 	static void initialize();
+	static uint inline getInitialEventBufferSize(){
+		return  InitialEventBufferSize_;
+	}
 
 private:
 	static uint InitialEventBufferSize_;
