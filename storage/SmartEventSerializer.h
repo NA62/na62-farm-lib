@@ -41,19 +41,18 @@ public:
 
 private:
 	static uint InitialEventBufferSize_;
-	static bool IsInitialEventBufferSizeFixed_;
 	static int TotalNumberOfDetectors_;
 	static bool DumpFlag_;
 
-	static EVENT_HDR* doSerialization(const Event* event, char* eventBuffer, uint& eventBufferSize);
+	static EVENT_HDR* doSerialization(const Event* event, char* eventBuffer, uint& eventBufferSize, bool& isInitialEventBufferSizeFixed);
 	static EVENT_HDR* writeHeader(const Event* event, char*& eventBuffer, uint& eventOffset, bool& isUnfinishedEOB);
 	static char* writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,
-	uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);
+	uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB, bool& isInitialEventBufferSizeFixed);
 	static char* writeL1Data(const Event* event, char*& eventBuffer, uint& eventOffset,
-			uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB);
-	static EVENT_TRAILER* writeTrailer(const Event* event, char*& eventBuffer, uint& eventOffset, uint& eventBufferSize);
+			uint& eventBufferSize, uint& pointerTableOffset, bool& isUnfinishedEOB, bool& isInitialEventBufferSizeFixed);
+	static EVENT_TRAILER* writeTrailer(const Event* event, char*& eventBuffer, uint& eventOffset, uint& eventBufferSize, bool& isInitialEventBufferSizeFixed);
 
-	static char* ResizeBuffer(char* buffer, const int oldLength, const int newLength);
+	static char* ResizeBuffer(char* buffer, const int oldLength, const int newLength, bool& isInitialEventBufferSizeFixed);
 };
 
 } /* namespace na62 */
