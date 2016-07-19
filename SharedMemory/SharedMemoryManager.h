@@ -106,6 +106,29 @@ public:
 		return trigger_response_queue_;
 	}
 
+	static inline boost::interprocess::message_queue * getTriggerFreeQueue() {
+		return l1_free_queue_;
+	}
+
+	static inline bool checkTriggerFreeQueueConsistency() {
+		if (l1_free_queue_->get_num_msg() == getL1NumEvents()) {
+			return true;
+		}
+		//some location has been lost refill it
+		uint memory_id;
+		while(popL1FreeQueue(memory_id)) {
+			continue;
+		}
+		fillFreeQueue();
+		return false;
+	}
+
+	static inline void fillFreeQueue() {
+		for (uint memory_id = 0; memory_id  < getL1NumEvents(); memory_id++) {
+			pushL1FreeQueue(memory_id);
+		}
+	}
+
 	static inline l1_SerializedEvent* getL1MemArray(){
 		return l1_shm_->find<l1_SerializedEvent>(l1_mem_array_name_).first;
 	}

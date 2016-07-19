@@ -64,9 +64,7 @@ void SharedMemoryManager::initialize(){
 
 		LOG_INFO("Pushing all free indices onto l1_free_queue_");
 		//Filling free fragments
-		for (uint memory_id = 0; memory_id  < getL1NumEvents(); memory_id++) {
-			SharedMemoryManager::pushL1FreeQueue(memory_id);
-		}
+		fillFreeQueue();
 	} catch(boost::interprocess::interprocess_exception& e) {
 		LOG_INFO(e.what()<< "L1 Free Queue exists");
 		l1_free_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, l1_free_queue_name_, getL1NumEvents() , sizeof(uint));
