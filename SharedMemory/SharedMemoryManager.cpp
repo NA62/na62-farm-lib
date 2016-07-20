@@ -96,10 +96,11 @@ bool SharedMemoryManager::storeL1Event(const Event* event) {
 		LOG_ERROR(" No free memory available...");
 	}
 
-	LOG_INFO("Attempting to Store Event "<< event->getEventNumber() <<" at "<<memory_id);
+	//LOG_INFO("Attempting to Store Event "<< event->getEventNumber() <<" at "<<memory_id);
 	TriggerMessager trigger_message;
 	trigger_message.memory_id = memory_id;
 	trigger_message.event_id = event->getEventNumber();
+	trigger_message.burst_id = event->getBurstID();
 	trigger_message.level = 1;
 
 	uint message_priority = 0;
@@ -107,7 +108,7 @@ bool SharedMemoryManager::storeL1Event(const Event* event) {
 	try {
 		EVENT_HDR* smartserializedevent = SmartEventSerializer::SerializeEvent(event, l1_mem_array_ + memory_id);
 		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
-		std::cout<<"Serialized on shared memory!!!!"<<std::endl;
+		//std::cout<<"Serialized on shared memory!!!!"<<std::endl;
 
 		//Enqueue Data
 		while (1) {
@@ -144,7 +145,7 @@ bool SharedMemoryManager::getNextEvent(Event* & event, TriggerMessager & trigger
 	//TODO why is not defined temp_priority???
 
 	if (popTriggerQueue(trigger_message, priority)) {
-		LOG_INFO("Getting Event at "<< trigger_message.memory_id);
+		//LOG_INFO("Getting Event at "<< trigger_message.memory_id);
 
 		//SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
 

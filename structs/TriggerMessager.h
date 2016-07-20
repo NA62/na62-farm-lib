@@ -8,13 +8,12 @@
 #ifndef TRIGGER_MESSAGER_H_
 #define TRIGGER_MESSAGER_H_
 
-//#include <stdint.h>
-
 struct TriggerMessager {
 	uint memory_id;
-	uint event_id;
+	uint_fast32_t event_id;
+	uint_fast32_t burst_id;
 	uint level;
-	uint_fast8_t l1_trigger_type_word;
+	uint_fast8_t l1_trigger_type_word; //Filled from the trigger processor
 	bool trigger_result;
 };
 
