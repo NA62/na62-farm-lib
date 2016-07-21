@@ -57,6 +57,10 @@ private:
 	static std::atomic<uint64_t> FragmentStored_;
 	static std::atomic<uint64_t> FragmentNonStored_;
 
+	//Stats send/receive
+	static std::map<uint_fast32_t, std::pair<std::atomic<int64_t>, std::atomic<int64_t>>> l1_event_counter_;
+
+
 	//Create the big array to store serialized data
 	//Attemp recursively to decrease the number of data to store if the initialization don't succeed
 	static inline bool createL1MemArray(uint size){
@@ -201,6 +205,34 @@ public:
 	static inline float getStoreRatio() {
 		return  ((float) FragmentStored_ / (float) (FragmentNonStored_ + FragmentStored_)) ;
 	}
+
+
+	//Stats send receive
+	static inline void setEventOut(uint_fast32_t burst_id, uint_fast32_t events_out) {
+		l1_event_counter_[burst_id].first.fetch_add(events_out, std::memory_order_relaxed);
+	}
+	static inline void setEventIn(uint_fast32_t burst_id, uint_fast32_t events_in) {
+		l1_event_counter_[burst_id].second.fetch_add(events_in, std::memory_order_relaxed);
+	}
+	static inline void showLastBurst(uint show_max){
+		uint index = 0;
+		for (auto it = l1_event_counter_.end(); it != l1_event_counter_.begin(); it-- ){
+			// out -In = lost
+			std::cout
+					<<"burst_id: "<< it->first
+					<<" out: "<< it->second.first
+					<<" in: "<< it->second.second
+					<<" diff: "<< (it->second.first - it->second.second)
+					<< std::endl;
+			if (++index > show_max){
+				break;
+			}
+		}
+	}
+
+
+
+
 
 	//static bool storeL1Event(EventTest &temp_event);
 	//Serialization and Unserialization just for testing with random data

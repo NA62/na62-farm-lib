@@ -27,6 +27,10 @@ boost::interprocess::message_queue * SharedMemoryManager::l1_free_queue_; conste
 std::atomic<uint64_t> SharedMemoryManager::FragmentStored_(0);
 std::atomic<uint64_t> SharedMemoryManager::FragmentNonStored_(0);
 
+//stats send receive
+std::map<uint_fast32_t, std::pair<std::atomic<	int64_t>, std::atomic<int64_t>>> SharedMemoryManager::l1_event_counter_;
+
+
 void SharedMemoryManager::initialize(){
 
 	l1_shared_memory_fragment_size_= sizeof(l1_SerializedEvent);
