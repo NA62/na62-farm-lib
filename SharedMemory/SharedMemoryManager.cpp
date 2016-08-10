@@ -35,7 +35,10 @@ void SharedMemoryManager::initialize(){
 
 	l1_shared_memory_fragment_size_= sizeof(l1_SerializedEvent);
 
-	l1_mem_size_ = 100000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
+	//l1_mem_size_ = 100000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
+	l1_mem_size_ = 500000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
+
+
 	//This is an initial value estimated from the size of the memory and the size of the structure
 	//Can be decreased during the initialization of the big array
 	l1_num_events_ = l1_mem_size_ /l1_shared_memory_fragment_size_; //bytes
@@ -44,7 +47,6 @@ void SharedMemoryManager::initialize(){
 	//to_q_size_ = 1000000;
 	from_q_size_ = 1000000;
 
-	LOG_INFO("Shared memory 1 in bytes: " << l1_mem_size_);
 
 	//Initailizing array
 	try {
@@ -61,6 +63,8 @@ void SharedMemoryManager::initialize(){
 		l1_mem_array_ = getL1MemArray();
 		LOG_INFO("L1 Mem Array Already Created");
 	}
+	LOG_INFO("Shared memory L1 in bytes: " << l1_mem_size_ << " Number of fragments available: " << getL1NumEvents());
+
 
 	//initializing free queue
 	try {
