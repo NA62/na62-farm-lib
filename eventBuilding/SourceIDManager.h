@@ -20,6 +20,8 @@
 #define SOURCE_ID_LAV 0x10
 #define SOURCE_ID_STRAW 0x14
 #define SOURCE_ID_CHOD 0x18
+//Please notice that newchod SourceId is equal to IRC one
+#define SOURCE_ID_NEWCHOD 0x20
 #define SOURCE_ID_RICH 0x1C
 #define SOURCE_ID_IRC 0x20
 #define SOURCE_ID_LKr 0x24

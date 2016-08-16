@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <boost/noncopyable.hpp>
+#include <structs/Event.h>
 
 namespace na62 {
 namespace l0 {
@@ -35,6 +36,9 @@ class MEPFragment: private boost::noncopyable {
 public:
 	MEPFragment(MEP* mep, const MEPFragment_HDR * data,
 			uint_fast32_t& expectedEventNum);
+
+	MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID);
+
 	virtual ~MEPFragment();
 
 	/**
@@ -94,8 +98,10 @@ public:
 private:
 	MEP* mep_;
 	const MEPFragment_HDR * rawData;
-
 	const uint_fast32_t eventNumber_;
+	const uint_fast8_t sourceID_;
+	const uint_fast8_t sourceSubID_;
+
 };
 
 } /* namespace l0 */

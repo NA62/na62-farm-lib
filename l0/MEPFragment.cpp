@@ -21,7 +21,8 @@ namespace l0 {
 
 MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 		uint_fast32_t& expectedEventNum) :
-		mep_(mep), rawData(data), eventNumber_(expectedEventNum) {
+		mep_(mep), rawData(data), eventNumber_(expectedEventNum), sourceID_(mep_->getSourceID()),
+		sourceSubID_(mep_->getSourceSubID()) {
 	/*
 	 * Cite from NA62-11-02:
 	 * Event number LSB: the least significant 16 bits of the event number, as defined inside the
@@ -67,9 +68,20 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 	}
 }
 
+MEPFragment::MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID):
+		mep_(NULL), rawData(data), eventNumber_(expectedEventNum), sourceID_(sourceID), sourceSubID_(sourceSubID) {
+
+	// Luckily MEPFragment_HDR and L0_BLOCK_HDR have the same size and the same fields for size and timestamp; for now ignore the
+	// fact that the fields eventNumberLSB_, reserved_, lastEventOfBurst_ of the MEP fragment do not match with sourceSubID, reserved
+	// of the L0_BLOCK. It should be irrelevant for the trigger anyway.
+
+
+}
 MEPFragment::~MEPFragment() {
-	if (mep_->deleteEvent()) {
-		delete mep_;
+	if (mep_) {
+		if (mep_->deleteEvent()) {
+			delete mep_;
+		}
 	}
 }
 
@@ -77,21 +89,21 @@ MEPFragment::~MEPFragment() {
  * The sourceID in the header of this MEP event
  */
 uint_fast8_t MEPFragment::getSourceID() const {
-	return mep_->getSourceID();
+	return sourceID_;
 }
 
 /*
  * The sourceSubID in the header of this MEP event
  */
 uint_fast8_t MEPFragment::getSourceSubID() const {
-	return mep_->getSourceSubID();
+	return sourceSubID_;
 }
 
 /*
  * The internally used number corresponding to the sourceID of this MEP event
  */
 uint_fast8_t MEPFragment::getSourceIDNum() const {
-	return mep_->getSourceIDNum();
+	return SourceIDManager::sourceIDToNum(sourceID_);
 }
 
 } /* namespace l0 */
