@@ -9,13 +9,10 @@
 
 #include <iostream>
 #include <vector>
-#include <options/Logging.h>
 #include <string.h>
-
 #include <sys/time.h>
 
 L1InfoToStorage::L1InfoToStorage() {
-//	LOG_INFO("********************In L1 InfoToStorage");
 	chodTime_ = 0.;
 	newchodTime_ = 0.;
 	refTimeL0TP_ = 0;
