@@ -59,6 +59,7 @@ private:
 
 	//Stats send/receive
 	static std::map<uint_fast32_t, std::pair<std::atomic<int64_t>, std::atomic<int64_t>>> l1_event_counter_;
+	static std::map<uint_fast32_t, std::pair<std::atomic<int64_t>, std::atomic<int64_t>>> l1_request_stored_;
 
 
 	//Create the big array to store serialized data
@@ -214,6 +215,14 @@ public:
 	static inline void setEventIn(uint_fast32_t burst_id, uint_fast32_t events_in) {
 		l1_event_counter_[burst_id].second.fetch_add(events_in, std::memory_order_relaxed);
 	}
+	//Requested and stored
+	static inline void setEventL1Requested(uint_fast32_t burst_id, uint_fast32_t events_out) {
+		l1_request_stored_[burst_id].first.fetch_add(events_out, std::memory_order_relaxed);
+	}
+	static inline void setEventL1Stored(uint_fast32_t burst_id, uint_fast32_t events_out) {
+		l1_request_stored_[burst_id].second.fetch_add(events_out, std::memory_order_relaxed);
+	}
+
 	static inline void showLastBurst(uint show_max){
 		uint index = 0;
 		for (auto it = l1_event_counter_.end(); it != l1_event_counter_.begin(); it-- ){
@@ -223,6 +232,8 @@ public:
 					<<" out: "<< it->second.first
 					<<" in: "<< it->second.second
 					<<" diff: "<< (it->second.first - it->second.second)
+					<<" requested: " << l1_request_stored_[it->first].first
+					<<" stored: " << l1_request_stored_[it->first].second
 					<< std::endl;
 			if (++index > show_max){
 				break;

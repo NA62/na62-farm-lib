@@ -21,6 +21,7 @@ struct TriggerMessager {
 	std::array<uint_fast8_t, 16> l1TriggerWords; //Filled from the trigger processor
 	L1InfoToStorage l1Info; //Filled from the trigger processor
 	bool isL1WhileTimeout; //Filled from the trigger processor
+	bool isRequestZeroSuppressed;
 
 	bool trigger_result;
 };

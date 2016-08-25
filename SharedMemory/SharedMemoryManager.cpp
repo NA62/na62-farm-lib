@@ -29,7 +29,7 @@ std::atomic<uint64_t> SharedMemoryManager::FragmentNonStored_(0);
 
 //stats send receive
 std::map<uint_fast32_t, std::pair<std::atomic<	int64_t>, std::atomic<int64_t>>> SharedMemoryManager::l1_event_counter_;
-
+std::map<uint_fast32_t, std::pair<std::atomic<	int64_t>, std::atomic<int64_t>>> SharedMemoryManager::l1_request_stored_;
 
 void SharedMemoryManager::initialize(){
 
