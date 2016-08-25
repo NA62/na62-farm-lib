@@ -30,7 +30,9 @@ L1InfoToStorage::L1InfoToStorage() {
 	l1LAVProcessed_ = false;
 	l1IRCSACProcessed_ = false;
 	l1StrawProcessed_ = false;
-	l1MUV3Processed_ = false;
+	l1MUV3TriggerMultiProcessed_ = false;
+	l1MUV3TriggerLeftRightProcessed_ = false;
+	l1MUV3TriggerNeighboursProcessed_ = false;
 	l1NewCHODProcessed_ = false;
 
 	l1CHODEmptyPacket_ = false;
@@ -203,5 +205,4 @@ uint L1InfoToStorage::getL1NewCHODNHits() {
 void L1InfoToStorage::setL1NewCHODNHits(uint nHits) {
 	nNewCHODHits_ = nHits;
 }
-
 

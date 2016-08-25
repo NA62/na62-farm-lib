@@ -185,11 +185,23 @@ public:
 		return l1IRCSACBadData_;
 	}
 
-	void setL1MUV3Processed() {
-		l1MUV3Processed_ = true;
+	void setL1MUV3TriggerMultiProcessed() {
+		l1MUV3TriggerMultiProcessed_ = true;
 	}
-	bool isL1MUV3Processed() const {
-		return l1MUV3Processed_;
+	bool isL1MUV3TriggerMultiProcessed() const {
+		return l1MUV3TriggerMultiProcessed_;
+	}
+	void setL1MUV3TriggerLeftRightProcessed() {
+		l1MUV3TriggerLeftRightProcessed_ = true;
+	}
+	bool isL1MUV3TriggerLeftRightProcessed() const {
+		return l1MUV3TriggerLeftRightProcessed_;
+	}
+	void setL1MUV3TriggerNeighboursProcessed() {
+		l1MUV3TriggerNeighboursProcessed_ = true;
+	}
+	bool isL1MUV3TriggerNeighboursProcessed() const {
+		return l1MUV3TriggerNeighboursProcessed_;
 	}
 
 	void setL1MUV3EmptyPacket() {
@@ -253,7 +265,9 @@ private:
 	bool l1LAVProcessed_;
 	bool l1IRCSACProcessed_;
 	bool l1StrawProcessed_;
-	bool l1MUV3Processed_;
+	bool l1MUV3TriggerMultiProcessed_;
+	bool l1MUV3TriggerLeftRightProcessed_;
+	bool l1MUV3TriggerNeighboursProcessed_;
 	bool l1NewCHODProcessed_;
 
 	bool l1CHODEmptyPacket_;
