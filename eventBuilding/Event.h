@@ -470,6 +470,21 @@ public:
 	u_int32_t getL2ProcessingTime() const {
 		return l2ProcessingTime_;
 	}
+
+	uint_fast16_t getL0CallCounter() const{
+		return l0CallCounter_;
+	}
+	void setL1Requested() {
+		isL1Requested_ = true;
+	}
+	bool isL1Requested() {
+		return isL1Requested_;
+	}
+
+	uint_fast16_t getL1CallCounter() const{
+		return l1CallCounter_;
+	}
+
 #endif
 
 	static void initialize(bool printCompletedSourceIDs);
@@ -522,8 +537,14 @@ private:
 
 	std::atomic<bool> L1Processed_; /// ATOMICCCCC !!!!
 
+	std::atomic<bool> isL1Requested_;
+	std::atomic<uint_fast16_t> l0CallCounter_;
+	std::atomic<uint_fast16_t> l1CallCounter_;
+
 	std::atomic<bool> L2Accepted_;
 	std::atomic<bool> unfinished_;
+
+
 
 	std::atomic<bool> lastEventOfBurst_;
 
