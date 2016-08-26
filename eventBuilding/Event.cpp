@@ -39,16 +39,16 @@ std::atomic<uint64_t>* Event::MissingL1EventsBySourceNum_;
 std::atomic<uint64_t> Event::nonRequestsL1FramesReceived_;
 bool Event::printCompletedSourceIDs_ = false;
 
+
 Event::Event(uint_fast32_t eventNumber) :
 		eventNumber_(eventNumber), numberOfL0Fragments_(0), numberOfMEPFragments_(
 				0), burstID_(0), triggerTypeWord_(0), triggerFlags_(0), triggerDataType_(0), timestamp_(
 				0), finetime_(0), SOBtimestamp_(0), processingID_(0), requestZeroSuppressedCreamData_(
 		false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(
-		false), unfinished_(false), lastEventOfBurst_(
-		false)
+		false), unfinished_(false), lastEventOfBurst_(false),
+		l1CallCounter_(0)
 #ifdef MEASURE_TIME
-				, l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(
-				0)
+				, l0BuildingTime_(0), l1ProcessingTime_(0), l1BuildingTime_(0), l2ProcessingTime_(0)
 #endif
 {
 #ifdef MEASURE_TIME
@@ -78,6 +78,97 @@ Event::Event(uint_fast32_t eventNumber) :
 	}
 }
 
+Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
+	eventNumber_(serializedEvent->eventNum), numberOfL0Fragments_(0), numberOfMEPFragments_(0), burstID_(serializedEvent->burstID),
+			triggerTypeWord_(serializedEvent->triggerWord), triggerFlags_(0), triggerDataType_(0),
+			timestamp_(serializedEvent->timestamp), finetime_(serializedEvent->fineTime), SOBtimestamp_(serializedEvent->SOBtimestamp), processingID_(serializedEvent->processingID),
+			requestZeroSuppressedCreamData_(false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(false) {
+
+
+
+
+
+	//std::cout << "Creating event with ID " << (int) eventNumber_ << std::endl;
+
+
+	// Helper variables to navigate through serialized event;
+	uint sizeOfPointerTable  = 4 * (SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES) ;
+	uint pointerTableOffset = sizeof(EVENT_HDR);
+	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
+
+	char* serializedBuf = reinterpret_cast<char*>(serializedEvent);
+	if(!onlyL0) {
+		L1Processed_ = true;
+	}
+	/*
+	 * Initialize subevents at the existing sourceIDs as position for L0 detectors
+	 */
+	L0Subevents = new l0::Subevent*[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES];
+	for (int i = SourceIDManager::NUMBER_OF_L0_DATA_SOURCES - 1; i >= 0; i--) {
+		/*
+		 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
+		 */
+
+		//std::cout << "Build subevent for det 0x" << std::hex << (uint) SourceIDManager::sourceNumToID(i) << std::dec << std::endl;
+
+
+		L0Subevents[i] = new l0::Subevent(
+				SourceIDManager::getExpectedPacksBySourceNum(i),
+				SourceIDManager::sourceNumToID(i));
+	}
+	//std::cout << "Now populate the fragments" << std::endl;
+
+	EVENT_DATA_PTR* sourceIdAndOffsets = serializedEvent->getDataPointer();
+	for(int sourceNum=0; sourceNum!=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; sourceNum++){
+		EVENT_DATA_PTR sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
+		//std::cout << "Found detector " << std::hex << (int) sourceIdAndOffset.sourceID << " Starting at: " << std::dec << sourceIdAndOffset.offset << " in the serialized event." << std::dec << std::endl;
+		const char* detectorData = serializedBuf + (sourceIdAndOffset.offset * 4);
+		//const char* detectorData = serializedBuf + (sourceIdAndOffset.offset);
+		l0::Subevent * se = L0Subevents[SourceIDManager::sourceIDToNum(sourceIdAndOffset.sourceID)];
+		int fragOffset = 0;
+		for (int j = 0 ; j < se->getNumberOfExpectedFragments(); ++j) {
+			//std::cout << "Recreating fragment: " << std::dec << j << std::endl;
+			const L0_BLOCK_HDR* l0b = reinterpret_cast<const L0_BLOCK_HDR*>(detectorData+fragOffset);
+			const l0::MEPFragment_HDR* fragData = reinterpret_cast<const l0::MEPFragment_HDR*> (detectorData+fragOffset) ;
+			//std::cout << "Create MEPFragment " << j << " and size " << (int) l0b->dataBlockSize << " with subID 0x" << std::hex << (int) l0b->sourceSubID << std::dec << std::endl;
+			l0::MEPFragment * myFrag = new l0::MEPFragment(fragData, eventNumber_, sourceIdAndOffset.sourceID, l0b->sourceSubID);
+			se->addFragment(myFrag);
+			//std::cout << "Added fragment to subevent 0x" << std::hex << (int) se->getSourceID() << std::dec << std::endl;
+			fragOffset += l0b->dataBlockSize;
+		}
+	}
+
+	if (!onlyL0) {
+		/*
+		 * Initialize subevents at the existing sourceIDs as position for L1 detectors
+		 */
+
+		L1Subevents = new l1::Subevent*[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
+		for (int i = SourceIDManager::NUMBER_OF_L1_DATA_SOURCES - 1; i >= 0; i--) {
+			/*
+			 * Initialize subevents[sourceID] with new Subevent(Number of expected Events)
+			 */
+			L1Subevents[i] = new l1::Subevent(
+					SourceIDManager::getExpectedL1PacksBySourceNum(i),
+					SourceIDManager::l1SourceNumToID(i));
+		}
+
+		for(int sourceNum=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; sourceNum!=SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; sourceNum++){
+			EVENT_DATA_PTR sourceIdAndOffset = sourceIdAndOffsets[sourceNum];
+			const char* detectorData = serializedBuf + (sourceIdAndOffset.offset * 4);
+			l1::Subevent * se = L1Subevents[SourceIDManager::l1SourceIDToNum(sourceIdAndOffset.sourceID)];
+			int fragOffset = 0;
+			for (int j = 0 ; j < se->getNumberOfExpectedFragments(); ++j) {
+				const l1::L1_EVENT_RAW_HDR * fragData = reinterpret_cast<const l1::L1_EVENT_RAW_HDR*>(detectorData+fragOffset) ;
+				l1::MEPFragment * myFrag = new l1::MEPFragment(NULL, fragData);
+				se->addFragment(myFrag);
+				fragOffset += fragData->numberOf4BWords * 4;
+			}
+		}
+	}
+
+}
+
 Event::~Event() {
 	LOG_INFO("Destructor of Event "<< (int) this->getEventNumber());
 
@@ -99,6 +190,7 @@ void Event::initialize(bool printCompletedSourceIDs) {
  * Process data coming from the TEL boards
  */
 bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
+	l0CallCounter_.fetch_add(1, std::memory_order_relaxed);
 #ifdef MEASURE_TIME
 	if (firstEventPartAddedTime_.is_stopped()) {
 		firstEventPartAddedTime_.start();
@@ -150,7 +242,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 
 	uint currentValue = numberOfL0Fragments_.fetch_add(1,
 			std::memory_order_release) + 1;
-
+	//std::cout<<"fragment: "<<currentValue<<" / "<< SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT << std::endl;
 #ifdef MEASURE_TIME
 	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue
@@ -210,10 +302,14 @@ bool Event::storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment) {
  * Process data coming from the CREAMs
  */
 bool Event::addL1Fragment(l1::MEPFragment* fragment) {
+	l1CallCounter_.fetch_add(1, std::memory_order_relaxed);
+
+
 	if (!L1Processed_) {
 #ifdef USE_ERS
 		ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID()));
 #else
+		LOG_ERROR("Seems that L1 processed has not been set!");
 		LOG_ERROR("type = BadEv : Received L1 data from " << std::hex << (int) fragment->getSourceID() << ":"<< (int) fragment->getSourceSubID() << " with EventNumber " << std::dec << (int) fragment->getEventNumber() << " before requesting it. Will ignore it as it may come from last burst");
 #endif
 		nonRequestsL1FramesReceived_.fetch_add(1, std::memory_order_relaxed);
@@ -273,6 +369,9 @@ void Event::reset() {
 	unfinished_ = false;
 	lastEventOfBurst_ = false;
 	nonZSuppressedDataRequestedNum = 0;
+	l0CallCounter_ = 0;
+	isL1Requested_ = 0;
+	l1CallCounter_ = 0;
 }
 
 void Event::destroy() {

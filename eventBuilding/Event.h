@@ -43,6 +43,7 @@ namespace na62 {
 class Event: boost::noncopyable {
 public:
 	Event(uint_fast32_t eventNumber_);
+	Event(EVENT_HDR* serializedEvent, bool onlyL0);
 	virtual ~Event();
 	/**
 	 * Add an Event from a new SourceID.
@@ -304,6 +305,9 @@ public:
 	inline const l0::Subevent* getCHODSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_CHOD)];
 	}
+	inline const l0::Subevent* getNewCHODSubevent() const {
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NEWCHOD)];
+	}
 	inline const l0::Subevent* getRICHSubevent() const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_RICH)];
 	}
@@ -466,6 +470,21 @@ public:
 	u_int32_t getL2ProcessingTime() const {
 		return l2ProcessingTime_;
 	}
+
+	uint_fast16_t getL0CallCounter() const{
+		return l0CallCounter_;
+	}
+	void setL1Requested() {
+		isL1Requested_ = true;
+	}
+	bool isL1Requested() {
+		return isL1Requested_;
+	}
+
+	uint_fast16_t getL1CallCounter() const{
+		return l1CallCounter_;
+	}
+
 #endif
 
 	static void initialize(bool printCompletedSourceIDs);
@@ -518,8 +537,14 @@ private:
 
 	std::atomic<bool> L1Processed_; /// ATOMICCCCC !!!!
 
+	std::atomic<bool> isL1Requested_;
+	std::atomic<uint_fast16_t> l0CallCounter_;
+	std::atomic<uint_fast16_t> l1CallCounter_;
+
 	std::atomic<bool> L2Accepted_;
 	std::atomic<bool> unfinished_;
+
+
 
 	std::atomic<bool> lastEventOfBurst_;
 
