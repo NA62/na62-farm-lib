@@ -10,7 +10,7 @@
 
 #include <sys/types.h>
 
-#include <eventBuilding/Event.h>
+#include "eventBuilding/Event.h"
 #include "structs/SerialEvent.h"
 
 namespace na62 {
