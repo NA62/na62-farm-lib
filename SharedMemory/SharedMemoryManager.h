@@ -61,7 +61,6 @@ private:
 	static std::map<uint_fast32_t, std::pair<std::atomic<int64_t>, std::atomic<int64_t>>> l1_event_counter_;
 	static std::map<uint_fast32_t, std::pair<std::atomic<int64_t>, std::atomic<int64_t>>> l1_request_stored_;
 
-
 	//Create the big array to store serialized data
 	//Attemp recursively to decrease the number of data to store if the initialization don't succeed
 	static inline bool createL1MemArray(uint size){
@@ -71,9 +70,9 @@ private:
 			l1_mem_array_ = l1_shm_->construct<l1_SerializedEvent>(l1_mem_array_name_)[size](temp_event);
 			setL1NumEvents(size);
 			return true;
-		} catch( boost::interprocess::interprocess_exception& e) {
+		} catch( boost::interprocess::interprocess_exception& ex) {
 			//Assuming that the attempted size was the issue...
-			LOG_WARNING(size<<" is too big for l1_mem_array_... trying "<< size/difference_factor);
+			LOG_WARNING(ex.what()<<" "<<size<<" is too big for l1_mem_array_... trying "<< size/difference_factor);
 			return createL1MemArray( size - difference_factor );
 		}
 		return false;
@@ -141,8 +140,8 @@ public:
 	static inline bool eraseL1SharedMemory() {
 		try {
 			return boost::interprocess::shared_memory_object::remove(l1_shm_name_);
-		} catch(boost::interprocess::interprocess_exception& e) {
-			LOG_ERROR(e.what());
+		} catch(boost::interprocess::interprocess_exception& ex) {
+			LOG_ERROR(ex.what());
 			return false;
 		}
 	}
@@ -150,8 +149,8 @@ public:
 	static inline bool eraseTriggerQueue() {
 		try {
 			return boost::interprocess::message_queue::remove(trigger_queue_name_);
-		} catch(boost::interprocess::interprocess_exception& e) {
-			LOG_ERROR(e.what());
+		} catch(boost::interprocess::interprocess_exception& ex) {
+			LOG_ERROR(ex.what());
 			return false;
 		}
 	}
@@ -159,8 +158,8 @@ public:
 	static inline bool eraseTriggerResponseQueue() {
 		try {
 			return boost::interprocess::message_queue::remove(trigger_response_queue_name_);
-		} catch(boost::interprocess::interprocess_exception& e) {
-			LOG_ERROR(e.what());
+		} catch(boost::interprocess::interprocess_exception& ex) {
+			LOG_ERROR(ex.what());
 			return false;
 		}
 	}
@@ -168,21 +167,21 @@ public:
 	static inline bool eraseL1FreeQueue() {
 		try {
 			return boost::interprocess::message_queue::remove(l1_free_queue_name_);
-		} catch(boost::interprocess::interprocess_exception& e) {
-			LOG_ERROR(e.what());
+		} catch (boost::interprocess::interprocess_exception& ex) {
+			LOG_ERROR(ex.what());
 			return false;
 		}
 	}
 
 	static inline bool destroyL1MemArray(){
-		try{
+		try {
 			if (l1_shm_) {
 				return l1_shm_->destroy<l1_SerializedEvent>(l1_mem_array_name_);
 			}
 			return true;
 
-		} catch(boost::interprocess::interprocess_exception& e) {
-			LOG_ERROR(e.what()<<" l1_mem_array_ destroying error...");
+		} catch (boost::interprocess::interprocess_exception& ex) {
+			LOG_ERROR(ex.what()<<" l1_mem_array_ destroying error...");
 			return false;
 		}
 	}
@@ -204,9 +203,8 @@ public:
 	static bool popTriggerResponseQueue(TriggerMessager &trigger_message, uint &priority);
 
 	static inline float getStoreRatio() {
-		return  ((float) FragmentStored_ / (float) (FragmentNonStored_ + FragmentStored_)) ;
+		return ((float) FragmentStored_ / (float) (FragmentNonStored_ + FragmentStored_)) ;
 	}
-
 
 	//Stats send receive
 	static inline void setEventOut(uint_fast32_t burst_id, uint_fast32_t events_out) {
@@ -215,7 +213,7 @@ public:
 	static inline void setEventIn(uint_fast32_t burst_id, uint_fast32_t events_in) {
 		l1_event_counter_[burst_id].second.fetch_add(events_in, std::memory_order_relaxed);
 	}
-	//Requested and stored
+	//Stats Requested and stored
 	static inline void setEventL1Requested(uint_fast32_t burst_id, uint_fast32_t events_out) {
 		l1_request_stored_[burst_id].first.fetch_add(events_out, std::memory_order_relaxed);
 	}
@@ -227,58 +225,19 @@ public:
 		uint index = 0;
 		for (auto it = l1_event_counter_.end(); it != l1_event_counter_.begin(); it-- ){
 			// out -In = lost
-			std::cout
-					<<"burst_id: "<< it->first
+			LOG_INFO(
+					"burst_id: "<< it->first
 					<<" out: "<< it->second.first
 					<<" in: "<< it->second.second
 					<<" diff: "<< (it->second.first - it->second.second)
 					<<" requested: " << l1_request_stored_[it->first].first
 					<<" stored: " << l1_request_stored_[it->first].second
-					<< std::endl;
+					);
 			if (++index > show_max){
 				break;
 			}
 		}
 	}
-
-
-
-
-
-	//static bool storeL1Event(EventTest &temp_event);
-	//Serialization and Unserialization just for testing with random data
-	//==================================
-/*	static inline void serializeL1Event(EventTest event, l1_SerializedEvent* seriale, uint max_length = -1){
-
-		SerialEventHeader header;
-		header.length = event.length;
-		header.event_id = event.event_id;
-
-		if ( max_length != -1 && event.length > max_length){ //l1_shared_memory_fragment_size_
-
-			throw SerializeError("Fragmento is too big");
-
-			//std::cout<<"error"<<std::endl;
-		}
-
-		memcpy((char*)seriale, (char*)&header, sizeof(header));
-		memcpy(((char*)seriale) + sizeof(header),  event.data, event.length);
-
-		LOG_INFO("Length "<< header.length);
-	}
-
-	static inline void unserializeL1Event(EventTest &event, l1_SerializedEvent* seriale) {
-
-		SerialEventHeader* header;
-		header = reinterpret_cast<SerialEventHeader*> (seriale);
-
-		LOG_INFO("Length/ID "<< header->length<< "  " << header->event_id);
-
-		event.event_id = header->event_id;
-		event.length = header->length;
-		event.data = new char[header->length];
-		memcpy(event.data,((char*) seriale) + sizeof(header), header->length);
-	}*/
 };
 
 }

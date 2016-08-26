@@ -11,7 +11,6 @@ uint SharedMemoryManager::l1_shared_memory_fragment_size_;
 
 uint SharedMemoryManager::l1_mem_size_;
 uint SharedMemoryManager::l1_num_events_;
-
 uint SharedMemoryManager::from_q_size_;
 
 boost::interprocess::managed_shared_memory* SharedMemoryManager::l1_shm_; constexpr char SharedMemoryManager::l1_shm_name_[];
@@ -73,24 +72,24 @@ void SharedMemoryManager::initialize(){
 		LOG_INFO("Pushing all free indices onto l1_free_queue_");
 		//Filling free fragments
 		fillFreeQueue();
-	} catch(boost::interprocess::interprocess_exception& e) {
-		LOG_INFO(e.what()<< "L1 Free Queue exists");
+	} catch (boost::interprocess::interprocess_exception& ex) {
+		LOG_INFO(ex.what()<< "L1 Free Queue exists");
 		l1_free_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, l1_free_queue_name_, getL1NumEvents() , sizeof(uint));
 	}
 
 	//send queue
 	try {
 		trigger_queue_ = new boost::interprocess::message_queue(boost::interprocess::create_only, trigger_queue_name_, getL1NumEvents(), sizeof(TriggerMessager));
-	} catch(boost::interprocess::interprocess_exception& e) {
-		LOG_INFO(e.what()<< "Trigger Queue exists");
+	} catch (boost::interprocess::interprocess_exception& ex) {
+		LOG_INFO(ex.what()<< "Trigger Queue exists");
 		trigger_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, trigger_queue_name_, getL1NumEvents(), sizeof(TriggerMessager));
 	}
 
 	//receive queue
 	try {
 		trigger_response_queue_ = new boost::interprocess::message_queue(boost::interprocess::create_only, trigger_response_queue_name_, from_q_size_, sizeof(TriggerMessager));
-	} catch(boost::interprocess::interprocess_exception& e) {
-		LOG_INFO(e.what()<< "Trigger Response Queue exists");
+	} catch (boost::interprocess::interprocess_exception& ex) {
+		LOG_INFO(ex.what()<< "Trigger Response Queue exists");
 		trigger_response_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, trigger_response_queue_name_, from_q_size_, sizeof(TriggerMessager));
 	}
 }
@@ -150,12 +149,9 @@ bool SharedMemoryManager::removeL1Event(uint memory_id){
 
 bool SharedMemoryManager::getNextEvent(Event* & event, TriggerMessager & trigger_message) {
 	uint priority = 0;
-	//TODO why is not defined temp_priority???
 
 	if (popTriggerQueue(trigger_message, priority)) {
 		//LOG_INFO("Getting Event at "<< trigger_message.memory_id);
-
-		//SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
 
 		event = new Event( (EVENT_HDR*) (l1_mem_array_ + trigger_message.memory_id), 1);
 		return true;
@@ -208,7 +204,7 @@ bool SharedMemoryManager::pushTriggerResponseQueue(TriggerMessager &trigger_mess
 	return true;
 }
 
-bool SharedMemoryManager::popL1FreeQueue(uint &memory_id){
+bool SharedMemoryManager::popL1FreeQueue(uint &memory_id) {
 	std::size_t recvd_size;
 	uint priority;
 
@@ -220,7 +216,6 @@ bool SharedMemoryManager::popL1FreeQueue(uint &memory_id){
 		LOG_ERROR("Unexpected l1_free_queue_ recvd side: "<<recvd_size<<" Instead of: "<<sizeof(uint));
 	}
 	return false;
-
 }
 
 bool SharedMemoryManager::pushL1FreeQueue(uint memory_id) {
@@ -238,88 +233,4 @@ bool SharedMemoryManager::pushL1FreeQueue(uint memory_id) {
 	return true;
 }
 
-
-
-//Deprecated function
-//bool SharedMemoryManager::storeL1Event(EventTest &event){
-//	//Retrieving free memory space
-//	uint memory_id;
-//	while ( !SharedMemoryManager::popL1FreeQueue(memory_id) ) {
-//		//TODO need to slow down the request??? Can i also call recursively myself
-//		LOG_ERROR(" No free memory available...");
-//	}
-//
-//	LOG_INFO("Attempting to Store Event "<< event.event_id <<" at "<<memory_id);
-//
-//	TriggerMessager trigger_message;
-//	trigger_message.memory_id = memory_id;
-//	trigger_message.event_id = event.event_id;
-//	trigger_message.level = 1;
-//
-//	uint message_priority = 0;
-//
-//	try {
-//		SharedMemoryManager::serializeL1Event(event, l1_mem_array_ + memory_id, l1_shared_memory_fragment_size_);
-//		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
-//
-//		//Enqueue Data
-//		//=============
-//		while(1) {
-//			for (int i = 0; i < 100; i++) {
-//
-//				if (trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority)) {
-//					return true;
-//				}
-//			}
-//			LOG_WARNING("Tried pushing on trigger queue 100 times, now waiting");
-//			usleep(1000);
-//		}
-//
-//	} catch(SerializeError &) {
-//		LOG_ERROR("Fragmet exeed the memory");
-//
-//		removeL1Event(memory_id);
-//		FragmentNonStored_.fetch_add(1, std::memory_order_relaxed);
-//		return false;
-//	}
-//
-//	LOG_ERROR("How did we get here??");
-//	return false;
-//}
-
-//bool SharedMemoryManager::getNextEvent(EventTest &event, TriggerMessager & trigger_message) {
-//	uint temp_priority;
-//
-//	if (popTriggerQueue(trigger_message, temp_priority)) {
-//		if( trigger_message.level == 1 ){
-//
-//			LOG_INFO("Getting Event at "<< trigger_message.memory_id);
-//
-//			SharedMemoryManager::unserializeL1Event(event, l1_mem_array_ + trigger_message.memory_id);
-//			return true;
-//		}
-//
-//		LOG_ERROR("No idea of which level you want to process..");
-//		return false;
-//	}
-//
-//	return false;
-//}
-
-
-
-/*
-//Producing Labels for l1_Events
-//============================
-char* SharedMemoryManager::label(uint memory_id){
-	//TODO integer labels instead of char* possible?
-	const char* std_ID = "10000000000";
-	const char* std_ID_format = "%04d";
-
-	//TODO possible not use a new
-	char* ID = new char[sizeof(std_ID)];
-	std::sprintf(ID, std_ID_format, memory_id);
-	return ID;
-}
- */
 }
