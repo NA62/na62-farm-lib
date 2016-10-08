@@ -221,23 +221,26 @@ char* SmartEventSerializer::writeL1Data(const Event* event, char*& eventBuffer, 
 		for (uint fragmentNum = 0; fragmentNum != subevent->getNumberOfFragments(); fragmentNum++) {
 			l1::MEPFragment* e = subevent->getFragment(fragmentNum);
 
-			if (eventOffset + e->getEventLength() > eventBufferSize) {
-				eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
-						eventBufferSize + std::max(4096, (int) e->getEventLength()), isInitialEventBufferSizeFixed);
-				eventBufferSize += std::max(4096, (int) e->getEventLength());
-			}
+			if (SourceIDManager::l1SourceNumToID(sourceNum)!=SOURCE_ID_LKr||e->getEventLength()!=28) {	// RF 22.09.2016
 
-			memcpy(eventBuffer + eventOffset, e->getDataWithHeader(),
-					e->getEventLength());
-			eventOffset += e->getEventLength();
+				if (eventOffset + e->getEventLength() > eventBufferSize) {
+					eventBuffer = ResizeBuffer(eventBuffer, eventBufferSize,
+							eventBufferSize + std::max(4096, (int) e->getEventLength()), isInitialEventBufferSizeFixed);
+					eventBufferSize += std::max(4096, (int) e->getEventLength());
+				}
 
-			/*
-			 * 32-bit alignment
-			 */
-			if (eventOffset % 4 != 0) {
-				memset(eventBuffer + eventOffset, 0, eventOffset % 4);
-				eventOffset += eventOffset % 4;
-			}
+				memcpy(eventBuffer + eventOffset, e->getDataWithHeader(),
+						e->getEventLength());
+				eventOffset += e->getEventLength();
+
+				/*
+				 * 32-bit alignment
+				 */
+				if (eventOffset % 4 != 0) {
+					memset(eventBuffer + eventOffset, 0, eventOffset % 4);
+					eventOffset += eventOffset % 4;
+				}
+			} // RF 22.09.2016
 		}
 
 		// Add here missing fragments: could actually be handled dynamically by decoders
