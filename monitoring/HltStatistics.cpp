@@ -10,6 +10,7 @@
 namespace na62 {
 
 std::atomic<uint64_t> HltStatistics::L1InputEvents_(0);
+std::atomic<uint64_t> HltStatistics::L1PhysicsEvents_(0);
 
 HltStatistics::HltStatistics() {
 	// TODO Auto-generated constructor stub

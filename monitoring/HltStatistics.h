@@ -25,8 +25,16 @@ public:
 		return L1InputEvents_.fetch_add(amount, std::memory_order_relaxed);
 	}
 
+	static inline uint64_t GetL1PhysicsStats() {
+		return L1PhysicsEvents_;
+	}
+	static inline uint64_t SumL1PhysicsStats(int amount) {
+		return L1InputEvents_.fetch_add(amount, std::memory_order_relaxed);
+	}
+
 private:
 	static std::atomic<uint64_t> L1InputEvents_;
+	static std::atomic<uint64_t> L1PhysicsEvents_;
 
 };
 
