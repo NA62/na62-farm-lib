@@ -44,8 +44,17 @@ public:
 		return L1Triggers_;
 	}
 	static inline std::atomic<uint64_t>* SumL1TriggerStats(int amount, uint_fast8_t l1Trigger) {
-		L1Triggers_[l1Trigger].fetch_add(amount, std::memory_order_relaxed);
-		return L1Triggers_;
+		return L1Triggers_[l1Trigger].fetch_add(amount, std::memory_order_relaxed);
+	}
+
+	static inline uint64_t GetL1InputEventsPerBurst() {
+		return L1InputEventsPerBurst_;
+	}
+	static inline uint64_t SumL1InputEventsPerBurst(int amount) {
+		return L1InputEventsPerBurst_.fetch_add(amount, std::memory_order_relaxed);
+	}
+	static void ResetL1InputEventsPerBurst() {
+		L1InputEventsPerBurst_ = 0;
 	}
 
 private:
@@ -53,6 +62,7 @@ private:
 	static std::atomic<uint64_t> L1PhysicsEvents_;
 	static std::atomic<uint64_t> L1PhysicsEventsByMultipleMasks_;
 	static std::atomic<uint64_t>* L1Triggers_;
+	static std::atomic<uint64_t> L1InputEventsPerBurst_;
 
 };
 
