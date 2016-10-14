@@ -8,9 +8,10 @@
 #ifndef MONITORING_HLTSTATISTICS_H_
 #define MONITORING_HLTSTATISTICS_H_
 
-namespace na62 {
-
 #include <atomic>
+#include <eventBuilding/Event.h>
+
+namespace na62 {
 
 
 class HltStatistics {
@@ -18,6 +19,7 @@ public:
 	HltStatistics();
 	virtual ~HltStatistics();
 	static void initialize();
+	static void updateStatistics(Event* event, uint_fast8_t l1TriggerTypeWord);
 
 	static inline uint64_t GetL1InputEvents() {
 		return L1InputEvents_;
@@ -44,7 +46,8 @@ public:
 		return L1Triggers_;
 	}
 	static inline std::atomic<uint64_t>* SumL1TriggerStats(int amount, uint_fast8_t l1Trigger) {
-		return L1Triggers_[l1Trigger].fetch_add(amount, std::memory_order_relaxed);
+		L1Triggers_[l1Trigger].fetch_add(amount, std::memory_order_relaxed);
+		return L1Triggers_;
 	}
 
 	static inline uint64_t GetL1InputEventsPerBurst() {
