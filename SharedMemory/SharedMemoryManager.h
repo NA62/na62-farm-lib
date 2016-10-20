@@ -73,7 +73,10 @@ private:
 		} catch( boost::interprocess::interprocess_exception& ex) {
 			//Assuming that the attempted size was the issue...
 			LOG_WARNING(ex.what()<<" "<<size<<" is too big for l1_mem_array_... trying "<< size/difference_factor);
-			return createL1MemArray( size - difference_factor );
+			if (size - difference_factor > 0) {
+				return createL1MemArray(size - difference_factor);
+			}
+			return false;
 		}
 		return false;
 	}
@@ -120,16 +123,21 @@ public:
 		}
 		//some location has been lost refill it
 		uint memory_id;
-		while(popL1FreeQueue(memory_id)) {
+
+		std::size_t recvd_size;
+		uint priority;
+		//Do it until it is empty
+		while (l1_free_queue_->try_receive((void *) &memory_id, sizeof(uint), recvd_size, priority)) {
 			continue;
 		}
+
 		fillFreeQueue();
 		return false;
 	}
 
 	static inline void fillFreeQueue() {
 		for (uint memory_id = 0; memory_id  < getL1NumEvents(); memory_id++) {
-			pushL1FreeQueue(memory_id);
+			pushL1FreeQueue(memory_id); //Blocking
 		}
 	}
 
