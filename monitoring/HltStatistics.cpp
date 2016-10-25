@@ -6,6 +6,7 @@
  */
 
 #include <monitoring/HltStatistics.h>
+#include <l1/L1TriggerProcessor.h>
 
 namespace na62 {
 
@@ -27,6 +28,7 @@ void HltStatistics::initialize() {
 
 void HltStatistics::updateStatistics(Event* event, uint_fast8_t l1TriggerTypeWord) {
 	HltStatistics::SumL1InputEvents(1);
+	//LOG_ERROR("HLT Updating Statistics: " << HltStatistics::GetL1InputEvents() << " /" <<  L1TriggerProcessor::GetL1InputStats());
 	HltStatistics::SumL1InputEventsPerBurst(1);
 	if (l1TriggerTypeWord != 0) {
 		HltStatistics::SumL1TriggerStats(1, l1TriggerTypeWord);

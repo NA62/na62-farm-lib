@@ -32,7 +32,7 @@ public:
 		return L1PhysicsEvents_;
 	}
 	static inline uint64_t SumL1PhysicsStats(int amount) {
-		return L1InputEvents_.fetch_add(amount, std::memory_order_relaxed);
+		return L1PhysicsEvents_.fetch_add(amount, std::memory_order_relaxed);
 	}
 
 	static inline uint64_t GetL1PhysicsByMultipleMasksStats() {
