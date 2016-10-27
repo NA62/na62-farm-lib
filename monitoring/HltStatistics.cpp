@@ -6,7 +6,7 @@
  */
 
 #include <monitoring/HltStatistics.h>
-#include <l1/L1TriggerProcessor.h>
+//#include <l1/L1TriggerProcessor.h>
 
 namespace na62 {
 
