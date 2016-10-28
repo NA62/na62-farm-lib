@@ -19,7 +19,9 @@ public:
 	HltStatistics();
 	virtual ~HltStatistics();
 	static void initialize();
-	static void updateStatistics(Event* event, uint_fast8_t l1TriggerTypeWord);
+	static void updateL1Statistics(Event* event, uint_fast8_t l1TriggerTypeWord);
+	static void updateL2Statistics(Event* event, uint_fast8_t l2Trigger);
+	static void updateStorageStatistics();
 
 	static inline uint64_t GetL1InputEvents() {
 		return L1InputEvents_;
@@ -60,12 +62,44 @@ public:
 		L1InputEventsPerBurst_ = 0;
 	}
 
+	//Functions to manipulate the maps
+	static inline uint64_t SumCounter(std::string key, uint amount) {
+		return cumulativeCounters_[key].fetch_add(amount, std::memory_order_relaxed);
+	}
+	static inline uint64_t GetCounter(std::string key) {
+			return cumulativeCounters_[key];
+	}
+
+	static void CountersSnapshot() {
+		//coping all values in the snapshot map
+		for (auto& key: ExtractKeys()) {
+			cumulativeCountersSnapshot_[key] = GetCounter(key);
+		}
+	}
+
+	static uint64_t GetLastBurstCounter(std::string key) {
+		return cumulativeCounters_[key] - cumulativeCountersSnapshot_[key];
+	}
+
+	static std::vector<std::string> ExtractKeys() {
+		std::vector<std::string> keys;
+		for (auto const& counter : cumulativeCounters_) {
+			keys.push_back(counter.first);
+		}
+	  return keys;
+	}
+
 private:
 	static std::atomic<uint64_t> L1InputEvents_;
 	static std::atomic<uint64_t> L1PhysicsEvents_;
 	static std::atomic<uint64_t> L1PhysicsEventsByMultipleMasks_;
 	static std::atomic<uint64_t>* L1Triggers_;
 	static std::atomic<uint64_t> L1InputEventsPerBurst_;
+
+	//Map containing counters countinuously updated by the farm
+	static std::map<std::string, std::atomic<uint64_t>> cumulativeCounters_;
+	//Snapshot of counters at the last eob commands
+	static std::map<std::string, std::atomic<uint64_t>> cumulativeCountersSnapshot_;
 
 };
 
