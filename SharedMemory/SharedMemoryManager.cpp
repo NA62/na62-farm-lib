@@ -31,27 +31,23 @@ std::map<uint_fast32_t, std::pair<std::atomic<	int64_t>, std::atomic<int64_t>>> 
 std::map<uint_fast32_t, std::pair<std::atomic<	int64_t>, std::atomic<int64_t>>> SharedMemoryManager::l1_request_stored_;
 
 void SharedMemoryManager::initialize(){
-
+	LOG_INFO("Here we are");
 	l1_shared_memory_fragment_size_= sizeof(l1_SerializedEvent);
 
-	//l1_mem_size_ = 100000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
-	l1_mem_size_ = 500000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent)
-
+	//l1_mem_size_ =  1000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent) // Local test configuration
+	l1_mem_size_ = 500000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent) // Farm configuration
 
 	//This is an initial value estimated from the size of the memory and the size of the structure
 	//Can be decreased during the initialization of the big array
 	l1_num_events_ = l1_mem_size_ /l1_shared_memory_fragment_size_; //bytes
 
-	//Please notice that that can't hold more events than the memory array
-	//to_q_size_ = 1000000;
-	from_q_size_ = 1000000;
-
+	//from_q_size_ = 10000; // Local test configuration
+	from_q_size_ = 1000000; // Farm configuration
 
 	//Initailizing array
 	try {
 		l1_shm_ = new boost::interprocess::managed_shared_memory(boost::interprocess::create_only, l1_shm_name_, l1_mem_size_);//in bytes
 	} catch(boost::interprocess::interprocess_exception& e) {
-		LOG_INFO(e.what()<< "L1 exists");
 		l1_shm_ = new boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, l1_shm_name_, l1_mem_size_);
 	}
 	if (!getL1MemArray()) {
@@ -73,7 +69,7 @@ void SharedMemoryManager::initialize(){
 		//Filling free fragments
 		fillFreeQueue();
 	} catch (boost::interprocess::interprocess_exception& ex) {
-		LOG_INFO(ex.what()<< "L1 Free Queue exists");
+		LOG_INFO(ex.what()<< " L1 Free Queue exists");
 		l1_free_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, l1_free_queue_name_, getL1NumEvents() , sizeof(uint));
 	}
 
@@ -81,7 +77,7 @@ void SharedMemoryManager::initialize(){
 	try {
 		trigger_queue_ = new boost::interprocess::message_queue(boost::interprocess::create_only, trigger_queue_name_, getL1NumEvents(), sizeof(TriggerMessager));
 	} catch (boost::interprocess::interprocess_exception& ex) {
-		LOG_INFO(ex.what()<< "Trigger Queue exists");
+		LOG_INFO(ex.what()<< " Trigger Queue exists");
 		trigger_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, trigger_queue_name_, getL1NumEvents(), sizeof(TriggerMessager));
 	}
 
@@ -89,49 +85,44 @@ void SharedMemoryManager::initialize(){
 	try {
 		trigger_response_queue_ = new boost::interprocess::message_queue(boost::interprocess::create_only, trigger_response_queue_name_, from_q_size_, sizeof(TriggerMessager));
 	} catch (boost::interprocess::interprocess_exception& ex) {
-		LOG_INFO(ex.what()<< "Trigger Response Queue exists");
+		LOG_INFO(ex.what()<< " Trigger Response Queue exists");
 		trigger_response_queue_ = new boost::interprocess::message_queue(boost::interprocess::open_or_create, trigger_response_queue_name_, from_q_size_, sizeof(TriggerMessager));
 	}
 }
 
 //L1 Shared Memory Functions
 bool SharedMemoryManager::storeL1Event(const Event* event) {
-	//Retrieving free memory space
+
 	uint memory_id;
-	while ( !SharedMemoryManager::popL1FreeQueue(memory_id) ) {
-		//TODO need to slow down the request??? Can i also call recursively myself
-		LOG_ERROR(" No free memory available...");
+	//Retrieving free memory space
+	if (!SharedMemoryManager::popL1FreeQueue(memory_id)) { //Blocking
+		return false;
 	}
 
-	//LOG_INFO("Attempting to Store Event "<< event->getEventNumber() <<" at "<<memory_id);
-	TriggerMessager trigger_message;
-	trigger_message.memory_id = memory_id;
-	trigger_message.event_id = event->getEventNumber();
-	trigger_message.burst_id = event->getBurstID();
-	trigger_message.level = 1;
-
-	uint message_priority = 0;
-
+	//Serializing on shared memory
 	try {
 		EVENT_HDR* smartserializedevent = SmartEventSerializer::SerializeEvent(event, l1_mem_array_ + memory_id);
 		FragmentStored_.fetch_add(1, std::memory_order_relaxed);
-		//std::cout<<"Serialized on shared memory!!!!"<<std::endl;
-
-		//Enqueue Data
-		while (1) {
-			for (int i = 0; i < 100; i++) {
-				if (trigger_queue_->try_send(&trigger_message, sizeof(TriggerMessager), message_priority)) {
-					return true;
-				}
-			}
-			LOG_WARNING("Tried pushing on trigger queue 100 times, now waiting");
-			usleep(1000);
-		}
 
 	} catch(SerializeError &) {
 		LOG_ERROR("Fragment exceed the memory! "<< "Shared Memory buffer size: " << getL1SharedMemoryFragmentSize());
-		removeL1Event(memory_id);
+		removeL1Event(memory_id); //Memory location will be available again
 		FragmentNonStored_.fetch_add(1, std::memory_order_relaxed);
+		return false;
+	}
+	//Enqueue memory location to analyze
+	try {
+		uint message_priority = 0;
+		TriggerMessager trigger_message;
+		trigger_message.memory_id = memory_id;
+		trigger_message.event_id = event->getEventNumber();
+		trigger_message.burst_id = event->getBurstID();
+		trigger_message.level = 1;
+		trigger_queue_->send(&trigger_message, sizeof(TriggerMessager), message_priority); //Blocking
+		return true;
+	} catch (boost::interprocess::interprocess_exception &ex) {
+		removeL1Event(memory_id); //Memory location will be available again
+		LOG_ERROR("trigger_queue send error: " << ex.what());
 		return false;
 	}
 
@@ -151,9 +142,7 @@ bool SharedMemoryManager::getNextEvent(Event* & event, TriggerMessager & trigger
 	uint priority = 0;
 
 	if (popTriggerQueue(trigger_message, priority)) {
-		//LOG_INFO("Getting Event at "<< trigger_message.memory_id);
-
-		event = new Event( (EVENT_HDR*) (l1_mem_array_ + trigger_message.memory_id), 1);
+		event = new Event((EVENT_HDR*) (l1_mem_array_ + trigger_message.memory_id), 1);
 		return true;
 	}
 	return false;
@@ -172,63 +161,65 @@ bool SharedMemoryManager::popTriggerResponseQueue(TriggerMessager &trigger_messa
 bool SharedMemoryManager::popQueue(bool is_trigger_message_queue, TriggerMessager &trigger_message, uint &priority) {
 	std::size_t struct_size = sizeof(TriggerMessager);
 	std::size_t recvd_size;
-	boost::interprocess::message_queue * queue;
+	boost::interprocess::message_queue *queue;
 
 	if (is_trigger_message_queue) {
 		queue = trigger_queue_;
 	} else {
 		queue = trigger_response_queue_;
 	}
-	if (queue->try_receive((void *) &trigger_message, struct_size, recvd_size, priority)) {
+
+	try {
+		queue->receive((void *) &trigger_message, struct_size, recvd_size, priority); // Blocking
 		//Check that is the expected type
-		if( recvd_size == struct_size ) {
+		if (recvd_size == struct_size) {
 			return true;
 		}
-		LOG_ERROR("Unexpected queue message received recvd side: "<<recvd_size<<" Instead of: "<<struct_size);
+	} catch (boost::interprocess::interprocess_exception &ex) {
+		LOG_ERROR("popqueue receive error: " << ex.what());
+		return false;
 	}
+
+	LOG_ERROR("Unexpected queue message received recvd side: "<<recvd_size<<" Instead of: "<<struct_size);
 	return false;
 }
 
 bool SharedMemoryManager::pushTriggerResponseQueue(TriggerMessager &trigger_message) {
 	uint priority = 0;
-
-	while (1){
-		for (int i = 0; i < 100; i++) {
-			if (trigger_response_queue_->try_send(&trigger_message, sizeof(TriggerMessager), priority)) {
-				return true;
-			}
-			LOG_WARNING("Tried pushing on trigger response queue 100 times, now waiting");
-			usleep(1000);
-		}
+	try {
+		trigger_response_queue_->send(&trigger_message, sizeof(TriggerMessager), priority); //Blocking
+	} catch (boost::interprocess::interprocess_exception &ex) {
+		LOG_ERROR("Trigger response queue send error: " << ex.what());
+		return false;
 	}
+
 	return true;
 }
 
 bool SharedMemoryManager::popL1FreeQueue(uint &memory_id) {
 	std::size_t recvd_size;
-	uint priority;
-
-	if (l1_free_queue_->try_receive((void *) &memory_id, sizeof(uint), recvd_size, priority)) {
-		//Check that is the expected type
-		if (recvd_size == sizeof(uint)) {
-			return true;
-		}
-		LOG_ERROR("Unexpected l1_free_queue_ recvd side: "<<recvd_size<<" Instead of: "<<sizeof(uint));
+	uint priority = 0;
+	try {
+		l1_free_queue_->receive((void *) &memory_id, sizeof(uint), recvd_size, priority);
+	} catch (boost::interprocess::interprocess_exception &ex) {
+		LOG_ERROR("popL1FreeQueue error: " << ex.what());
+		return false;
 	}
+	//Check that is the expected type
+	if (recvd_size == sizeof(uint)) {
+		return true;
+	}
+	LOG_ERROR("Unexpected l1_free_queue_ recvd side: " << recvd_size << " Instead of: " << sizeof(uint));
 	return false;
 }
 
 bool SharedMemoryManager::pushL1FreeQueue(uint memory_id) {
 	uint priority = 0;
-
-	while (1) {
-		for (int i = 0; i < 100; i++) {
-			if (l1_free_queue_->try_send(&memory_id, sizeof(uint), priority)) {
-				return true;
-			}
-		}
-		LOG_WARNING("Tried pushing on l1_free_queue_ 100 times, now waiting");
-		usleep(1000);
+	try {
+		l1_free_queue_->send(&memory_id, sizeof(uint), priority);
+	} catch (boost::interprocess::interprocess_exception &ex) {
+		LOG_ERROR("pushL1FreeQueue error: " << ex.what());
+		return false;
 	}
 	return true;
 }
