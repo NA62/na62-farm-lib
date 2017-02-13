@@ -32,32 +32,32 @@ void HltStatistics::initialize() {
 }
 
 void HltStatistics::updateL1Statistics(Event* event, uint_fast8_t l1TriggerTypeWord) {
-	HltStatistics::SumL1InputEvents(1);
+	HltStatistics::sumL1InputEvents(1);
 	//LOG_ERROR("HLT Updating Statistics: " << HltStatistics::GetL1InputEvents() << " /" <<  L1TriggerProcessor::GetL1InputStats());
-	HltStatistics::SumL1InputEventsPerBurst(1);
-	HltStatistics::SumCounter("CounterL1", 1);
+	HltStatistics::sumL1InputEventsPerBurst(1);
+	HltStatistics::sumCounter("CounterL1", 1);
 
 	if (l1TriggerTypeWord != 0) {
-		HltStatistics::SumL1TriggerStats(1, l1TriggerTypeWord);
+		HltStatistics::sumL1TriggerStats(1, l1TriggerTypeWord);
 	} else {
 		//event has been reduced or downscaled
 	}
 
 	//This counter should not be incremented if the event has been marked as downscaled
 	if (event->isPhysicsTriggerEvent()) {
-		HltStatistics::SumL1PhysicsStats(1);
+		HltStatistics::sumL1PhysicsStats(1);
 		if (__builtin_popcount((uint) event->getTriggerFlags()) > 1) {
-			HltStatistics::SumL1PhysicsByMultipleMasksStats(1);
+			HltStatistics::sumL1PhysicsByMultipleMasksStats(1);
 		}
 	}
 }
 
 void HltStatistics::updateL2Statistics(Event* event, uint_fast8_t l2Trigger) {
-	HltStatistics::SumCounter("CounterL2", 1);
+	HltStatistics::sumCounter("CounterL2", 1);
 }
 
 void HltStatistics::updateStorageStatistics() {
-	HltStatistics::SumCounter("CounterStorage", 1);
+	HltStatistics::sumCounter("CounterStorage", 1);
 }
 
 HltStatistics::~HltStatistics() {
