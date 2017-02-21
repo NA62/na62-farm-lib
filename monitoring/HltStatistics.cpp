@@ -24,6 +24,13 @@ HltStatistics::HltStatistics() {
 }
 void HltStatistics::initialize() {
 
+
+//	for (auto& key : extractKeys()) {
+//		cumulativeCounters_[key] = 0;
+//	}
+
+
+
 	cumulativeCounters_["L1InputEvents_"] = 0;
 
 	cumulativeCounters_["L1SpecialEvents_"] = 0;
@@ -55,7 +62,7 @@ void HltStatistics::initialize() {
 	}
 }
 
-void HltStatistics::updateL1Statistics(Event* const event, std::array<uint_fast8_t, 16> l1TriggerWords, uint_fast8_t l1Trigger) {
+void HltStatistics::updateL1Statistics(Event* const event, uint_fast8_t l1Trigger) {
 	HltStatistics::sumCounter("L1InputEvents_", 1);
 
 
@@ -84,8 +91,8 @@ void HltStatistics::updateL1Statistics(Event* const event, std::array<uint_fast8
 			if (l0TrigFlags & (1 << i)) {
 				LOG_INFO("i " << i << " l0TrigFlags " << std::hex << (uint) l0TrigFlags << std::dec);
 				HltStatistics::sumDimensionalCounter("L1InputEventsPerMask_", i, 1);
-				if(l1TriggerWords[i]){
-					LOG_INFO("i " << i << " l1TrigWrd " << (uint) l1TriggerWords[i]);
+				if(event->getL1TriggerWord(i)){
+					LOG_INFO("i " << i << " l1TrigWrd " << (uint) event->getL1TriggerWord(i));
 					HltStatistics::sumDimensionalCounter("L1AcceptedEventsPerMask_", i, 1);
 				}
 			}

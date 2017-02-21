@@ -23,6 +23,7 @@
 #include "SourceIDManager.h"
 #include "../structs/Event.h"
 #include "../options/Logging.h"
+#include "../l1/L1InfoToStorage.h"
 
 #include <iostream>
 
@@ -156,7 +157,7 @@ public:
 
 	/**
 	 * Returns true if the L1 trigger word equals the L1 bypass trigger word meaning
-	 * that L1 has not been processed but still the event has been accepted (bypassed)
+	 * that L1 has not been processed but still the event has been accepted (exclusively bypassed)
 	 */
 	bool isL1Bypassed() const {
 		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS)
@@ -165,11 +166,25 @@ public:
 
 	/**
 	 * Returns true if the L2 trigger word equals the L2 bypass trigger word meaning
-	 * that L2 has not been processed but still the event has been accepted (bypassed)
+	 * that L2 has not been processed but still the event has been accepted (exclusively bypassed)
 	 */
 	bool isL2Bypassed() const {
 		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS)
 				== TRIGGER_L2_BYPASS;
+	}
+
+	/**
+	 * Set the L1 trigger word ( for a given mask id) after the L1 compute
+	 */
+	void setL1TriggerWord(uint l0MaskId, uint_fast8_t triggerWord) {
+		l1TriggerWords_[l0MaskId] = triggerWord;
+	}
+
+	/**
+	 * Return the L1 trigger word for a given mask id
+	 */
+	uint_fast8_t getL1TriggerWord(uint l0MaskId) const {
+		return l1TriggerWords_[l0MaskId];
 	}
 
 	/**
@@ -535,7 +550,8 @@ private:
 
 	std::map<uint_fast16_t, l1::MEPFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	std::atomic<bool> L1Processed_; /// ATOMICCCCC !!!!
+	std::atomic<bool> L1Processed_;
+	std::array<uint_fast8_t, 16> l1TriggerWords_;
 
 	std::atomic<bool> isL1Requested_;
 	std::atomic<uint_fast16_t> l0CallCounter_;
@@ -543,8 +559,6 @@ private:
 
 	std::atomic<bool> L2Accepted_;
 	std::atomic<bool> unfinished_;
-
-
 
 	std::atomic<bool> lastEventOfBurst_;
 
