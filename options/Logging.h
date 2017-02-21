@@ -18,10 +18,24 @@
 	//#define LOG_ERROR na62::logger::log_err
 	//#define LOG_WARNING na62::logger::log_warn
 	//#define ENDL std::flush
-
+//	namespace na62 {
+//	class BurstIdHandler{
+//	public:
+//		static inline uint_fast32_t getCurrentBurstId();
+//	};
+//	}
 
 	#include <ers/ers.h>
+	//#include <monitoring/BurstIdHandler.h>
 	#define LOG_INFO(message) 	ERS_DEBUG(3,message)
+	//#define LOG_INFO(message) 	ERS_DEBUG(3,(na62::BurstIdHandler::getCurrentBurstId() << message))
+
+
+
+	//#define LOG_INFO_MORE(message) 	ERS_DEBUG(3,message)
+
+
+
 	#define LOG_ERROR(message)	ERS_ERROR(message)
 	#define LOG_WARNING(message)	ERS_WARNING(message)
 
