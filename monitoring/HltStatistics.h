@@ -62,6 +62,11 @@ public:
 		for (auto& key: extractKeys()) {
 			counters_[key] = 0;
 		}
+		for (auto& key: extractDimensionalKeys()){
+			for(uint index=0; index<16; index++) {
+				dimensionalCounters_[key][index] = 0;
+			}
+		}
 	}
 
 	static uint64_t getRollingCounter(std::string key) {

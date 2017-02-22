@@ -43,8 +43,7 @@ void BurstIdHandler::thread(){
 			// Mark that all further data shall be discarded
 			LOG_INFO("Preparing end of burst " << (int) BurstIdHandler::getCurrentBurstId());
 			BurstIdHandler::flushBurst_=true;
-		}
-		else if (  BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
+		} else if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
 			// Flush all events
 			LOG_INFO("Cleanup of burst " << (int) BurstIdHandler::getCurrentBurstId());
 			//onBurstFinished();
