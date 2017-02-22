@@ -21,7 +21,7 @@ public:
 	virtual ~HltStatistics();
 	static void initialize();
 	static void updateL1Statistics(Event* const event, uint_fast8_t l1Trigger);
-	static void updateL2Statistics(Event* event, uint_fast8_t l2Trigger);
+	static void updateL2Statistics(Event* const event, uint_fast8_t l2Trigger);
 	static void updateStorageStatistics();
 
 	//TODO remove
@@ -31,6 +31,15 @@ public:
 	static inline std::atomic<uint64_t>* sumL1TriggerStats(int amount, uint_fast8_t l1Trigger) {
 		L1Triggers_[l1Trigger].fetch_add(amount, std::memory_order_relaxed);
 		return L1Triggers_;
+	}
+
+	//TODO remove
+	static inline std::atomic<uint64_t>* getL2TriggerStats() {
+		return L2Triggers_;
+	}
+	static inline std::atomic<uint64_t>* sumL2TriggerStats(int amount, uint_fast8_t l2Trigger) {
+		L2Triggers_[l2Trigger].fetch_add(amount, std::memory_order_relaxed);
+		return L2Triggers_;
 	}
 
 	//Functions to manipulate the maps
@@ -99,6 +108,7 @@ public:
 
 private:
 	static std::atomic<uint64_t>* L1Triggers_;
+	static std::atomic<uint64_t>* L2Triggers_;
 
 	//Map containing counters continuously updated by the farm
 	static std::map<std::string, std::atomic<uint64_t>> counters_;

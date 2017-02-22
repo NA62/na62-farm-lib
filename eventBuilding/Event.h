@@ -141,7 +141,7 @@ public:
 	}
 
 	/**
-	 * Returns the L1 trigger type word if L1 has already been processed.
+	 * Returns the global L1 trigger type word if L1 has already been processed.
 	 * The return value is undefined otherwise!
 	 */
 	uint_fast8_t getL1TriggerTypeWord() const {
@@ -149,7 +149,7 @@ public:
 	}
 
 	/**
-	 * Returns the L2 trigger type word if L2 has already been processed.
+	 * Returns the global L2 trigger type word if L2 has already been processed.
 	 * The return value is undefined otherwise!
 	 */
 	uint_fast32_t getL2TriggerTypeWord() const {
@@ -175,7 +175,7 @@ public:
 	}
 
 	/**
-	 * Set the L1 trigger word ( for a given mask id) after the L1 compute
+	 * Set the L1 trigger word (for a given mask id) after the L1 compute
 	 */
 	void setL1TriggerWord(uint l0MaskId, uint_fast8_t triggerWord) {
 		l1TriggerWords_[l0MaskId] = triggerWord;
@@ -186,6 +186,20 @@ public:
 	 */
 	uint_fast8_t getL1TriggerWord(uint l0MaskId) const {
 		return l1TriggerWords_[l0MaskId];
+	}
+
+	/**
+	 * Set the L2 trigger word (for a given mask id) after the L2 compute
+	 */
+	void setL2TriggerWord(uint l0MaskId, uint_fast8_t triggerWord) {
+		l2TriggerWords_[l0MaskId] = triggerWord;
+	}
+
+	/**
+	 * Return the L2 trigger word for a given mask id
+	 */
+	uint_fast8_t getL2TriggerWord(uint l0MaskId) const {
+		return l2TriggerWords_[l0MaskId];
 	}
 
 	/**
@@ -553,6 +567,7 @@ private:
 
 	std::atomic<bool> L1Processed_;
 	std::array<uint_fast8_t, 16> l1TriggerWords_;
+	std::array<uint_fast8_t, 16> l2TriggerWords_;
 
 	std::atomic<bool> isL1Requested_;
 	std::atomic<uint_fast16_t> l0CallCounter_;

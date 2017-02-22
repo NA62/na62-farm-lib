@@ -43,6 +43,12 @@
 #define TRIGGER_L1_FLAGALGO 0x40
 #define TRIGGER_L1_AUTOPASS 0x80
 
+#define TRIGGER_L2_PHYSICS 0x01
+#define TRIGGER_L2_TIMEOUT 0x08
+#define TRIGGER_L2_ALLDISABLED 0x10
+#define TRIGGER_L2_FLAGALGO 0x40
+#define TRIGGER_L2_AUTOPASS 0x80
+
 namespace na62 {
 /**
  * Pointer to the payload of the given sourceID within an event
