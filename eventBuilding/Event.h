@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <map>
 #include <atomic>
+#include <array>
 #ifdef MEASURE_TIME
 #include <boost/timer/timer.hpp>
 #endif

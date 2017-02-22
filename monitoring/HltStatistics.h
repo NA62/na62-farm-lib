@@ -11,6 +11,7 @@
 #include <atomic>
 #include <eventBuilding/Event.h>
 #include <structs/Event.h>
+#include <sstream>
 
 namespace na62 {
 
