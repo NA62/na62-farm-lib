@@ -183,6 +183,12 @@ public:
 	uint_fast8_t getL1TriggerWord(uint l0MaskId) const {
 		return l1TriggerWords_[l0MaskId];
 	}
+	/**
+	 * Return the L1 trigger word for a given mask id
+	 */
+	std::array<uint_fast8_t, 16> getL1TriggerWords() const {
+		return l1TriggerWords_;
+	}
 
 	/**
 	 * Set the L2 trigger word (for a given mask id) after the L2 compute
