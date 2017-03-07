@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <map>
 #include <atomic>
+#include <array>
 #ifdef MEASURE_TIME
 #include <boost/timer/timer.hpp>
 #endif
@@ -23,6 +24,7 @@
 #include "SourceIDManager.h"
 #include "../structs/Event.h"
 #include "../options/Logging.h"
+#include "../l1/L1InfoToStorage.h"
 
 #include <iostream>
 
@@ -93,8 +95,7 @@ public:
 	 */
 	void setL1Processed(const uint_fast16_t L0L1TriggerTypeWord) {
 #ifdef MEASURE_TIME
-		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-				- l0BuildingTime_;
+		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3 - l0BuildingTime_;
 		//LOG_INFO("*******************l1ProcessingTime_ " << l1ProcessingTime_);
 #endif
 
@@ -111,8 +112,7 @@ public:
 	 */
 	void setL2Processed(const uint_fast8_t L2TriggerTypeWord) {
 #ifdef MEASURE_TIME
-		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3
-				- (l1BuildingTime_ + l1ProcessingTime_ + l0BuildingTime_);
+		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3 - (l1BuildingTime_ + l1ProcessingTime_ + l0BuildingTime_);
 //		LOG_INFO("*******************l2ProcessingTime_ " << l2ProcessingTime_);
 #endif
 
@@ -139,7 +139,7 @@ public:
 	}
 
 	/**
-	 * Returns the L1 trigger type word if L1 has already been processed.
+	 * Returns the global L1 trigger type word if L1 has already been processed.
 	 * The return value is undefined otherwise!
 	 */
 	uint_fast8_t getL1TriggerTypeWord() const {
@@ -147,7 +147,7 @@ public:
 	}
 
 	/**
-	 * Returns the L2 trigger type word if L2 has already been processed.
+	 * Returns the global L2 trigger type word if L2 has already been processed.
 	 * The return value is undefined otherwise!
 	 */
 	uint_fast32_t getL2TriggerTypeWord() const {
@@ -156,20 +156,52 @@ public:
 
 	/**
 	 * Returns true if the L1 trigger word equals the L1 bypass trigger word meaning
-	 * that L1 has not been processed but still the event has been accepted (bypassed)
+	 * that L1 has not been processed but still the event has been accepted (exclusively bypassed)
 	 */
 	bool isL1Bypassed() const {
-		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS)
-				== TRIGGER_L1_BYPASS;
+		return ((triggerTypeWord_ >> 8) & TRIGGER_L1_BYPASS) == TRIGGER_L1_BYPASS;
 	}
 
 	/**
 	 * Returns true if the L2 trigger word equals the L2 bypass trigger word meaning
-	 * that L2 has not been processed but still the event has been accepted (bypassed)
+	 * that L2 has not been processed but still the event has been accepted (exclusively bypassed)
 	 */
 	bool isL2Bypassed() const {
-		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS)
-				== TRIGGER_L2_BYPASS;
+		return ((triggerTypeWord_ >> 16) & TRIGGER_L2_BYPASS) == TRIGGER_L2_BYPASS;
+	}
+
+	/**
+	 * Set the L1 trigger word (for a given mask id) after the L1 compute
+	 */
+	void setL1TriggerWord(uint l0MaskId, uint_fast8_t triggerWord) {
+		l1TriggerWords_[l0MaskId] = triggerWord;
+	}
+
+	/**
+	 * Return the L1 trigger word for a given mask id
+	 */
+	uint_fast8_t getL1TriggerWord(uint l0MaskId) const {
+		return l1TriggerWords_[l0MaskId];
+	}
+	/**
+	 * Return the L1 trigger word for a given mask id
+	 */
+	std::array<uint_fast8_t, 16> getL1TriggerWords() const {
+		return l1TriggerWords_;
+	}
+
+	/**
+	 * Set the L2 trigger word (for a given mask id) after the L2 compute
+	 */
+	void setL2TriggerWord(uint l0MaskId, uint_fast8_t triggerWord) {
+		l2TriggerWords_[l0MaskId] = triggerWord;
+	}
+
+	/**
+	 * Return the L2 trigger word for a given mask id
+	 */
+	uint_fast8_t getL2TriggerWord(uint l0MaskId) const {
+		return l2TriggerWords_[l0MaskId];
 	}
 
 	/**
@@ -254,16 +286,14 @@ public:
 	 *		...
 	 *	}
 	 */
-	l0::Subevent* getL0SubeventBySourceIDNum(
-			const uint_fast8_t sourceIDNum) const {
+	l0::Subevent* getL0SubeventBySourceIDNum(const uint_fast8_t sourceIDNum) const {
 		return L0Subevents[sourceIDNum];
 	}
 
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline const l0::Subevent* getL0SubeventBySourceID(
-			const uint_fast8_t sourceID) const {
+	inline const l0::Subevent* getL0SubeventBySourceID(const uint_fast8_t sourceID) const {
 		return L0Subevents[SourceIDManager::sourceIDToNum(std::move(sourceID))];
 	}
 
@@ -274,16 +304,14 @@ public:
 	 *		...
 	 *	}
 	 */
-	l1::Subevent* getL1SubeventBySourceIDNum(
-			const uint_fast8_t sourceIDNum) const {
+	l1::Subevent* getL1SubeventBySourceIDNum(const uint_fast8_t sourceIDNum) const {
 		return L1Subevents[sourceIDNum];
 	}
 
 	/*
 	 *	See table 50 in the TDR for the source IDs.
 	 */
-	inline const l1::Subevent* getL1SubeventBySourceID(
-			const uint_fast8_t sourceID) const {
+	inline const l1::Subevent* getL1SubeventBySourceID(const uint_fast8_t sourceID) const {
 		return L1Subevents[SourceIDManager::l1SourceIDToNum(std::move(sourceID))];
 	}
 
@@ -333,7 +361,7 @@ public:
 		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_NSTD)];
 	}
 	inline const l0::Subevent* getHASCSubevent() const {
-			return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_HASC)];
+		return L0Subevents[SourceIDManager::sourceIDToNum(SOURCE_ID_HASC)];
 	}
 
 // L1 dets
@@ -355,8 +383,7 @@ public:
 	/**
 	 * Get the received non zero suppressed LKr Event by the crateCREAMID
 	 */
-	inline l1::MEPFragment* getNonZSuppressedLkrFragment(
-			const uint_fast16_t crateCREAMID) const {
+	inline l1::MEPFragment* getNonZSuppressedLkrFragment(const uint_fast16_t crateCREAMID) const {
 		return nonSuppressedLkrFragmentsByCrateCREAMID.at(crateCREAMID);
 	}
 
@@ -379,8 +406,7 @@ public:
 		return nonZSuppressedDataRequestedNum != 0;
 	}
 
-	void setNonZSuppressedDataRequestedNum(
-			uint_fast16_t nonZSuppressedDataRequestedNum) {
+	void setNonZSuppressedDataRequestedNum(uint_fast16_t nonZSuppressedDataRequestedNum) {
 		this->nonZSuppressedDataRequestedNum = nonZSuppressedDataRequestedNum;
 	}
 
@@ -419,12 +445,10 @@ public:
 	 * Find the missing sourceIDs
 	 */
 	void updateMissingEventsStats();
-	static uint_fast64_t getMissingL0EventsBySourceNum(
-			const uint_fast16_t sourceNum) {
+	static uint_fast64_t getMissingL0EventsBySourceNum(const uint_fast16_t sourceNum) {
 		return MissingEventsBySourceNum_[sourceNum];
 	}
-	static uint_fast64_t getMissingL1EventsBySourceNum(
-			const uint_fast16_t sourceNum) {
+	static uint_fast64_t getMissingL1EventsBySourceNum(const uint_fast16_t sourceNum) {
 		return MissingL1EventsBySourceNum_[sourceNum];
 	}
 
@@ -471,7 +495,7 @@ public:
 		return l2ProcessingTime_;
 	}
 
-	uint_fast16_t getL0CallCounter() const{
+	uint_fast16_t getL0CallCounter() const {
 		return l0CallCounter_;
 	}
 	void setL1Requested() {
@@ -481,7 +505,7 @@ public:
 		return isL1Requested_;
 	}
 
-	uint_fast16_t getL1CallCounter() const{
+	uint_fast16_t getL1CallCounter() const {
 		return l1CallCounter_;
 	}
 
@@ -499,6 +523,8 @@ private:
 	}
 
 	void reset();
+
+	void resetTriggerWords();
 
 	bool storeNonZSuppressedLkrFragemnt(l1::MEPFragment* fragment);
 
@@ -535,7 +561,9 @@ private:
 
 	std::map<uint_fast16_t, l1::MEPFragment*> nonSuppressedLkrFragmentsByCrateCREAMID;
 
-	std::atomic<bool> L1Processed_; /// ATOMICCCCC !!!!
+	std::atomic<bool> L1Processed_;
+	std::array<uint_fast8_t, 16> l1TriggerWords_;
+	std::array<uint_fast8_t, 16> l2TriggerWords_;
 
 	std::atomic<bool> isL1Requested_;
 	std::atomic<uint_fast16_t> l0CallCounter_;
@@ -543,8 +571,6 @@ private:
 
 	std::atomic<bool> L2Accepted_;
 	std::atomic<bool> unfinished_;
-
-
 
 	std::atomic<bool> lastEventOfBurst_;
 

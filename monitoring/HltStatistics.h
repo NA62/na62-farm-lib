@@ -10,102 +10,115 @@
 
 #include <atomic>
 #include <eventBuilding/Event.h>
+#include <structs/Event.h>
+#include <sstream>
 
 namespace na62 {
-
 
 class HltStatistics {
 public:
 	HltStatistics();
 	virtual ~HltStatistics();
 	static void initialize();
-	static void updateL1Statistics(Event* event, uint_fast8_t l1TriggerTypeWord);
-	static void updateL2Statistics(Event* event, uint_fast8_t l2Trigger);
+	static void updateL1Statistics(Event* const event, uint_fast8_t l1Trigger);
+	static void updateL2Statistics(Event* const event, uint_fast8_t l2Trigger);
 	static void updateStorageStatistics();
 
-	static inline uint64_t GetL1InputEvents() {
-		return L1InputEvents_;
-	}
-	static inline uint64_t SumL1InputEvents(int amount) {
-		return L1InputEvents_.fetch_add(amount, std::memory_order_relaxed);
-	}
-
-	static inline uint64_t GetL1PhysicsStats() {
-		return L1PhysicsEvents_;
-	}
-	static inline uint64_t SumL1PhysicsStats(int amount) {
-		return L1PhysicsEvents_.fetch_add(amount, std::memory_order_relaxed);
-	}
-
-	static inline uint64_t GetL1PhysicsByMultipleMasksStats() {
-		return L1PhysicsEventsByMultipleMasks_;
-	}
-	static inline uint64_t SumL1PhysicsByMultipleMasksStats(int amount) {
-		return L1PhysicsEventsByMultipleMasks_.fetch_add(amount, std::memory_order_relaxed);
-	}
-
-	static inline std::atomic<uint64_t>* GetL1TriggerStats() {
+	//TODO remove
+	static inline std::atomic<uint64_t>* getL1TriggerStats() {
 		return L1Triggers_;
 	}
-	static inline std::atomic<uint64_t>* SumL1TriggerStats(int amount, uint_fast8_t l1Trigger) {
+	static inline std::atomic<uint64_t>* sumL1TriggerStats(int amount, uint_fast8_t l1Trigger) {
 		L1Triggers_[l1Trigger].fetch_add(amount, std::memory_order_relaxed);
 		return L1Triggers_;
 	}
 
-	static inline uint64_t GetL1InputEventsPerBurst() {
-		return L1InputEventsPerBurst_;
+	//TODO remove
+	static inline std::atomic<uint64_t>* getL2TriggerStats() {
+		return L2Triggers_;
 	}
-	static inline uint64_t SumL1InputEventsPerBurst(int amount) {
-		return L1InputEventsPerBurst_.fetch_add(amount, std::memory_order_relaxed);
-	}
-	static void ResetL1InputEventsPerBurst() {
-		L1InputEventsPerBurst_ = 0;
+	static inline std::atomic<uint64_t>* sumL2TriggerStats(int amount, uint_fast8_t l2Trigger) {
+		L2Triggers_[l2Trigger].fetch_add(amount, std::memory_order_relaxed);
+		return L2Triggers_;
 	}
 
 	//Functions to manipulate the maps
-	static inline uint64_t SumCounter(std::string key, uint amount) {
-		return cumulativeCounters_[key].fetch_add(amount, std::memory_order_relaxed);
+	static inline uint64_t sumCounter(std::string key, uint amount) {
+		return counters_[key].fetch_add(amount, std::memory_order_relaxed);
 	}
-	static inline uint64_t GetCounter(std::string key) {
-			return cumulativeCounters_[key];
+	static inline uint64_t getCounter(std::string key) {
+			return counters_[key];
 	}
 
-	static void CountersSnapshot() {
-		//coping all values in the snapshot map
-		for (auto& key: ExtractKeys()) {
-			cumulativeCountersSnapshot_[key] = GetCounter(key);
+	//Functions to manipulate the maps for multidimensional counter
+	static inline uint64_t sumDimensionalCounter(std::string key, uint array_index, uint amount) {
+		return dimensionalCounters_[key][array_index].fetch_add(amount, std::memory_order_relaxed);
+	}
+	static inline uint64_t getDimensionalCounter(std::string key, uint array_index) {
+			return dimensionalCounters_[key][array_index];
+	}
+
+	static void countersReset() {
+		for (auto& key: extractKeys()) {
+			counters_[key] = 0;
+		}
+		for (auto& key: extractDimensionalKeys()){
+			for(uint index=0; index<16; index++) {
+				dimensionalCounters_[key][index] = 0;
+			}
 		}
 	}
 
-	static uint64_t GetLastBurstCounter(std::string key) {
-		return cumulativeCounters_[key] - cumulativeCountersSnapshot_[key];
+	static uint64_t getRollingCounter(std::string key) {
+		return counters_[key];
 	}
 
-	static std::vector<std::string> ExtractKeys() {
+	static std::string serializeDimensionalCounter(std::string key) {
+		std::stringstream serializedConters;
+		for(uint index=0; index<16; index++) {
+			if(dimensionalCounters_[key][index] > 0) {//Zero suppression
+				serializedConters << index << ":" <<dimensionalCounters_[key][index] << ";";
+ 			}
+		}
+		return serializedConters.str();
+	}
+
+	static void printCounter(){
+		for (auto const& counter : counters_) {
+			    std::cout << counter.first << " => " << counter.second << '\n';
+		}
+	}
+	static void printDimensionalCounter(){
+		for (auto const& counter : dimensionalCounters_) {
+			for(uint i=0; i<16; i++)
+				std::cout << counter.first << " => " << counter.second[i] << '\n';
+		}
+	}
+
+	static std::vector<std::string> extractKeys() {
 		std::vector<std::string> keys;
-		for (auto const& counter : cumulativeCounters_) {
+		for (auto const& counter : counters_) {
 			keys.push_back(counter.first);
 		}
-	  return keys;
+		return keys;
+	}
+
+	static std::vector<std::string> extractDimensionalKeys() {
+		std::vector<std::string> keys;
+		for (auto const& counter : dimensionalCounters_) {
+			keys.push_back(counter.first);
+		}
+		return keys;
 	}
 
 private:
-	static std::atomic<uint64_t> L1InputEvents_;
-	static std::atomic<uint64_t> L1PhysicsEvents_;
-	static std::atomic<uint64_t> L1PhysicsEventsByMultipleMasks_;
 	static std::atomic<uint64_t>* L1Triggers_;
-	static std::atomic<uint64_t> L1InputEventsPerBurst_;
+	static std::atomic<uint64_t>* L2Triggers_;
 
-	//Map containing counters countinuously updated by the farm
-	static std::map<std::string, std::atomic<uint64_t>> cumulativeCounters_;
-	//Snapshot of counters at the last eob commands
-	static std::map<std::string, std::atomic<uint64_t>> cumulativeCountersSnapshot_;
-
+	//Map containing counters continuously updated by the farm
+	static std::map<std::string, std::atomic<uint64_t>> counters_;
+	static std::map<std::string, std::array<std::atomic<uint64_t>, 16>> dimensionalCounters_;
 };
-
-
-
-
 
 } /* namespace na62 */
 

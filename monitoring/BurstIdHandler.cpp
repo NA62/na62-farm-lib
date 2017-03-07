@@ -22,11 +22,15 @@
 #include "../l0/Subevent.h"
 #include "../structs/L0TPHeader.h"
 
+
+
+
 namespace na62 {
 boost::timer::cpu_timer BurstIdHandler::EOBReceivedTimer_;
 std::mutex BurstIdHandler::timerMutex_;
 uint BurstIdHandler::nextBurstId_;
-uint BurstIdHandler::currentBurstID_;
+uint BurstIdHandler::runNumber_ = 0;
+uint BurstIdHandler::currentBurstID_ = 0;
 
 std::atomic<bool> BurstIdHandler::running_(false);
 std::atomic<bool> BurstIdHandler::flushBurst_(false);
@@ -39,8 +43,7 @@ void BurstIdHandler::thread(){
 			// Mark that all further data shall be discarded
 			LOG_INFO("Preparing end of burst " << (int) BurstIdHandler::getCurrentBurstId());
 			BurstIdHandler::flushBurst_=true;
-		}
-		else if (  BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
+		} else if (BurstIdHandler::isInBurst() == false && BurstIdHandler::flushBurst_ == true && BurstIdHandler::getTimeSinceLastEOB() > 5.) {
 			// Flush all events
 			LOG_INFO("Cleanup of burst " << (int) BurstIdHandler::getCurrentBurstId());
 			//onBurstFinished();

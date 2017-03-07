@@ -20,6 +20,7 @@
 #include "../options/Logging.h"
 #include "../options/Options.h"
 
+
 namespace na62 {
 
 class BurstIdHandler: public AExecutable {
@@ -52,8 +53,13 @@ public:
 		return flushBurst_ ;
 	}
 
-	static void initialize(uint startBurstID, std::function<void()> burstCleanupFunction) {
+	static inline bool getRunNumber() {
+		return runNumber_ ;
+	}
+
+	static void initialize(uint startBurstID, uint runNumber, std::function<void()> burstCleanupFunction) {
 		currentBurstID_ = startBurstID;
+		runNumber_ = runNumber;
 		nextBurstId_ = currentBurstID_;
 		running_ = true;
 		flushBurst_ = false;
@@ -81,6 +87,7 @@ private:
 	 * the new burstID
 	 */
 	static uint nextBurstId_;
+	static uint runNumber_;
 	static uint currentBurstID_;
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;

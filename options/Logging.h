@@ -23,7 +23,7 @@
 		ERS_REPORT_IMPL( ers::error, ers::Message, message, ERS_EMPTY ); \
 	} } while(0)
 
-	#define LOG_INFO(message) 	ERS_DEBUG(3,message)
+	#define LOG_INFO(message) 	ERS_DEBUG(3, message)
 	#define LOG_ERROR(message)	ERS_ERROR(message)
 	#define LOG_WARNING(message)	ERS_WARNING(message)
 #else
