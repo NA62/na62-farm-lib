@@ -6,6 +6,7 @@
  */
 
 #include <monitoring/HltStatistics.h>
+#include <monitoring/BurstIdHandler.h>
 #include <array>
 
 namespace na62 {
@@ -15,7 +16,8 @@ std::atomic<uint64_t>* HltStatistics::L2Triggers_ = new std::atomic<uint64_t>[0x
 
 std::map<std::string, std::atomic<uint64_t>> HltStatistics::counters_;
 std::map<std::string, std::array<std::atomic<uint64_t>, 16>> HltStatistics::dimensionalCounters_;
-l1EOBInfo HltStatistics::l1EobStruct = l1EOBInfo();
+l1EOBInfo HltStatistics::l1EobStruct_;
+l2EOBInfo HltStatistics::l2EobStruct_;
 
 HltStatistics::HltStatistics() {
 	// TODO Auto-generated constructor stub
@@ -182,7 +184,67 @@ void HltStatistics::updateL2Statistics(Event* const event, uint_fast8_t l2Trigge
 void HltStatistics::updateStorageStatistics() {
 //	HltStatistics::sumCounter("CounterStorage", 1);
 }
+std::string HltStatistics::fillL1Eob() {
+	std::ostringstream eobStream;
 
+	//prepare header
+	l1EobStruct_.header.blockID = 0;
+	l1EobStruct_.header.length = sizeof(l1EOBInfo);
+	l1EobStruct_.header.detectorID = 0;
+	l1EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBtime();
+
+	eobStream << l1EobStruct_.header.blockID << l1EobStruct_.header.length << l1EobStruct_.header.detectorID << l1EobStruct_.header.eobTimestamp;
+	for (auto const& counter : counters_) {
+		if (counter.first == "L1InputEvents") {
+			l1EobStruct_.l1EobData.L1InputEvents = counter.second;
+			eobStream << l1EobStruct_.l1EobData.L1InputEvents;
+		}
+		if (counter.first == "L1SpecialEvents") {
+			l1EobStruct_.l1EobData.L1SpecialEvents = counter.second;
+			eobStream << l1EobStruct_.l1EobData.L1SpecialEvents ;
+		}
+		if (counter.first == "L1ControlEvents") {
+			l1EobStruct_.l1EobData.L1ControlEvents = counter.second;
+			eobStream << l1EobStruct_.l1EobData.L1ControlEvents;
+		}
+		if (counter.first == "L1PeriodicsEvents") {
+			l1EobStruct_.l1EobData.L1PeriodicsEvents = counter.second;
+			eobStream << l1EobStruct_.l1EobData.L1PeriodicsEvents;
+		}
+	}
+	return eobStream.str().c_str();
+}
+
+std::string HltStatistics::fillL2Eob() {
+	std::ostringstream eobStream;
+
+	//prepare header
+	l2EobStruct_.header.blockID = 0;
+	l2EobStruct_.header.length = sizeof(l2EOBInfo);
+	l2EobStruct_.header.detectorID = 0;
+	l2EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBtime();
+
+	eobStream << l2EobStruct_.header.blockID << l2EobStruct_.header.length << l2EobStruct_.header.detectorID << l2EobStruct_.header.eobTimestamp;
+	for (auto const& counter : counters_) {
+		if (counter.first == "L2InputEvents") {
+			l2EobStruct_.l2EobData.L2InputEvents = counter.second;
+			eobStream << l2EobStruct_.l2EobData.L2InputEvents;
+		}
+		if (counter.first == "L2SpecialEvents") {
+			l2EobStruct_.l2EobData.L2SpecialEvents = counter.second;
+			eobStream << l2EobStruct_.l2EobData.L2SpecialEvents ;
+		}
+		if (counter.first == "L2ControlEvents") {
+			l2EobStruct_.l2EobData.L2ControlEvents = counter.second;
+			eobStream << l2EobStruct_.l2EobData.L2ControlEvents;
+		}
+		if (counter.first == "L2PeriodicsEvents") {
+			l2EobStruct_.l2EobData.L2PeriodicsEvents = counter.second;
+			eobStream << l2EobStruct_.l2EobData.L2PeriodicsEvents;
+		}
+	}
+	return eobStream.str().c_str();
+}
 HltStatistics::~HltStatistics() {
 	// TODO Auto-generated destructor stub
 }

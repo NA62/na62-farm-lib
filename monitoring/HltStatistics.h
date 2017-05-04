@@ -15,12 +15,12 @@
 
 namespace na62 {
 
-typedef struct l1EobDataHdr_t {
+typedef struct EobDataHdr_t {
 	u_int16_t length; // number of 32-bit words including this header
 	u_int8_t blockID;
 	u_int8_t detectorID;
 	u_int32_t eobTimestamp;
-} l1EobDataHdr;
+} EobDataHdr;
 
 typedef struct l1EobCounter_t {
 	uint32_t L1InputEvents;
@@ -34,10 +34,27 @@ typedef struct l1EobCounter_t {
 	//l1MaskStruct l1Mask[16]; //for 16 L0 masks
 } l1EobCounter;
 
+typedef struct l2EobCounter_t {
+	uint32_t L2InputEvents;
+	uint32_t L2SpecialEvents;
+	uint32_t L2ControlEvents;
+	uint32_t L2PeriodicsEvents;
+	uint32_t L2PhysicsEvents;
+	uint32_t L2PhysicsEventsByMultipleMasks;
+	uint32_t L2OutputEvents;
+	//l1MaskStruct l1Mask[16]; //for 16 L0 masks
+} l2EobCounter;
+
+
 typedef struct l1EOBInfo_t { //add here burstID
-	l1EobDataHdr header;
+	EobDataHdr header;
 	l1EobCounter l1EobData;
 } l1EOBInfo;
+
+typedef struct l2EOBInfo_t { //add here burstID
+	EobDataHdr header;
+	l2EobCounter l2EobData;
+} l2EOBInfo;
 
 class HltStatistics {
 public:
@@ -72,10 +89,6 @@ public:
 	}
 	static inline uint64_t getCounter(std::string key) {
 		return counters_[key];
-	}
-
-	static inline l1EOBInfo getStruct() {
-		return l1EobStruct;
 	}
 
 	//Functions to manipulate the maps for multidimensional counter
@@ -138,20 +151,9 @@ public:
 		}
 		return keys;
 	}
+	static std::string fillL1Eob();
+	static std::string fillL2Eob();
 
-	static void fillEobStructWithCounter(l1EOBInfo &l1EobStruct) {
-		for (auto const& counter : counters_) {
-			if (counter.first == "L1InputEvents")
-				l1EobStruct.l1EobData.L1InputEvents = counter.second;
-			if (counter.first == "L1SpecialEvents")
-				l1EobStruct.l1EobData.L1SpecialEvents = counter.second;
-			if (counter.first == "L1ControlEvents")
-				l1EobStruct.l1EobData.L1ControlEvents = counter.second;
-			if (counter.first == "L1PeriodicsEvents")
-				l1EobStruct.l1EobData.L1PeriodicsEvents = counter.second;
-		}
-		return;
-	}
 
 private:
 	static std::atomic<uint64_t>* L1Triggers_;
@@ -161,7 +163,8 @@ private:
 	static std::map<std::string, std::atomic<uint64_t>> counters_;
 	static std::map<std::string, std::array<std::atomic<uint64_t>, 16>> dimensionalCounters_;
 
-	static l1EOBInfo l1EobStruct;
+	static l1EOBInfo l1EobStruct_;
+	static l2EOBInfo l2EobStruct_;
 };
 
 } /* namespace na62 */

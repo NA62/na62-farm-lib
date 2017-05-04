@@ -71,6 +71,12 @@ public:
 	}
 	void thread();
 
+	static void setEOBtime(uint eobTime) {
+		eobTime_= eobTime;
+    }
+	static uint getEOBtime() {
+		return eobTime_;
+    }
 private:
 	/**
 	 * Method is called every time the last event of a burst has been processed
@@ -92,6 +98,7 @@ private:
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;
 	static std::function<void()> burstCleanupFunction_;
+	static uint eobTime_;
 };
 
 }
