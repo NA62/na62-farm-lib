@@ -15,6 +15,7 @@ std::atomic<uint64_t>* HltStatistics::L2Triggers_ = new std::atomic<uint64_t>[0x
 
 std::map<std::string, std::atomic<uint64_t>> HltStatistics::counters_;
 std::map<std::string, std::array<std::atomic<uint64_t>, 16>> HltStatistics::dimensionalCounters_;
+l1EOBInfo HltStatistics::l1EobStruct = l1EOBInfo();
 
 HltStatistics::HltStatistics() {
 	// TODO Auto-generated constructor stub

@@ -15,6 +15,30 @@
 
 namespace na62 {
 
+typedef struct l1EobDataHdr_t {
+	u_int16_t length; // number of 32-bit words including this header
+	u_int8_t blockID;
+	u_int8_t detectorID;
+	u_int32_t eobTimestamp;
+} l1EobDataHdr;
+
+typedef struct l1EobCounter_t {
+	uint32_t L1InputEvents;
+	uint32_t L1SpecialEvents;
+	uint32_t L1ControlEvents;
+	uint32_t L1PeriodicsEvents;
+	uint32_t L1PhysicsEvents;
+	uint32_t L1PhysicsEventsByMultipleMasks;
+	uint32_t L1RequestToCreams;
+	uint32_t L1OutputEvents;
+	//l1MaskStruct l1Mask[16]; //for 16 L0 masks
+} l1EobCounter;
+
+typedef struct l1EOBInfo_t { //add here burstID
+	l1EobDataHdr header;
+	l1EobCounter l1EobData;
+} l1EOBInfo;
+
 class HltStatistics {
 public:
 	HltStatistics();
@@ -47,7 +71,11 @@ public:
 		return counters_[key].fetch_add(amount, std::memory_order_relaxed);
 	}
 	static inline uint64_t getCounter(std::string key) {
-			return counters_[key];
+		return counters_[key];
+	}
+
+	static inline l1EOBInfo getStruct() {
+		return l1EobStruct;
 	}
 
 	//Functions to manipulate the maps for multidimensional counter
@@ -55,15 +83,15 @@ public:
 		return dimensionalCounters_[key][array_index].fetch_add(amount, std::memory_order_relaxed);
 	}
 	static inline uint64_t getDimensionalCounter(std::string key, uint array_index) {
-			return dimensionalCounters_[key][array_index];
+		return dimensionalCounters_[key][array_index];
 	}
 
 	static void countersReset() {
-		for (auto& key: extractKeys()) {
+		for (auto& key : extractKeys()) {
 			counters_[key] = 0;
 		}
-		for (auto& key: extractDimensionalKeys()){
-			for(uint index=0; index<16; index++) {
+		for (auto& key : extractDimensionalKeys()) {
+			for (uint index = 0; index < 16; index++) {
 				dimensionalCounters_[key][index] = 0;
 			}
 		}
@@ -75,22 +103,22 @@ public:
 
 	static std::string serializeDimensionalCounter(std::string key) {
 		std::stringstream serializedConters;
-		for(uint index=0; index<16; index++) {
-			if(dimensionalCounters_[key][index] > 0) {//Zero suppression
-				serializedConters << index << ":" <<dimensionalCounters_[key][index] << ";";
- 			}
+		for (uint index = 0; index < 16; index++) {
+			if (dimensionalCounters_[key][index] > 0) { //Zero suppression
+				serializedConters << index << ":" << dimensionalCounters_[key][index] << ";";
+			}
 		}
 		return serializedConters.str();
 	}
 
-	static void printCounter(){
+	static void printCounter() {
 		for (auto const& counter : counters_) {
-			    std::cout << counter.first << " => " << counter.second << '\n';
+			std::cout << counter.first << " => " << counter.second << '\n';
 		}
 	}
-	static void printDimensionalCounter(){
+	static void printDimensionalCounter() {
 		for (auto const& counter : dimensionalCounters_) {
-			for(uint i=0; i<16; i++)
+			for (uint i = 0; i < 16; i++)
 				std::cout << counter.first << " => " << counter.second[i] << '\n';
 		}
 	}
@@ -111,6 +139,20 @@ public:
 		return keys;
 	}
 
+	static void fillEobStructWithCounter(l1EOBInfo &l1EobStruct) {
+		for (auto const& counter : counters_) {
+			if (counter.first == "L1InputEvents")
+				l1EobStruct.l1EobData.L1InputEvents = counter.second;
+			if (counter.first == "L1SpecialEvents")
+				l1EobStruct.l1EobData.L1SpecialEvents = counter.second;
+			if (counter.first == "L1ControlEvents")
+				l1EobStruct.l1EobData.L1ControlEvents = counter.second;
+			if (counter.first == "L1PeriodicsEvents")
+				l1EobStruct.l1EobData.L1PeriodicsEvents = counter.second;
+		}
+		return;
+	}
+
 private:
 	static std::atomic<uint64_t>* L1Triggers_;
 	static std::atomic<uint64_t>* L2Triggers_;
@@ -118,6 +160,8 @@ private:
 	//Map containing counters continuously updated by the farm
 	static std::map<std::string, std::atomic<uint64_t>> counters_;
 	static std::map<std::string, std::array<std::atomic<uint64_t>, 16>> dimensionalCounters_;
+
+	static l1EOBInfo l1EobStruct;
 };
 
 } /* namespace na62 */
