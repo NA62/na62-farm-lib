@@ -86,8 +86,8 @@ BurstFileWriter::~BurstFileWriter() {
 //	uint ownerID = pwd->pw_uid;
 //	uint groupID = pwd->pw_gid;
 //	chown(filePath_.c_str(), ownerID, groupID);
-	system(std::string("chown na62cdr:vl " + filePath_).data());
-
+	//system(std::string("chown na62cdr:vl " + filePath_).data());
+	system(std::string("chown na62cdr:root " + filePath_).data());
 	LOG_INFO("Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with " << Utils::FormatSize(dataRate) << "B/s");
 
 	delete[] hdr_;

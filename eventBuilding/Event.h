@@ -176,7 +176,12 @@ public:
 	void setL1TriggerWord(uint l0MaskId, uint_fast8_t triggerWord) {
 		l1TriggerWords_[l0MaskId] = triggerWord;
 	}
-
+	/**
+	 * Set the L1 trigger words (for a given mask id) after the L1 compute
+	 */
+	void setL1TriggerWords(std::array<uint_fast8_t, 16> triggerWords) {
+		l1TriggerWords_ = triggerWords;
+	}
 	/**
 	 * Return the L1 trigger word for a given mask id
 	 */

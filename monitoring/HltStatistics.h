@@ -60,7 +60,7 @@ class HltStatistics {
 public:
 	HltStatistics();
 	virtual ~HltStatistics();
-	static void initialize();
+	static void initialize(int logicalID);
 	static void updateL1Statistics(Event* const event, uint_fast8_t l1Trigger);
 	static void updateL2Statistics(Event* const event, uint_fast8_t l2Trigger);
 	static void updateStorageStatistics();
@@ -156,6 +156,7 @@ public:
 
 
 private:
+	static int logicalID_;
 	static std::atomic<uint64_t>* L1Triggers_;
 	static std::atomic<uint64_t>* L2Triggers_;
 

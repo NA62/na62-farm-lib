@@ -18,11 +18,14 @@ std::map<std::string, std::atomic<uint64_t>> HltStatistics::counters_;
 std::map<std::string, std::array<std::atomic<uint64_t>, 16>> HltStatistics::dimensionalCounters_;
 l1EOBInfo HltStatistics::l1EobStruct_;
 l2EOBInfo HltStatistics::l2EobStruct_;
+int HltStatistics::logicalID_=0;
 
 HltStatistics::HltStatistics() {
 	// TODO Auto-generated constructor stub
 }
-void HltStatistics::initialize() {
+void HltStatistics::initialize(int logicalID) {
+
+	logicalID_= logicalID;
 
 	counters_["L1InputEvents"] = 0;
 	counters_["L1SpecialEvents"] = 0;
@@ -188,10 +191,10 @@ std::string HltStatistics::fillL1Eob() {
 	std::ostringstream eobStream;
 
 	//prepare header
-	l1EobStruct_.header.blockID = 0;
+	l1EobStruct_.header.blockID = logicalID_;
 	l1EobStruct_.header.length = sizeof(l1EOBInfo);
-	l1EobStruct_.header.detectorID = 0;
-	l1EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBtime();
+	l1EobStruct_.header.detectorID = SOURCE_ID_L1;
+	l1EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBTime();
 
 	eobStream << l1EobStruct_.header.blockID << l1EobStruct_.header.length << l1EobStruct_.header.detectorID << l1EobStruct_.header.eobTimestamp;
 	for (auto const& counter : counters_) {
@@ -219,10 +222,10 @@ std::string HltStatistics::fillL2Eob() {
 	std::ostringstream eobStream;
 
 	//prepare header
-	l2EobStruct_.header.blockID = 0;
+	l2EobStruct_.header.blockID = logicalID_;
 	l2EobStruct_.header.length = sizeof(l2EOBInfo);
-	l2EobStruct_.header.detectorID = 0;
-	l2EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBtime();
+	l2EobStruct_.header.detectorID = SOURCE_ID_L2;
+	l2EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBTime();
 
 	eobStream << l2EobStruct_.header.blockID << l2EobStruct_.header.length << l2EobStruct_.header.detectorID << l2EobStruct_.header.eobTimestamp;
 	for (auto const& counter : counters_) {

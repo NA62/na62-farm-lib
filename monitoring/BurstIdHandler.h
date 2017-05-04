@@ -15,7 +15,8 @@
 #include <thread>
 #include <functional>
 #include "../utils/AExecutable.h"
-#include "FarmStatistics.h"
+//#include "FarmStatistics.h"
+#include <atomic>
 
 #include "../options/Logging.h"
 #include "../options/Options.h"
@@ -71,10 +72,10 @@ public:
 	}
 	void thread();
 
-	static void setEOBtime(uint eobTime) {
+	static void setEOBTime(uint eobTime) {
 		eobTime_= eobTime;
     }
-	static uint getEOBtime() {
+	static uint getEOBTime() {
 		return eobTime_;
     }
 private:

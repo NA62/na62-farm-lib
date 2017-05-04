@@ -31,10 +31,12 @@ std::mutex BurstIdHandler::timerMutex_;
 uint BurstIdHandler::nextBurstId_;
 uint BurstIdHandler::runNumber_ = 0;
 uint BurstIdHandler::currentBurstID_ = 0;
+uint BurstIdHandler::eobTime_ = 0;
 
 std::atomic<bool> BurstIdHandler::running_(false);
 std::atomic<bool> BurstIdHandler::flushBurst_(false);
 std::function<void()> BurstIdHandler::burstCleanupFunction_(nullptr);
+
 
 void BurstIdHandler::thread(){
 	while(BurstIdHandler::running_) {
