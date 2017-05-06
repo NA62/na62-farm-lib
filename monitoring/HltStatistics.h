@@ -23,13 +23,13 @@ typedef struct EobDataHdr_t {
 } EobDataHdr;
 
 typedef struct l1EobMaskCounter_t {
-	uint32_t L1InputEventsPerMask;
-	uint32_t L1AcceptedEventsPerMask;
+	uint16_t L1InputEventsPerMask;
+	uint16_t L1AcceptedEventsPerMask;
 } l1EobMaskCounter;
 
 typedef struct l2EobMaskCounter_t {
-	uint32_t L2InputEventsPerMask;
-	uint32_t L2AcceptedEventsPerMask;
+	uint16_t L2InputEventsPerMask;
+	uint16_t L2AcceptedEventsPerMask;
 } l2EobMaskCounter;
 
 typedef struct l1EobCounter_t {
