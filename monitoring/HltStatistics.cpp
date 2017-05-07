@@ -231,11 +231,11 @@ std::string HltStatistics::fillL1Eob() {
 	 * Any modifications must be flagged with a different data format !!!
 	 */
 
-	l1EobStruct_.l1EobData.dataFormat = 0;
+	l1EobStruct_.l1EobData.formatVersion = 0;
 	l1EobStruct_.l1EobData.timeoutFlag = (getCounter("L1TimeoutEvents") > 0);
 	l1EobStruct_.l1EobData.reserved = 0;
 
-	eobStream << l1EobStruct_.l1EobData.dataFormat << l1EobStruct_.l1EobData.timeoutFlag << l1EobStruct_.l1EobData.reserved;
+	eobStream << l1EobStruct_.l1EobData.formatVersion << l1EobStruct_.l1EobData.timeoutFlag << l1EobStruct_.l1EobData.reserved;
 
 	for (auto const& counter : counters_) {
 		if (counter.first == "L1InputEvents") {
@@ -329,11 +329,11 @@ std::string HltStatistics::fillL2Eob() {
 	 * Any modifications must be flagged with a different data format !!!
 	 */
 
-	l2EobStruct_.l2EobData.dataFormat = 0;
+	l2EobStruct_.l2EobData.formatVersion = 0;
 	l2EobStruct_.l2EobData.timeoutFlag = (getCounter("L2TimeoutEvents") > 0);
 	l2EobStruct_.l2EobData.reserved = 0;
 
-	eobStream << l2EobStruct_.l2EobData.dataFormat << l2EobStruct_.l2EobData.timeoutFlag << l2EobStruct_.l2EobData.reserved;
+	eobStream << l2EobStruct_.l2EobData.formatVersion << l2EobStruct_.l2EobData.timeoutFlag << l2EobStruct_.l2EobData.reserved;
 
 	for (auto const& counter : counters_) {
 		if (counter.first == "L2InputEvents") {

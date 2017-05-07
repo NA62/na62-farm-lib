@@ -16,24 +16,24 @@
 namespace na62 {
 
 typedef struct EobDataHdr_t {
-	u_int16_t length; // number of 32-bit words including this header
-	u_int8_t blockID;
-	u_int8_t detectorID;
-	u_int32_t eobTimestamp;
+	uint16_t length; // number of 32-bit words including this header
+	uint8_t blockID;
+	uint8_t detectorID;
+	uint32_t eobTimestamp;
 } EobDataHdr;
 
 typedef struct l1EobMaskCounter_t {
-	uint16_t L1InputEventsPerMask;
-	uint16_t L1AcceptedEventsPerMask;
+	uint32_t L1InputEventsPerMask;
+	uint32_t L1AcceptedEventsPerMask;
 } l1EobMaskCounter;
 
 typedef struct l2EobMaskCounter_t {
-	uint16_t L2InputEventsPerMask;
-	uint16_t L2AcceptedEventsPerMask;
+	uint32_t L2InputEventsPerMask;
+	uint32_t L2AcceptedEventsPerMask;
 } l2EobMaskCounter;
 
 typedef struct l1EobCounter_t {
-	uint8_t dataFormat;
+	uint8_t formatVersion;
 	uint8_t timeoutFlag;
 	uint16_t reserved;
 	uint32_t L1InputEvents;
@@ -54,7 +54,7 @@ typedef struct l1EobCounter_t {
 } l1EobCounter;
 
 typedef struct l2EobCounter_t {
-	uint8_t dataFormat;
+	uint8_t formatVersion;
 	uint8_t timeoutFlag;
 	uint16_t reserved;
 	uint32_t L2InputEvents;
@@ -187,7 +187,6 @@ public:
 
 	static std::string fillL1Eob();
 	static std::string fillL2Eob();
-
 
 private:
 	static int logicalID_;
