@@ -127,7 +127,7 @@ public:
 	}
 
 	//Counters reset at EOB timestamp
-	static void countersReset() {
+	static void resetCounters() {
 		for (auto& key : extractKeys()) {
 			counters_[key] = 0;
 		}

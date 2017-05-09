@@ -518,6 +518,7 @@ public:
 #endif
 
 	static void initialize(bool printCompletedSourceIDs);
+	static void resetCounters();
 
 private:
 	void setBurstID(const uint_fast32_t burstID) {

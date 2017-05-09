@@ -76,6 +76,7 @@ void HltStatistics::updateL1Statistics(Event* const event, uint_fast8_t l1Trigge
 	 */
 	uint_fast16_t l0TrigFlags = event->getTriggerFlags();
 	HltStatistics::sumCounter("L1InputEvents", 1);
+	//LOG_INFO("Update L1 Statistics: L1InputsEvents: " << HltStatistics::getCounter("L1InputEvents"));
 
 	/*
 	 *Special triggers are all counted together
