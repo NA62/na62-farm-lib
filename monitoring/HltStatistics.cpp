@@ -209,8 +209,9 @@ void HltStatistics::updateL2Statistics(Event* const event, uint_fast8_t l2Trigge
 	}
 }
 
-void HltStatistics::updateStorageStatistics() {
-//	HltStatistics::sumCounter("CounterStorage", 1);
+void HltStatistics::updateStorageStatistics(uint64_t BytesSentToStorage) {
+	HltStatistics::sumCounter("EventsToMerger", 1);
+	HltStatistics::sumCounter("BytesToMerger", BytesSentToStorage);
 }
 
 std::string HltStatistics::fillL1Eob() {
@@ -322,8 +323,8 @@ std::string HltStatistics::fillL2Eob() {
 	l2EobStruct_.header.detectorID = SOURCE_ID_L2;
 	l2EobStruct_.header.eobTimestamp = BurstIdHandler::getEOBTime();
 
-	eobStream << l2EobStruct_.header.blockID << l2EobStruct_.header.length << l2EobStruct_.header.detectorID
-			<< l2EobStruct_.header.eobTimestamp;
+	eobStream << l2EobStruct_.header.blockID << " "<<l2EobStruct_.header.length << " "<<l2EobStruct_.header.detectorID
+			<< " "<<l2EobStruct_.header.eobTimestamp<< " ";
 
 	/*
 	 * Fill EOB data - A change here will affect the event data format.
@@ -334,71 +335,71 @@ std::string HltStatistics::fillL2Eob() {
 	l2EobStruct_.l2EobData.timeoutFlag = (getCounter("L2TimeoutEvents") > 0);
 	l2EobStruct_.l2EobData.reserved = 0;
 
-	eobStream << l2EobStruct_.l2EobData.formatVersion << l2EobStruct_.l2EobData.timeoutFlag << l2EobStruct_.l2EobData.reserved;
+	eobStream << l2EobStruct_.l2EobData.formatVersion << " "<<l2EobStruct_.l2EobData.timeoutFlag << " "<<l2EobStruct_.l2EobData.reserved ;
 
 	for (auto const& counter : counters_) {
 		if (counter.first == "L2InputEvents") {
 			l2EobStruct_.l2EobData.L2InputEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2InputEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2InputEvents;
 		}
 		if (counter.first == "L2SpecialEvents") {
 			l2EobStruct_.l2EobData.L2SpecialEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2SpecialEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2SpecialEvents;
 		}
 		if (counter.first == "L2ControlEvents") {
 			l2EobStruct_.l2EobData.L2ControlEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2ControlEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2ControlEvents;
 		}
 		if (counter.first == "L2PeriodicsEvents") {
 			l2EobStruct_.l2EobData.L2PeriodicsEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2PeriodicsEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2PeriodicsEvents;
 		}
 		if (counter.first == "L2PhysicsEvents") {
 			l2EobStruct_.l2EobData.L2PhysicsEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2PhysicsEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2PhysicsEvents;
 		}
 		if (counter.first == "L2PhysicsEventsByMultipleMasks") {
 			l2EobStruct_.l2EobData.L2PhysicsEventsByMultipleMasks = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2PhysicsEventsByMultipleMasks;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2PhysicsEventsByMultipleMasks;
 		}
 		if (counter.first == "L2OutputEvents") {
 			l2EobStruct_.l2EobData.L2OutputEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2OutputEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2OutputEvents;
 		}
 		if (counter.first == "L2AcceptedEvents") {
 			l2EobStruct_.l2EobData.L2AcceptedEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2AcceptedEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2AcceptedEvents;
 		}
 		if (counter.first == "L2TimeoutEvents") {
 			l2EobStruct_.l2EobData.L2TimeoutEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2TimeoutEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2TimeoutEvents;
 		}
 		if (counter.first == "L2AllDisabledEvents") {
 			l2EobStruct_.l2EobData.L2AllDisabledEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2AllDisabledEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2AllDisabledEvents;
 		}
 		if (counter.first == "L2BypassEvents") {
 			l2EobStruct_.l2EobData.L2BypassEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2BypassEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2BypassEvents;
 		}
 		if (counter.first == "L2FlagAlgoEvents") {
 			l2EobStruct_.l2EobData.L2FlagAlgoEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2FlagAlgoEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2FlagAlgoEvents;
 		}
 		if (counter.first == "L2AutoPassEvents") {
 			l2EobStruct_.l2EobData.L2AutoPassEvents = counter.second;
-			eobStream << l2EobStruct_.l2EobData.L2AutoPassEvents;
+			eobStream << " "<<l2EobStruct_.l2EobData.L2AutoPassEvents;
 		}
 	}
 	for (auto const& dimCounter : dimensionalCounters_) {
 		for (uint i = 0; i < 16; i++) {
 			if (dimCounter.first == "L2InputEventsPerMask") {
 				l2EobStruct_.l2EobData.l2Mask[i].L2InputEventsPerMask = dimCounter.second[i];
-				eobStream << l2EobStruct_.l2EobData.l2Mask[i].L2InputEventsPerMask;
+				eobStream << " "<<l2EobStruct_.l2EobData.l2Mask[i].L2InputEventsPerMask;
 			}
 			if (dimCounter.first == "L2AcceptedEventsPerMask") {
 				l2EobStruct_.l2EobData.l2Mask[i].L2AcceptedEventsPerMask = dimCounter.second[i];
-				eobStream << l2EobStruct_.l2EobData.l2Mask[i].L2AcceptedEventsPerMask;
+				eobStream << " "<<l2EobStruct_.l2EobData.l2Mask[i].L2AcceptedEventsPerMask;
 			}
 		}
 	}
