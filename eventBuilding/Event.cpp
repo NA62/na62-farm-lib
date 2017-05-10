@@ -170,7 +170,10 @@ void Event::initialize(bool printCompletedSourceIDs) {
 	Event::printCompletedSourceIDs_ = printCompletedSourceIDs;
 	Event::MissingEventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L0_DATA_SOURCES];
 	Event::MissingL1EventsBySourceNum_ = new std::atomic<uint64_t>[SourceIDManager::NUMBER_OF_L1_DATA_SOURCES];
+	resetCounters();
 
+}
+void Event::resetCounters() {
 	for (size_t i = 0; i != SourceIDManager::NUMBER_OF_L0_DATA_SOURCES; ++i)
 		MissingEventsBySourceNum_[i] = 0;
 	for (size_t i = 0; i != SourceIDManager::NUMBER_OF_L1_DATA_SOURCES; ++i)

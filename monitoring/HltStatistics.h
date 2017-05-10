@@ -90,7 +90,7 @@ public:
 	static void initialize(int logicalID);
 	static void updateL1Statistics(Event* const event, uint_fast8_t l1Trigger);
 	static void updateL2Statistics(Event* const event, uint_fast8_t l2Trigger);
-	static void updateStorageStatistics();
+	static void updateStorageStatistics(uint64_t BytesSentToStorage);
 
 	//TODO remove
 	static inline std::atomic<uint64_t>* getL1TriggerStats() {
@@ -127,7 +127,7 @@ public:
 	}
 
 	//Counters reset at EOB timestamp
-	static void countersReset() {
+	static void resetCounters() {
 		for (auto& key : extractKeys()) {
 			counters_[key] = 0;
 		}
