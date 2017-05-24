@@ -31,7 +31,8 @@ std::mutex BurstIdHandler::timerMutex_;
 uint BurstIdHandler::nextBurstId_;
 uint BurstIdHandler::runNumber_ = 0;
 uint BurstIdHandler::currentBurstID_ = 0;
-uint BurstIdHandler::eobTime_ = 0;
+std::atomic<uint> BurstIdHandler::eobTime_(0);
+std::atomic<uint> BurstIdHandler::sobTime_(0);
 
 std::atomic<bool> BurstIdHandler::running_(false);
 std::atomic<bool> BurstIdHandler::flushBurst_(false);

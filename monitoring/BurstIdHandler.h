@@ -78,6 +78,12 @@ public:
 	static uint getEOBTime() {
 		return eobTime_;
     }
+	static void setSOBTime(uint sobTime) {
+		sobTime_= sobTime;
+    }
+	static uint getSOBTime() {
+		return sobTime_;
+    }
 private:
 	/**
 	 * Method is called every time the last event of a burst has been processed
@@ -99,7 +105,8 @@ private:
 	static std::atomic<bool> running_;
 	static std::atomic<bool> flushBurst_;
 	static std::function<void()> burstCleanupFunction_;
-	static uint eobTime_;
+	static std::atomic<uint> eobTime_;
+	static std::atomic<uint> sobTime_;
 };
 
 }
