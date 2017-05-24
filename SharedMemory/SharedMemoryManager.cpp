@@ -35,8 +35,8 @@ void SharedMemoryManager::initialize(){
 	l1_shared_memory_fragment_size_= sizeof(l1_SerializedEvent);
 
 	//l1_mem_size_ =  1000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent) // Local test configuration
-	l1_mem_size_ = 500000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent) // Farm configuration
-
+	//l1_mem_size_ = 500000000;  //in bytes relationship: num events < l1_mem_size/sizeof(l1_SerializedEvent) (by a small percent) // Farm configuration
+	l1_mem_size_ = 750000000;
 	//This is an initial value estimated from the size of the memory and the size of the structure
 	//Can be decreased during the initialization of the big array
 	l1_num_events_ = l1_mem_size_ /l1_shared_memory_fragment_size_; //bytes

@@ -162,6 +162,13 @@ public:
 			return false;
 		}
 	}
+	static inline void clearTriggerQueue() {
+		TriggerMessager trigger_message;
+		unsigned int priority = 0;
+		while (SharedMemoryManager::getTriggerQueue()->get_num_msg() != 0) {
+			SharedMemoryManager::popTriggerQueue(trigger_message, priority);
+		}
+	}
 
 	static inline bool eraseTriggerResponseQueue() {
 		try {
