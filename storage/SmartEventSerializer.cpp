@@ -65,7 +65,7 @@ EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event) {
 EVENT_HDR* SmartEventSerializer::SerializeEvent(const Event* event, l1_SerializedEvent* seriale) {
 	uint eventBufferSize = sizeof(l1_SerializedEvent); //Set the length of the buffersize equal to the size of the fragment of the shared memory
 	char* eventBuffer = (char*) seriale;
-	bool isInitialEventBufferSizeFixed = true; //Lenght can't change
+	bool isInitialEventBufferSizeFixed = true; //Length can't change
 	return SmartEventSerializer::doSerialization(event, eventBuffer, eventBufferSize, isInitialEventBufferSizeFixed);
 }
 
