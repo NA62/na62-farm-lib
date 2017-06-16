@@ -38,7 +38,7 @@ public:
 	~BurstFileWriter();
 
 	void writeEvent(const EVENT_HDR* event);
-
+	bool doChown(std::string file_path, std::string user_name, std::string group_name);
 	void writeBkmFile(const std::string bkmDir);
 
 private:

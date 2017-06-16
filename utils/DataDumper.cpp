@@ -56,7 +56,7 @@ void DataDumper::dumpToFile(std::string fileName, const std::string storageDir,
 	} else {
 		myfile.write(data, length);
 	}
-
+	LOG_INFO("Closing file " << filePath);
 	myfile.close();
 }
 
