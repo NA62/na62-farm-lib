@@ -257,7 +257,7 @@ public:
 		triggerFlags_ = triggerFlags;
 	}
 
-	uint_fast8_t getTriggerFlags() const {
+	uint_fast16_t getTriggerFlags() const {
 		return triggerFlags_;
 	}
 
