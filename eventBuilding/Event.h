@@ -257,7 +257,7 @@ public:
 		triggerFlags_ = triggerFlags;
 	}
 
-	uint_fast8_t getTriggerFlags() const {
+	uint_fast16_t getTriggerFlags() const {
 		return triggerFlags_;
 	}
 
@@ -504,6 +504,11 @@ public:
 	uint_fast16_t getL0CallCounter() const {
 		return l0CallCounter_;
 	}
+
+	uint_fast32_t getSOBtimestamp() const {
+		return SOBtimestamp_;
+	}
+
 	void setL1Requested() {
 		isL1Requested_ = true;
 	}
@@ -524,6 +529,11 @@ private:
 	void setBurstID(const uint_fast32_t burstID) {
 		burstID_ = burstID;
 	}
+	void setSOBtimestamp(const uint_fast32_t SOBtimestamp) {
+		SOBtimestamp_ = SOBtimestamp;
+	}
+
+
 
 	void setEventNumber(uint_fast32_t eventNumber) {
 		eventNumber_ = eventNumber;

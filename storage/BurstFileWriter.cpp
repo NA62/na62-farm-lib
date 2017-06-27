@@ -13,9 +13,11 @@
 #include <boost/date_time/time.hpp>
 #include <boost/date_time/time_duration.hpp>
 #include <pwd.h>
+#include <grp.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <ctime>
+
 
 #include "../options/Logging.h"
 #include "../structs/BurstFile.h"
@@ -78,19 +80,32 @@ BurstFileWriter::~BurstFileWriter() {
 		dataRate = bytesWritten_ / msec * 1000; // B/s
 	}
 
-//	std::stringstream chownCommand;
-//	chownCommand << "chown na62cdr:vl " << filePath;
-//	system(chownCommand.str().c_str());
-
-//	struct passwd *pwd = getpwnam("na62cdr"); /* don't free, see getpwnam() for details */
-//	uint ownerID = pwd->pw_uid;
-//	uint groupID = pwd->pw_gid;
-//	chown(filePath_.c_str(), ownerID, groupID);
-	//system(std::string("chown na62cdr:vl " + filePath_).data());
-	system(std::string("chown na62cdr:root " + filePath_).data());
-	LOG_INFO("Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with " << Utils::FormatSize(dataRate) << "B/s");
+	LOG_ERROR("Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with " << Utils::FormatSize(dataRate) << "B/s");
 
 	delete[] hdr_;
+}
+
+bool BurstFileWriter::doChown(std::string file_path, std::string user_name, std::string group_name) {
+
+	struct passwd* pwd = getpwnam(user_name.c_str());
+	if (pwd == NULL) {
+		LOG_ERROR("Failed to get uid");
+		raise;
+	}
+	uid_t uid = pwd->pw_uid;
+
+	struct group* grp = getgrnam(group_name.c_str());
+	if (grp == NULL) {
+		LOG_ERROR("Failed to get gid");
+		raise;
+	}
+	gid_t  gid = grp->gr_gid;
+
+	if (chown(file_path.c_str(), uid, gid) == -1) {
+		LOG_ERROR("chown fail");
+		return false;
+	}
+	return true;
 }
 
 void BurstFileWriter::writeEvent(const EVENT_HDR* event) {

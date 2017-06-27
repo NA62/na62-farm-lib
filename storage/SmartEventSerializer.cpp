@@ -102,6 +102,7 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 	header->reserved2 = 0;
 	header->processingID = event->getProcessingID();
 	header->SOBtimestamp = 0; // Will be set by the merger
+	//header->SOBtimestamp = event->getSOBtimestamp();
 
 	if (isUnfinishedEOB) {
 		header->triggerWord = 0xfefe23;
