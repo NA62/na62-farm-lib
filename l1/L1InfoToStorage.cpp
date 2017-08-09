@@ -17,13 +17,15 @@ L1InfoToStorage::L1InfoToStorage() {
 	newchodTime_ = 0.;
 	refTimeL0TP_ = 0;
 
-	l1CHODTrgWrd_ = 0;
-	l1KTAGTrgWrd_ = 0;
-	l1LAVTrgWrd_ = 0;
-	l1IRCSACTrgWrd_ = 0;
-	l1StrawTrgWrd_ = 0;
-	l1MUV3TrgWrd_ = 0;
-	l1NewCHODTrgWrd_ = 0;
+	for (uint il0Mask = 0; il0Mask != 16; il0Mask++) {
+		l1CHODTrgWrd_[il0Mask] = 0;
+		l1KTAGTrgWrd_[il0Mask] = 0;
+		l1LAVTrgWrd_[il0Mask] = 0;
+		l1IRCSACTrgWrd_[il0Mask] = 0;
+		l1StrawTrgWrd_[il0Mask] = 0;
+		l1MUV3TrgWrd_[il0Mask] = 0;
+		l1NewCHODTrgWrd_[il0Mask] = 0;
+	}
 
 	l1CHODProcessed_ = false;
 	l1KTAGProcessed_ = false;
@@ -71,53 +73,53 @@ L1InfoToStorage::L1InfoToStorage() {
 L1InfoToStorage::~L1InfoToStorage() {
 }
 
-uint_fast8_t L1InfoToStorage::getL1CHODTrgWrd() {
-	return l1CHODTrgWrd_;
+uint_fast8_t L1InfoToStorage::getL1CHODTrgWrd(uint l0MaskID) {
+	return l1CHODTrgWrd_[l0MaskID];
 }
-void L1InfoToStorage::setL1CHODTrgWrd(uint_fast8_t trigger) {
-	l1CHODTrgWrd_ = trigger;
-}
-
-uint_fast8_t L1InfoToStorage::getL1KTAGTrgWrd() {
-	return l1KTAGTrgWrd_;
-}
-void L1InfoToStorage::setL1KTAGTrgWrd(uint_fast8_t trigger) {
-	l1KTAGTrgWrd_ = trigger;
+void L1InfoToStorage::setL1CHODTrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1CHODTrgWrd_[l0MaskID] = trigger;
 }
 
-uint_fast8_t L1InfoToStorage::getL1LAVTrgWrd() {
-	return l1LAVTrgWrd_;
+uint_fast8_t L1InfoToStorage::getL1KTAGTrgWrd(uint l0MaskID) {
+	return l1KTAGTrgWrd_[l0MaskID];
 }
-void L1InfoToStorage::setL1LAVTrgWrd(uint_fast8_t trigger) {
-	l1LAVTrgWrd_ = trigger;
-}
-
-uint_fast8_t L1InfoToStorage::getL1IRCSACTrgWrd() {
-	return l1IRCSACTrgWrd_;
-}
-void L1InfoToStorage::setL1IRCSACTrgWrd(uint_fast8_t trigger) {
-	l1IRCSACTrgWrd_ = trigger;
+void L1InfoToStorage::setL1KTAGTrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1KTAGTrgWrd_[l0MaskID] = trigger;
 }
 
-uint_fast8_t L1InfoToStorage::getL1StrawTrgWrd() {
-	return l1StrawTrgWrd_;
+uint_fast8_t L1InfoToStorage::getL1LAVTrgWrd(uint l0MaskID) {
+	return l1LAVTrgWrd_[l0MaskID];
 }
-void L1InfoToStorage::setL1StrawTrgWrd(uint_fast8_t trigger) {
-	l1StrawTrgWrd_ = trigger;
-}
-
-uint_fast8_t L1InfoToStorage::getL1MUV3TrgWrd() {
-	return l1MUV3TrgWrd_;
-}
-void L1InfoToStorage::setL1MUV3TrgWrd(uint_fast8_t trigger) {
-	l1MUV3TrgWrd_ = trigger;
+void L1InfoToStorage::setL1LAVTrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1LAVTrgWrd_[l0MaskID] = trigger;
 }
 
-uint_fast8_t L1InfoToStorage::getL1NewCHODTrgWrd() {
-	return l1NewCHODTrgWrd_;
+uint_fast8_t L1InfoToStorage::getL1IRCSACTrgWrd(uint l0MaskID) {
+	return l1IRCSACTrgWrd_[l0MaskID];
 }
-void L1InfoToStorage::setL1NewCHODTrgWrd(uint_fast8_t trigger) {
-	l1NewCHODTrgWrd_ = trigger;
+void L1InfoToStorage::setL1IRCSACTrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1IRCSACTrgWrd_[l0MaskID] = trigger;
+}
+
+uint_fast8_t L1InfoToStorage::getL1StrawTrgWrd(uint l0MaskID) {
+	return l1StrawTrgWrd_[l0MaskID];
+}
+void L1InfoToStorage::setL1StrawTrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1StrawTrgWrd_[l0MaskID] = trigger;
+}
+
+uint_fast8_t L1InfoToStorage::getL1MUV3TrgWrd(uint l0MaskID) {
+	return l1MUV3TrgWrd_[l0MaskID];
+}
+void L1InfoToStorage::setL1MUV3TrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1MUV3TrgWrd_[l0MaskID] = trigger;
+}
+
+uint_fast8_t L1InfoToStorage::getL1NewCHODTrgWrd(uint l0MaskID) {
+	return l1NewCHODTrgWrd_[l0MaskID];
+}
+void L1InfoToStorage::setL1NewCHODTrgWrd(uint l0MaskID, uint_fast8_t trigger) {
+	l1NewCHODTrgWrd_[l0MaskID] = trigger;
 }
 
 uint_fast8_t L1InfoToStorage::getL1RefTimeL0TP() {

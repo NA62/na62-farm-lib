@@ -20,26 +20,26 @@ public:
 	L1InfoToStorage();
 	~L1InfoToStorage();
 
-	uint_fast8_t getL1CHODTrgWrd();
-	void setL1CHODTrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1CHODTrgWrd(uint l0MaskID);
+	void setL1CHODTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
-	uint_fast8_t getL1KTAGTrgWrd();
-	void setL1KTAGTrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1KTAGTrgWrd(uint l0MaskID);
+	void setL1KTAGTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
-	uint_fast8_t getL1LAVTrgWrd();
-	void setL1LAVTrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1LAVTrgWrd(uint l0MaskID);
+	void setL1LAVTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
-	uint_fast8_t getL1IRCSACTrgWrd();
-	void setL1IRCSACTrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1IRCSACTrgWrd(uint l0MaskID);
+	void setL1IRCSACTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
-	uint_fast8_t getL1MUV3TrgWrd();
-	void setL1MUV3TrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1MUV3TrgWrd(uint l0MaskID);
+	void setL1MUV3TrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
-	uint_fast8_t getL1NewCHODTrgWrd();
-	void setL1NewCHODTrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1NewCHODTrgWrd(uint l0MaskID);
+	void setL1NewCHODTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
-	uint_fast8_t getL1StrawTrgWrd();
-	void setL1StrawTrgWrd(uint_fast8_t trigger);
+	uint_fast8_t getL1StrawTrgWrd(uint l0MaskID);
+	void setL1StrawTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
 	uint_fast8_t getL1RefTimeL0TP();
 	void setL1RefTimeL0TP(uint_fast8_t time);
@@ -252,13 +252,13 @@ private:
 	double newchodTime_;
 	uint_fast8_t refTimeL0TP_;
 
-	uint_fast8_t l1CHODTrgWrd_;
-	uint_fast8_t l1KTAGTrgWrd_;
-	uint_fast8_t l1LAVTrgWrd_;
-	uint_fast8_t l1IRCSACTrgWrd_;
-	uint_fast8_t l1StrawTrgWrd_;
-	uint_fast8_t l1MUV3TrgWrd_;
-	uint_fast8_t l1NewCHODTrgWrd_;
+	uint_fast8_t l1CHODTrgWrd_[16];
+	uint_fast8_t l1KTAGTrgWrd_[16];
+	uint_fast8_t l1LAVTrgWrd_[16];
+	uint_fast8_t l1IRCSACTrgWrd_[16];
+	uint_fast8_t l1StrawTrgWrd_[16];
+	uint_fast8_t l1MUV3TrgWrd_[16];
+	uint_fast8_t l1NewCHODTrgWrd_[16];
 
 	bool l1CHODProcessed_;
 	bool l1KTAGProcessed_;
