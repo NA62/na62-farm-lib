@@ -60,6 +60,14 @@ ERS_DECLARE_ISSUE_BASE( na62,
 						((uint) eventNumber ) ((std::string) detector )  ((uint) subSourceID )
 								   )
 ERS_DECLARE_ISSUE_BASE( na62,
+					UnexpectedFragmentLKR,
+					na62::Message,
+					"Unexpected fragment with event number " << eventNumber << " received from detector " << detector << ", Crate: " <<  crate
+					<< " Slot: " << slot,
+					ERS_EMPTY,
+					((uint) eventNumber ) ((std::string) detector )  ((uint) crate ) ((uint) slot )
+							   )
+ERS_DECLARE_ISSUE_BASE( na62,
 						UnrequestedFragment,
 						na62::Message,
 						"L1 Fragment with event number " << eventNumber << " received from detector " << detector << ", subsourceID 0x" << std::hex << subSourceID

@@ -80,7 +80,7 @@ BurstFileWriter::~BurstFileWriter() {
 		dataRate = bytesWritten_ / msec * 1000; // B/s
 	}
 
-	LOG_ERROR("Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with " << Utils::FormatSize(dataRate) << "B/s");
+	LOG_INFO("Wrote burst " << hdr_->burstID << " with " << hdr_->numberOfEvents << " events and " << bytesWritten_ << "B with " << Utils::FormatSize(dataRate) << "B/s");
 
 	delete[] hdr_;
 }
