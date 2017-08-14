@@ -75,7 +75,14 @@ ERS_DECLARE_ISSUE_BASE( na62,
 						ERS_EMPTY,
 						((uint) eventNumber ) ((std::string) detector )  ((uint) subSourceID )
 								   )
-
+   ERS_DECLARE_ISSUE_BASE( na62,
+						UnrequestedFragmentLKR,
+						na62::Message,
+						"L1 Fragment with event number " << eventNumber << " received from detector " << detector << ", Crate: " <<  crate
+						<< " Slot: " << slot << ". It was not requested yet.",
+						ERS_EMPTY,
+						((uint) eventNumber ) ((std::string) detector )  ((uint) crate ) ((uint) slot )
+								   )
 ERS_DECLARE_ISSUE_BASE( na62,
 						DuplicateFragment,
 						na62::Message,

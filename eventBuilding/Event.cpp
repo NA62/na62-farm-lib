@@ -31,6 +31,7 @@
 #include "../utils/DataDumper.h"
 #include "EventPool.h"
 #include "UnfinishedEventsCollector.h"
+#include <structs/LkrCrateSlotDecoder.h>
 
 namespace na62 {
 
@@ -294,7 +295,16 @@ bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 
 	if (!L1Processed_) {
 #ifdef USE_ERS
-		ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), fragment->getSourceSubID()));
+		uint_fast8_t source_sub_id = fragment->getSourceSubID();
+		if (SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()) == "LKR") {
+			lkr_crate_slot_decoder crateslot(source_sub_id);
+			ers::error(UnrequestedFragmentLKR(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(fragment->getSourceID()), crateslot.getCrate(), crateslot.getSlot()));
+		} else {
+			ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(source_sub_id), fragment->getSourceSubID()));
+		}
+
+
+
 #else
 		LOG_ERROR("Seems that L1 processed has not been set!");
 		LOG_ERROR(
