@@ -22,7 +22,7 @@ AExecutable::AExecutable() :
 }
 
 AExecutable::~AExecutable() {
-	delete thread_;
+	//delete thread_;
 }
 
 void AExecutable::SetThreadAffinity(boost::thread* daThread, int threadPriority, short CPUToBind, int scheduler) {
