@@ -132,7 +132,6 @@ void Options::Initialize(int argc, char* argv[], po::options_description desc) {
 	ers::Configuration::instance().debug_level(Options::GetInt(OPTION_VERBOSITY));
 	ers::Configuration::instance().verbosity_level(1);
 	if (Options::GetInt(OPTION_LOGTOSTDERR) == false) {
-		time_t now = time(0);
 		// Convert now to tm struct for local timezone
 		std::time_t result = std::time(nullptr);
 

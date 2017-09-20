@@ -43,7 +43,7 @@ MEPFragment::MEPFragment(MEP* mep, const MEPFragment_HDR *data,
 		LOG_INFO("++++++++++++++ExpEvtNum " << (uint)expectedEventNum);
 
 		int* d=(int*)data;
-		for (int ilength = 0; ilength < sizeof(MEPFragment_HDR)/4;
+		for (uint ilength = 0; ilength < sizeof(MEPFragment_HDR)/4;
 				ilength++) {
 			LOG_INFO("++++++++++++MEP fragment (sizeof(MEPFragment_HDR)) " << (int)(sizeof(MEPFragment_HDR))
 			<< " index " << (int) ilength

@@ -90,19 +90,19 @@ bool BurstFileWriter::doChown(std::string file_path, std::string user_name, std:
 	struct passwd* pwd = getpwnam(user_name.c_str());
 	if (pwd == NULL) {
 		LOG_ERROR("Failed to get uid");
-		raise;
+		throw std::runtime_error( "Cannot fetch the uid" );
 	}
 	uid_t uid = pwd->pw_uid;
 
 	struct group* grp = getgrnam(group_name.c_str());
 	if (grp == NULL) {
 		LOG_ERROR("Failed to get gid");
-		raise;
+		throw std::runtime_error( "Cannot fetch the gid");
 	}
 	gid_t  gid = grp->gr_gid;
 
 	if (chown(file_path.c_str(), uid, gid) == -1) {
-		LOG_ERROR("chown fail");
+		LOG_ERROR("Chown fail");
 		return false;
 	}
 	return true;

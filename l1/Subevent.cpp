@@ -29,7 +29,7 @@ Subevent::~Subevent() {
 }
 
 void Subevent::destroy() {
-	for (int i = 0; i != fragmentCounter; i++) {
+	for (uint_fast16_t i = 0; i != fragmentCounter; i++) {
 		delete eventFragments[i];
 		eventFragments[i] = nullptr;
 	}

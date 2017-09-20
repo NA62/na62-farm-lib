@@ -65,7 +65,7 @@ void EventPool::initialize(uint numberOfEventsToBeStored, uint numberOfNodes, ui
 Event* EventPool::getEvent(uint_fast32_t eventNumber) {
     //Let's check if the eventNumber belong to the selected nodeID
     //See if event number is in a valid range of the nodeID
-    int rest = (eventNumber-mepFactorxNodeID_)%mepFactorxNodes_;
+	uint_fast32_t rest = (eventNumber-mepFactorxNodeID_)%mepFactorxNodes_;
     if (rest < 0 || rest >= mepFactor_){
     		int x = int(eventNumber/(mepFactor_-1)) % int(mepFactorxNodes_/mepFactor_);
     		//int x = int(eventNumber/(mepFactor_-1)) % numberOfNodes;
@@ -85,7 +85,7 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
 
     int myfloor = floor(eventNumber / mepFactorxNodes_);
     //int index = eventNumber - mepFactorxNodeID_ - (mepFactorxNodes_ + mepFactor_) * myfloor ;
-    int index = eventNumber - mepFactorxNodeID_ + (mepFactor_- mepFactorxNodes_) * myfloor ;
+    uint_fast32_t index = eventNumber - mepFactorxNodeID_ + (mepFactor_- mepFactorxNodes_) * myfloor ;
     if (index >= poolSize_) {
 #ifdef USE_ERS
     		throw(TooLargeEventNumber(ERS_HERE, eventNumber, poolSize_));
@@ -97,8 +97,8 @@ Event* EventPool::getEvent(uint_fast32_t eventNumber) {
             }
 
 
-    if(index>largestIndexTouched_){
-            largestIndexTouched_ = index;
+    if (index > largestIndexTouched_) {
+    	largestIndexTouched_ = index;
     }
 
     return events_[index];

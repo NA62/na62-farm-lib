@@ -88,9 +88,9 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 	resetTriggerWords();
 
 	// Helper variables to navigate through serialized event;
-	uint sizeOfPointerTable = 4 * (SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES);
-	uint pointerTableOffset = sizeof(EVENT_HDR);
-	uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
+	//uint sizeOfPointerTable = 4 * (SourceIDManager::NUMBER_OF_L0_DATA_SOURCES + SourceIDManager::NUMBER_OF_L1_DATA_SOURCES);
+	//uint pointerTableOffset = sizeof(EVENT_HDR);
+	//uint eventOffset = sizeof(EVENT_HDR) + sizeOfPointerTable;
 
 	char* serializedBuf = reinterpret_cast<char*>(serializedEvent);
 	if (!onlyL0) {
@@ -119,7 +119,7 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 		//const char* detectorData = serializedBuf + (sourceIdAndOffset.offset);
 		l0::Subevent * se = L0Subevents[SourceIDManager::sourceIDToNum(sourceIdAndOffset.sourceID)];
 		int fragOffset = 0;
-		for (int j = 0; j < se->getNumberOfExpectedFragments(); ++j) {
+		for (uint_fast16_t j = 0; j < se->getNumberOfExpectedFragments(); ++j) {
 			//std::cout << "Recreating fragment: " << std::dec << j << std::endl;
 			const L0_BLOCK_HDR* l0b = reinterpret_cast<const L0_BLOCK_HDR*>(detectorData + fragOffset);
 			const l0::MEPFragment_HDR* fragData = reinterpret_cast<const l0::MEPFragment_HDR*>(detectorData + fragOffset);
@@ -150,7 +150,7 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 			const char* detectorData = serializedBuf + (sourceIdAndOffset.offset * 4);
 			l1::Subevent * se = L1Subevents[SourceIDManager::l1SourceIDToNum(sourceIdAndOffset.sourceID)];
 			int fragOffset = 0;
-			for (int j = 0; j < se->getNumberOfExpectedFragments(); ++j) {
+			for (uint_fast16_t j = 0; j < se->getNumberOfExpectedFragments(); ++j) {
 				const l1::L1_EVENT_RAW_HDR * fragData = reinterpret_cast<const l1::L1_EVENT_RAW_HDR*>(detectorData + fragOffset);
 				l1::MEPFragment * myFrag = new l1::MEPFragment(NULL, fragData);
 				se->addFragment(myFrag);
@@ -332,7 +332,7 @@ bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 			return false;
 		}
 
-		int numberOfMEPFragments = numberOfMEPFragments_.fetch_add(1, std::memory_order_release) + 1;
+		uint_fast16_t numberOfMEPFragments = numberOfMEPFragments_.fetch_add(1, std::memory_order_release) + 1;
 
 #ifdef MEASURE_TIME
 		if (numberOfMEPFragments == SourceIDManager::NUMBER_OF_EXPECTED_L1_PACKETS_PER_EVENT) {
@@ -441,7 +441,7 @@ void Event::updateMissingEventsStats() {
 //#endif
 		}
 		int DetId = (int) (SourceIDManager::sourceNumToID(sourceNum));
-		for (int ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
+		for (uint_fast16_t ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
 			int SubId = (int) (subevent->getFragment(ifrag)->getSourceSubID());
 			DetectorStatistics::incrementL0stat(DetId, SubId);
 		}
@@ -458,7 +458,7 @@ void Event::updateMissingEventsStats() {
 //
 //#endif
 			}
-			for (int ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
+			for (uint_fast16_t ifrag = 0; ifrag < subevent->getNumberOfFragments(); ifrag++) {
 				int SubId = (int) (subevent->getFragment(ifrag)->getSourceSubID());
 				int Crate = (SubId >> 5) & 0x3f;
 				int Slot = SubId & 0x1f;
