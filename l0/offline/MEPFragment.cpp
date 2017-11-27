@@ -6,8 +6,8 @@ using namespace na62;
 namespace na62 {
 namespace l0 {
 
-MEPFragment::MEPFragment(const MEPFragment_HDR *data, uint_fast32_t& expectedEventNum):
-		rawData(data), eventNumber_(expectedEventNum), sourceID_(0), sourceSubID_(0)  {
+MEPFragment::MEPFragment(const MEPFragment_HDR *data):
+		rawData(data), eventNumber_(0), sourceID_(0), sourceSubID_(0)  {
 	/*
 	 * Cite from NA62-11-02:
 	 * Event number LSB: the least significant 16 bits of the event number, as defined inside the
@@ -53,15 +53,15 @@ MEPFragment::MEPFragment(const MEPFragment_HDR *data, uint_fast32_t& expectedEve
 //	}
 }
 
-MEPFragment::MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID):
-		rawData(data), eventNumber_(expectedEventNum), sourceID_(sourceID), sourceSubID_(sourceSubID) {
-
-	// Luckily MEPFragment_HDR and L0_BLOCK_HDR have the same size and the same fields for size and timestamp; for now ignore the
-	// fact that the fields eventNumberLSB_, reserved_, lastEventOfBurst_ of the MEP fragment do not match with sourceSubID, reserved
-	// of the L0_BLOCK. It should be irrelevant for the trigger anyway.
-
-
-}
+//MEPFragment::MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID):
+//		rawData(data), eventNumber_(expectedEventNum), sourceID_(sourceID), sourceSubID_(sourceSubID) {
+//
+//	// Luckily MEPFragment_HDR and L0_BLOCK_HDR have the same size and the same fields for size and timestamp; for now ignore the
+//	// fact that the fields eventNumberLSB_, reserved_, lastEventOfBurst_ of the MEP fragment do not match with sourceSubID, reserved
+//	// of the L0_BLOCK. It should be irrelevant for the trigger anyway.
+//
+//
+//}
 
 MEPFragment::~MEPFragment() {
 //	if (mep_) {

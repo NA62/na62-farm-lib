@@ -35,19 +35,19 @@ public:
 	 *
 	 */
 	inline bool addFragment(MEPFragment* fragment) {
-		uint_fast16_t oldNumberOfFragments = fragmentCounter.fetch_add(1);
 
-//		if (oldNumberOfFragments
-//				>= SourceIDManager::getExpectedPacksBySourceID(
-//						fragment->getSourceID())) {
-//			/*
-//			 * when more fragments are received than expected: decrement the counter back to the old value
-//			 * We have to check >= as it might be > in case of a high rate where another thread could already
-//			 * have incremented it without decrementing it yet
-//			 */
-//			fragmentCounter--;
-//			return false;
-//		}
+		uint_fast16_t oldNumberOfFragments = fragmentCounter.fetch_add(1);
+		std::cout << "Adding MEP fragment!: " <<fragmentCounter <<std::endl;
+
+		if (oldNumberOfFragments >= expectedPacketsNum) {
+			/*
+			 * when more fragments are received than expected: decrement the counter back to the old value
+			 * We have to check >= as it might be > in case of a high rate where another thread could already
+			 * have incremented it without decrementing it yet
+			 */
+			fragmentCounter--;
+			return false;
+		}
 
 		eventFragments[oldNumberOfFragments] = fragment;
 		return true;
@@ -86,8 +86,12 @@ public:
 	uint_fast16_t getNumberOfExpectedFragments() const {
 		return expectedPacketsNum;
 	}
+
 	uint8_t getSourceID() {
 		return sourceID;
+	}
+	void reset() {
+		fragmentCounter = 0;
 	}
 private:
 	const uint_fast16_t expectedPacketsNum;

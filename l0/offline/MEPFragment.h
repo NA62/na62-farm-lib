@@ -26,10 +26,9 @@ struct MEPFragment_HDR {
 
 class MEPFragment: private boost::noncopyable {
 public:
-	MEPFragment(const MEPFragment_HDR * data,
-			uint_fast32_t& expectedEventNum);
+	MEPFragment(const MEPFragment_HDR * data);
 
-	MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID);
+	//MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID);
 
 	virtual ~MEPFragment();
 
