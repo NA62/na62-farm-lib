@@ -26,10 +26,9 @@ struct MEPFragment_HDR {
 
 class MEPFragment: private boost::noncopyable {
 public:
-	MEPFragment(const MEPFragment_HDR * data,
-			uint_fast32_t& expectedEventNum);
+	MEPFragment();
 
-	MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID);
+	//MEPFragment(const MEPFragment_HDR* data, uint32_t expectedEventNum, uint8_t sourceID, uint8_t sourceSubID);
 
 	virtual ~MEPFragment();
 
@@ -38,6 +37,11 @@ public:
 	 */
 	inline uint_fast16_t getDataWithHeaderLength() const {
 		return rawData->eventLength_;
+	}
+
+
+	void setData(const MEPFragment_HDR* data) {
+		rawData = data;
 	}
 
 	/**
@@ -53,13 +57,6 @@ public:
 
 	inline bool isLastEventOfBurst() const {
 		return rawData->lastEventOfBurst_;
-	}
-
-	/**
-	 * Absolute event number (MSB & LSB)
-	 */
-	inline uint_fast32_t getEventNumber() const {
-		return eventNumber_;
 	}
 
 	uint_fast8_t getSourceID() const;
@@ -84,10 +81,15 @@ public:
 		return ((char*) rawData) + sizeof(MEPFragment_HDR);
 	}
 
+	inline void reset() {
+		rawData = nullptr;
+		//sourceID_ = 0;
+		//sourceSubID_ = 0;
+	}
+
 
 private:
 	const MEPFragment_HDR * rawData;
-	const uint_fast32_t eventNumber_;
 	const uint_fast8_t sourceID_;
 	const uint_fast8_t sourceSubID_;
 

@@ -23,7 +23,7 @@ namespace l0 {
  */
 class Subevent: private boost::noncopyable {
 public:
-	Subevent(const uint_fast16_t expectedPacketsNum, const uint_fast8_t sourceID);
+	Subevent(const uint_fast16_t expectedPacketsNumD);
 	virtual ~Subevent();
 
 	void destroy();
@@ -34,7 +34,7 @@ public:
 	 * Otherwise false is returned
 	 *
 	 */
-	inline bool addFragment(MEPFragment* fragment) {
+	inline bool addFragment(MEPFragment_HDR* fragment) {
 		uint_fast16_t oldNumberOfFragments = fragmentCounter.fetch_add(1);
 
 //		if (oldNumberOfFragments
@@ -49,7 +49,7 @@ public:
 //			return false;
 //		}
 
-		eventFragments[oldNumberOfFragments] = fragment;
+		eventFragments[oldNumberOfFragments]->setData(fragment);
 		return true;
 	}
 
@@ -89,6 +89,16 @@ public:
 	uint8_t getSourceID() {
 		return sourceID;
 	}
+
+	void reset() {
+		uint_fast16_t NumberOfFragments = fragmentCounter.fetch_add(1);
+	    for (uint index = 0; index < NumberOfFragments; ++index) {
+	        eventFragments[index]->reset();
+	    }
+	    fragmentCounter = 0;
+	    //sourceID = 0;
+	}
+
 private:
 	const uint_fast16_t expectedPacketsNum;
 	const uint_fast8_t sourceID;
