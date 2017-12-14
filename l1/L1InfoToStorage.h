@@ -77,7 +77,7 @@ public:
 	double getL1StrawTrackP(uint iTrack);
 	void setL1StrawTrackP(uint iTrack, double momentum);
 
-	double getL1StrawTrackVz(uint iTrackk);
+	double getL1StrawTrackVz(uint iTrack);
 	void setL1StrawTrackVz(uint iTrack, double vertex);
 
 	void setL1CHODProcessed() {
