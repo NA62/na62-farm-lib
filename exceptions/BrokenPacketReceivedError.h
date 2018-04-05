@@ -6,19 +6,19 @@
  */
 
 #pragma once
-#ifndef BROKENPACKETRECEIVEDERROR_H_
-#define BROKENPACKETRECEIVEDERROR_H_
+#ifndef FREECONTAINER_H_
+#define FREECONTAINER_H_
 
 #include "NA62Error.h"
 
 namespace na62 {
 
-class BrokenPacketReceivedError: public na62::NA62Error {
+class FreeContainer: public na62::NA62Error {
 public:
-	BrokenPacketReceivedError(const std::string& message) :
+	FreeContainer(const std::string& message) :
 			na62::NA62Error(message) {
 	}
 };
 
 } //namespace na62
-#endif /* BROKENPACKETRECEIVEDERROR_H_ */
+#endif /* FREECONTAINER_H_ */

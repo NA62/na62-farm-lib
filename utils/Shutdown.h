@@ -15,7 +15,7 @@ public:
         signalService_(),
         signals_(signalService_, SIGINT, SIGTERM, SIGQUIT)
     {
-        std::cout<<"constructor"<<std::endl;
+        //std::cout<<"constructor"<<std::endl;
     }
     ~Shutdown()
     {
@@ -25,10 +25,8 @@ public:
     }
 
     void init() {
-        std::cout<<"Init "<<std::endl;
         signals_.async_wait(boost::bind(&Shutdown::handleStop, this, _1, _2));
         signalThread_ = boost::thread(boost::bind(&boost::asio::io_service::run, &signalService_));
-        std::cout<<"Init Completed"<<std::endl;
     }
 
     bool isSignalReceived() const {
