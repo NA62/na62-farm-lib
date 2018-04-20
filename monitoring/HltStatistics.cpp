@@ -189,6 +189,9 @@ void HltStatistics::updateL2Statistics(Event* const event, uint_fast8_t l2Trigge
 	if (l2Trigger & TRIGGER_L2_PHYSICS) {
 		HltStatistics::sumCounter("L2AcceptedEvents", 1);
 	}
+	if (l2Trigger & TRIGGER_L2_TIMEOUT) {
+		HltStatistics::sumCounter("L2TimeoutEvents", 1);
+	}
 	if (l2Trigger & TRIGGER_L2_ALLDISABLED) {
 		HltStatistics::sumCounter("L2AllDisabledEvents", 1);
 	}
