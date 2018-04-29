@@ -64,6 +64,9 @@ L1InfoToStorage::L1InfoToStorage() {
 	nMUV3Tiles_ = 0;
 	nNewCHODHits_ = 0;
 
+	strawExo2TrkCDA_ = 0.;
+	strawExo2TrkVtxToBeamDistance_ = 0;
+
 	for (uint iTrk = 0; iTrk != 5; iTrk++) {
 		trackP_[iTrk] = 0.;
 		trackVz_[iTrk] = 0.;
@@ -186,6 +189,18 @@ double L1InfoToStorage::getL1StrawTrackVz(uint iTrack) {
 }
 void L1InfoToStorage::setL1StrawTrackVz(uint iTrack, double vertex) {
 	trackVz_[iTrack] = vertex;
+}
+double L1InfoToStorage::getL1StrawExo2TrkCDA() {
+	return strawExo2TrkCDA_;
+}
+void L1InfoToStorage::setL1StrawExo2TrkCDA(double cda) {
+	strawExo2TrkCDA_ = cda;
+}
+double L1InfoToStorage::getL1StrawExo2TrkVtxToBeamDistance() {
+	return strawExo2TrkVtxToBeamDistance_;
+}
+void L1InfoToStorage::setL1StrawExo2TrkVtxToBeamDistance(double distance) {
+	strawExo2TrkVtxToBeamDistance_ = distance;
 }
 
 uint L1InfoToStorage::getL1MUV3NTiles() {

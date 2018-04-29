@@ -80,6 +80,12 @@ public:
 	double getL1StrawTrackVz(uint iTrack);
 	void setL1StrawTrackVz(uint iTrack, double vertex);
 
+	double getL1StrawExo2TrkCDA();
+	void setL1StrawExo2TrkCDA(double cda);
+
+	double getL1StrawExo2TrkVtxToBeamDistance();
+	void setL1StrawExo2TrkVtxToBeamDistance(double distance);
+
 	void setL1CHODProcessed() {
 		l1CHODProcessed_ = true;
 	}
@@ -296,6 +302,9 @@ private:
 	uint nStrawTracks_;
 	uint nMUV3Tiles_;
 	uint nNewCHODHits_;
+
+	double strawExo2TrkCDA_;
+	double strawExo2TrkVtxToBeamDistance_;
 
 	double trackP_[5];
 	double trackVz_[5];
