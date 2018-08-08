@@ -35,7 +35,7 @@ typedef struct l1EobCounter_t {
 	uint8_t formatVersion;
 	uint8_t timeoutFlag;
 	uint16_t reserved;
-	uint32_t extraReserved;
+	uint32_t L1CorruptedHeaderEvents;
 	uint32_t L1InputEvents;
 	uint32_t L1SpecialEvents;
 	uint32_t L1ControlEvents;

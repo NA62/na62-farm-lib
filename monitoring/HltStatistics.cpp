@@ -233,13 +233,13 @@ std::string HltStatistics::fillL1Eob() {
 	 * Any modifications must be flagged with a different data format !!!
 	 */
 
-	l1EobStruct_.l1EobData.formatVersion = 0;
+	l1EobStruct_.l1EobData.formatVersion = 1;
 	l1EobStruct_.l1EobData.timeoutFlag = (getCounter("L1TimeoutEvents") > 0);
 	l1EobStruct_.l1EobData.reserved = 0;
 
 	for (auto const& counter : counters_) {
 		if (counter.first == "L1CorruptedHeader") {
-			l1EobStruct_.l1EobData.extraReserved = counter.second;
+			l1EobStruct_.l1EobData.L1CorruptedHeaderEvents = counter.second;
 		}
 		if (counter.first == "L1InputEvents") {
 			l1EobStruct_.l1EobData.L1InputEvents = counter.second;
