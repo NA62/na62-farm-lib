@@ -81,7 +81,7 @@ Event::Event(EVENT_HDR* serializedEvent, bool onlyL0) :
 				serializedEvent->triggerWord), triggerFlags_(0), triggerDataType_(0), timestamp_(serializedEvent->timestamp), finetime_(
 				serializedEvent->fineTime), SOBtimestamp_(serializedEvent->SOBtimestamp), processingID_(serializedEvent->processingID), requestZeroSuppressedCreamData_(
 				false), nonZSuppressedDataRequestedNum(0), L1Processed_(false), L2Accepted_(false), unfinished_(false), lastEventOfBurst_(
-				false) {
+				false),is_mep_header_corrupted_(false) {
 
 	//std::cout << "Creating event with ID " << (int) eventNumber_ << std::endl;
 
@@ -194,10 +194,25 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 	unfinished_ = true;
 	if (numberOfL0Fragments_ == 0) {
 		lastEventOfBurst_ = fragment->isLastEventOfBurst();
+		lastEventOfBurstSeed_ = fragment->getSourceID();
 		setBurstID(burstID);
 	} else {
-		if (!lastEventOfBurst_)
-			lastEventOfBurst_ = fragment->isLastEventOfBurst(); // work around STRAWs bug
+		//All the MEP header must carry the same EOB flag
+		if (lastEventOfBurst_ xor fragment->isLastEventOfBurst()) {
+			LOG_ERROR("Mismatch in EOB header information"
+				<< " EOB sourceID seed 0x" << std::hex << ((int)lastEventOfBurstSeed_ )
+				<< " triggered by sourceID 0x" << std::hex << ((int) fragment->getSourceID())
+				<< " sourceSubID 0x" << ((int) fragment->getSourceSubID())
+				<< " for event " << std::dec << (int) (this->getEventNumber())
+				<< " burst: " << burstID
+			);
+			//Event will not be completed and will not arrive to the the l1 algorithms
+			delete fragment;
+			// The variable will be set to 0 it cannot be serialized as and incomplete EOB
+			lastEventOfBurst_ = false;
+			is_mep_header_corrupted_ = true;
+			return false;
+		}
 		if (burstID > getBurstID()) {
 			if (unfinishedEventMutex_.try_lock()) {
 				LOG_ERROR("Identified non cleared event " << (uint) getEventNumber() << " from previous burst!");
@@ -364,6 +379,7 @@ void Event::reset() {
 	L2Accepted_ = false;
 	unfinished_ = false;
 	lastEventOfBurst_ = false;
+	is_mep_header_corrupted_ = false;
 	nonZSuppressedDataRequestedNum = 0;
 	l0CallCounter_ = 0;
 	isL1Requested_ = 0;

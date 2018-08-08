@@ -108,7 +108,8 @@ EVENT_HDR* SmartEventSerializer::writeHeader(const Event* event, char*& eventBuf
 		header->triggerWord = 0xfefe23;
 	}
 
-	return header;}
+	return header;
+}
 
 
 char* SmartEventSerializer::writeL0Data(const Event* event, char*& eventBuffer, uint& eventOffset,

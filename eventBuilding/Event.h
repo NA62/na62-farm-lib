@@ -408,6 +408,10 @@ public:
 		return lastEventOfBurst_;
 	}
 
+	bool isMepHeaderCorrupted() const {
+		return is_mep_header_corrupted_;
+	}
+
 	bool isWaitingForNonZSuppressedLKrData() const {
 		return nonZSuppressedDataRequestedNum != 0;
 	}
@@ -590,6 +594,8 @@ private:
 	std::atomic<bool> unfinished_;
 
 	std::atomic<bool> lastEventOfBurst_;
+	std::atomic<uint_fast8_t> lastEventOfBurstSeed_;
+	std::atomic<bool> is_mep_header_corrupted_;
 
 	tbb::spin_mutex destroyMutex_;
 	tbb::spin_mutex unfinishedEventMutex_;

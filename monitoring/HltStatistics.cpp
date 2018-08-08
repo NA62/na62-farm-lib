@@ -42,6 +42,7 @@ void HltStatistics::initialize(int logicalID) {
 	counters_["L1BypassEvents"] = 0;
 	counters_["L1FlagAlgoEvents"] = 0;
 	counters_["L1AutoPassEvents"] = 0;
+	counters_["L1CorruptedHeader"] = 0;
 
 	counters_["L2InputEvents"] = 0;
 	counters_["L2SpecialEvents"] = 0;
@@ -235,9 +236,11 @@ std::string HltStatistics::fillL1Eob() {
 	l1EobStruct_.l1EobData.formatVersion = 0;
 	l1EobStruct_.l1EobData.timeoutFlag = (getCounter("L1TimeoutEvents") > 0);
 	l1EobStruct_.l1EobData.reserved = 0;
-	l1EobStruct_.l1EobData.extraReserved = 0;
 
 	for (auto const& counter : counters_) {
+		if (counter.first == "L1CorruptedHeader") {
+			l1EobStruct_.l1EobData.extraReserved = counter.second;
+		}
 		if (counter.first == "L1InputEvents") {
 			l1EobStruct_.l1EobData.L1InputEvents = counter.second;
 		}
