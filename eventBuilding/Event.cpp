@@ -257,8 +257,9 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
-		if (currentValue > SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT)
+		if (currentValue > SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 			LOG_ERROR("Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT);
+		}
 	}
 	return result;
 
@@ -317,9 +318,6 @@ bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 		} else {
 			ers::error(UnrequestedFragment(ERS_HERE, this->getEventNumber(), SourceIDManager::sourceIdToDetectorName(source_sub_id), fragment->getSourceSubID()));
 		}
-
-
-
 #else
 		LOG_ERROR("Seems that L1 processed has not been set!");
 		LOG_ERROR(

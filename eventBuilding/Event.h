@@ -96,7 +96,6 @@ public:
 	void setL1Processed(const uint_fast16_t L0L1TriggerTypeWord) {
 #ifdef MEASURE_TIME
 		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3 - l0BuildingTime_;
-		//LOG_INFO("*******************l1ProcessingTime_ " << l1ProcessingTime_);
 #endif
 
 		triggerTypeWord_ = L0L1TriggerTypeWord;
