@@ -437,6 +437,8 @@ public:
 		switch (getL0TriggerTypeWord()) {
 		case TRIGGER_L0_SOB: 			  //0x22
 		case TRIGGER_L0_EOB: 			  //0x23
+		case TRIGGER_CHOKE_ON:            //0x24
+		case TRIGGER_CHOKE_OFF:           //0x25
 //		case TRIGGER_L0_PEDESTAL_LKR:     //0x2d
 		case TRIGGER_L0_CALIBRATION1_LKR: //0x30
 //		case TRIGGER_L0_CALIBRATION2_LKR: //0x31
