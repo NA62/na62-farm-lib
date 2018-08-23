@@ -256,7 +256,7 @@ bool Event::addL0Fragment(l0::MEPFragment* fragment, uint_fast32_t burstID) {
 #ifdef MEASURE_TIME
 	bool result = currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT;
 	if (currentValue == SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
-		l0BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3;
+		l0BuildingTime_ = getTimeSinceFirstMEPReceived();
 		if (currentValue > SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT) {
 			LOG_ERROR("Too many L0 Packets:" << currentValue << "/" << SourceIDManager::NUMBER_OF_EXPECTED_L0_PACKETS_PER_EVENT);
 		}
@@ -349,7 +349,7 @@ bool Event::addL1Fragment(l1::MEPFragment* fragment) {
 
 #ifdef MEASURE_TIME
 		if (numberOfMEPFragments == SourceIDManager::NUMBER_OF_EXPECTED_L1_PACKETS_PER_EVENT) {
-			l1BuildingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3 - (l1ProcessingTime_ + l0BuildingTime_);
+			l1BuildingTime_ = getTimeSinceFirstMEPReceived() - (l1ProcessingTime_ + l0BuildingTime_);
 //			LOG_INFO("l1BuildingTime_ " << l1BuildingTime_);
 			return true;
 		}

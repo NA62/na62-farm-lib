@@ -95,7 +95,7 @@ public:
 	 */
 	void setL1Processed(const uint_fast16_t L0L1TriggerTypeWord) {
 #ifdef MEASURE_TIME
-		l1ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3 - l0BuildingTime_;
+		l1ProcessingTime_ = getTimeSinceFirstMEPReceived() - l0BuildingTime_;
 #endif
 
 		triggerTypeWord_ = L0L1TriggerTypeWord;
@@ -111,7 +111,7 @@ public:
 	 */
 	void setL2Processed(const uint_fast8_t L2TriggerTypeWord) {
 #ifdef MEASURE_TIME
-		l2ProcessingTime_ = firstEventPartAddedTime_.elapsed().wall / 1E3 - (l1BuildingTime_ + l1ProcessingTime_ + l0BuildingTime_);
+		l2ProcessingTime_ = getTimeSinceFirstMEPReceived() - (l1BuildingTime_ + l1ProcessingTime_ + l0BuildingTime_);
 //		LOG_INFO("*******************l2ProcessingTime_ " << l2ProcessingTime_);
 #endif
 
@@ -506,6 +506,17 @@ public:
 		return l2ProcessingTime_;
 	}
 
+	/*
+	 * Returns the number of wall microseconds passed between the End of the processing of the L2 and the end of the Serialization
+	 */
+	u_int32_t getSerializationTime() const {
+		return SerializationTime_;
+	}
+
+	void setSerializationTime() {
+		SerializationTime_ = getTimeSinceFirstMEPReceived() - l1BuildingTime_ - l1ProcessingTime_ - l0BuildingTime_ - l2ProcessingTime_;
+	}
+
 	uint_fast16_t getL0CallCounter() const {
 		return l0CallCounter_;
 	}
@@ -537,8 +548,6 @@ private:
 	void setSOBtimestamp(const uint_fast32_t SOBtimestamp) {
 		SOBtimestamp_ = SOBtimestamp;
 	}
-
-
 
 	void setEventNumber(uint_fast32_t eventNumber) {
 		eventNumber_ = eventNumber;
@@ -617,6 +626,8 @@ private:
 	std::atomic<uint_fast32_t> l1ProcessingTime_;
 	std::atomic<uint_fast32_t> l1BuildingTime_;
 	std::atomic<uint_fast32_t> l2ProcessingTime_;
+	std::atomic<uint_fast32_t> SerializationTime_;
+
 #endif
 };
 
