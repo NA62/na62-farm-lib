@@ -5,10 +5,9 @@
 namespace na62 {
 namespace l0 {
 
-Subevent::Subevent(const uint_fast16_t expectedPacketsNum) :
-		expectedPacketsNum(expectedPacketsNum), eventFragments(
-				new (std::nothrow) MEPFragment*[expectedPacketsNum]), fragmentCounter(
-				0), sourceID(0) {
+Subevent::Subevent(const uint_fast16_t pexpectedPacketsNum) :
+		expectedPacketsNum(pexpectedPacketsNum), sourceID(0), fragmentCounter(0), eventFragments(new (std::nothrow) MEPFragment*[pexpectedPacketsNum]) {
+
     for (uint index = 0; index < expectedPacketsNum; ++index) {
         eventFragments[index] = new MEPFragment();
     }
