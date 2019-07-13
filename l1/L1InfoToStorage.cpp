@@ -157,9 +157,6 @@ void L1InfoToStorage::setL1KTAGNSectorsCHOD(uint nSectors) {
 	nKTAGSectorsCHOD_ = nSectors;
 }
 
-uint L1InfoToStorage::getL1LAVNHits() {
-	return nLAVHits_;
-}
 void L1InfoToStorage::setL1LAVNHits(uint nHits) {
 	nLAVHits_ = nHits;
 }
