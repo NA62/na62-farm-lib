@@ -12,6 +12,14 @@
 #include <string.h>
 #include <sys/time.h>
 
+extern "C" L1InfoToStorage* create_l1storage() {
+    return new L1InfoToStorage();
+}
+
+extern "C" void destroy_l1storage(L1InfoToStorage* object) {
+    delete object;
+}
+
 L1InfoToStorage::L1InfoToStorage() {
 	chodTime_ = 0.;
 	newchodTime_ = 0.;
@@ -142,14 +150,8 @@ void L1InfoToStorage::setL1CHODNHits(uint nHits) {
 	nCHODHits_ = nHits;
 }
 
-uint L1InfoToStorage::getL1KTAGNSectorsL0TP() {
-	return nKTAGSectorsL0TP_;
-}
 void L1InfoToStorage::setL1KTAGNSectorsL0TP(uint nSectors) {
 	nKTAGSectorsL0TP_ = nSectors;
-}
-uint L1InfoToStorage::getL1KTAGNSectorsCHOD() {
-	return nKTAGSectorsCHOD_;
 }
 void L1InfoToStorage::setL1KTAGNSectorsCHOD(uint nSectors) {
 	nKTAGSectorsCHOD_ = nSectors;
