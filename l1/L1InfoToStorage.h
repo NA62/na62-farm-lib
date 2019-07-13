@@ -63,8 +63,10 @@ public:
         return nKTAGSectorsCHOD_;
     }
 
-	uint getL1LAVNHits();
-	void setL1LAVNHits(uint nHits);
+    void setL1LAVNHits(uint nHits);
+    uint getL1LAVNHits() {
+        return nLAVHits_;
+    }
 
 	uint getL1IRCSACNHits();
 	void setL1IRCSACNHits(uint nHits);
