@@ -53,11 +53,15 @@ public:
 	uint getL1CHODNHits();
 	void setL1CHODNHits(uint nHits);
 
-	uint getL1KTAGNSectorsL0TP();
 	void setL1KTAGNSectorsL0TP(uint nSectors);
+    uint getL1KTAGNSectorsL0TP() {
+        return nKTAGSectorsL0TP_;
+    }
 
-	uint getL1KTAGNSectorsCHOD();
 	void setL1KTAGNSectorsCHOD(uint nSectors);
+    uint getL1KTAGNSectorsCHOD() {
+        return nKTAGSectorsCHOD_;
+    }
 
 	uint getL1LAVNHits();
 	void setL1LAVNHits(uint nHits);
