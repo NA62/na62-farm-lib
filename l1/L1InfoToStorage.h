@@ -37,8 +37,11 @@ public:
 
 	uint_fast8_t getL1NewCHODTrgWrd(uint l0MaskID);
 	void setL1NewCHODTrgWrd(uint l0MaskID, uint_fast8_t trigger);
+    uint_fast8_t getL1StrawTrgWrd(uint l0MaskID);
 
-	uint_fast8_t getL1StrawTrgWrd(uint l0MaskID);
+    uint getL1StrawNTracks() {
+        return nStrawTracks_;
+    }
 	void setL1StrawTrgWrd(uint l0MaskID, uint_fast8_t trigger);
 
 	uint_fast8_t getL1RefTimeL0TP();
@@ -77,7 +80,6 @@ public:
 	uint getL1NewCHODNHits();
 	void setL1NewCHODNHits(uint nHits);
 
-	uint getL1StrawNTracks();
 	void setL1StrawNTracks(uint nTracks);
 
 	double getL1StrawTrackP(uint iTrack);

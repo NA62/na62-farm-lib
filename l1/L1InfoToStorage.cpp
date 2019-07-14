@@ -12,6 +12,7 @@
 #include <string.h>
 #include <sys/time.h>
 
+
 extern "C" L1InfoToStorage* create_l1storage() {
     return new L1InfoToStorage();
 }
@@ -168,9 +169,6 @@ void L1InfoToStorage::setL1IRCSACNHits(uint nHits) {
 	nIRCSACHits_ = nHits;
 }
 
-uint L1InfoToStorage::getL1StrawNTracks() {
-	return nStrawTracks_;
-}
 void L1InfoToStorage::setL1StrawNTracks(uint nTracks) {
 	nStrawTracks_ = nTracks;
 }
