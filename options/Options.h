@@ -13,7 +13,7 @@
  * Bugfix: see https://svn.boost.org/trac/boost/ticket/8546
  */
 #if defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)))
-#  define BOOST_ATTRIBUTE_UNUSED __attribute__((unused))
+#  define BOOST_ATTRIBUTE_UNUSED __attribute__((__unused__))
 #else
 #  define BOOST_ATTRIBUTE_UNUSED
 #endif
