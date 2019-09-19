@@ -102,8 +102,8 @@ public:
 private:
 	const uint_fast16_t expectedPacketsNum;
 	const uint_fast8_t sourceID;
-	MEPFragment ** eventFragments;
 	std::atomic<uint_fast16_t> fragmentCounter;
+	MEPFragment ** eventFragments;
 };
 
 } /* namespace l0 */
