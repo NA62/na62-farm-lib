@@ -9,17 +9,11 @@
 #define BURSTIDHANDLER_H_
 
 #include <boost/timer/timer.hpp>
-#include <cstdint>
-#include <iostream>
 #include <mutex>
-#include <thread>
-#include <functional>
-#include "../utils/AExecutable.h"
-//#include "FarmStatistics.h"
 #include <atomic>
 
+#include "../utils/AExecutable.h"
 #include "../options/Logging.h"
-#include "../options/Options.h"
 
 
 namespace na62 {
@@ -27,8 +21,11 @@ namespace na62 {
 class BurstIdHandler: public AExecutable {
 public:
 
+	static void initialize(int flush_burst_millis, int clean_burst_millis) {
+		flush_burst_s_ = ((float) flush_burst_millis) / 1000.;
+		clean_burst_s_ = ((float) clean_burst_millis) / 1000.;
+	}
 	static void setNextBurstID(uint_fast32_t nextBurstID) {
-
 		std::lock_guard<std::mutex> lk(timerMutex_);
 		//EOBReceivedTimer_.elapsed().clear();
 		EOBReceivedTimer_.start();
@@ -107,6 +104,8 @@ private:
 	static std::function<void()> burstCleanupFunction_;
 	static std::atomic<uint> eobTime_;
 	static std::atomic<uint> sobTime_;
+	static float flush_burst_s_;
+	static float clean_burst_s_;
 };
 
 }
